@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project default="pack_all" name="Create library">
+	<taskdef resource="net/sf/antcontrib/antlib.xml" />
+
+	<property name="build.properties" value="build.properties" />
+	<property file="${build.properties}" />
+
+	<property name="build.version" value="1.0.0" />
+	<property name="build.jvm" value="1.8" />
+	<property name="project.vendor" value="Kreed" />
+
+	<property name="project.path" location="${basedir}" />
+	<basename property="project.name" file="${project.path}" />
+	<property name="doc.dir" location="${project.path}/docs" />
+	<property name="src.dir" location="${project.path}/src" />
+	<property name="lib.dir" location="${project.path}/lib" />
+
+	<property name="build.dir" location="${project.path}/build" />
+	<property name="bin.dir" location="${build.dir}/bin" />
+	<property name="javadoc.dir" location="${build.dir}/javadoc" />
+	<property name="dist.dir" location="${build.dir}/dist" />
+
+	<property name="compile.debug" value="off" />
+	<property name="jar.extension" value="" />
+
+	<path id="classpath">
+		<fileset dir="${lib.dir}">
+			<patternset>
+				<include name="**/*.jar" />
+				<exclude name="**/*source*.jar" />
+				<exclude name="**/*javadoc*.jar" />
+			</patternset>
+		</fileset>
+	</path>
+
+	<target name="clean_all" depends="clean_bin, clean_javadoc">
+		<delete dir="${build.dir}" />
+	</target>
+
+	<target name="clean_bin" description="Clean and delete existing folders">
+		<delete dir="${bin.dir}" />
+	</target>
+
+	<target name="compile_bin" depends="clean_bin" description="Fresh compile Java class files">
+		<def-compile debug="off" />
+	</target>
+
+	<target name="clean_javadoc" description="deletes java documentation">
+		<delete dir="${javadoc.dir}" />
+	</target>
+
+	<macrodef name="def-compile">
+		<attribute name="debug" default="off" />
+		<sequential>
+			<if>
+				<equals arg1="${lib.update}" arg2="true" />
+				<then>
+					<antcall target="update_lib" inheritall="true" inheritrefs="true" />
+				</then>
+			</if>
+
+			<mkdir dir="${bin.dir}" />
+			<javac srcdir="${src.dir}" destdir="${bin.dir}" debug="@{debug}" target="${build.jvm}" includeantruntime="false">
+				<classpath refid="classpath" />
+			</javac>
+		</sequential>
+	</macrodef>
+
+	<target name="create_javadoc" depends="clean_javadoc" description="generate java documentation">
+		<mkdir dir="${javadoc.dir}" />
+		<javadoc sourcepath="${src.dir}" destdir="${javadoc.dir}" private="off" />
+	</target>
+
+	<macrodef name="def-pack-jar">
+		<attribute name="jar.extension" default="" />
+		<element name="bundle-fileset" description="fileset of which files should be stored in the jar" />
+		<sequential>
+			<mkdir dir="${dist.dir}" />
+			<mkdir dir="${doc.dir}" />
+
+			<pathconvert property="manifest.classpath" pathsep=" ">
+				<path refid="classpath" />
+				<flattenmapper />
+			</pathconvert>
+
+			<tstamp>
+				<format property="NOW" pattern="yyyy-MM-dd-hhmm" />
+			</tstamp>
+
+			<property name="manifest.file" location="${project.path}/MANIFEST.MF" />
+			<manifest file="${manifest.file}">
+				<attribute name="Bundle-SymbolicName" value="${project.name}" />
+				<attribute name="Bundle-Vendor" value="${project.vendor}" />
+				<attribute name="Implementation-Version" value="${build.version}" />
+				<attribute name="Built-Date" value="${NOW}" />
+				<attribute name="Class-Path" value="${manifest.classpath}" />
+			</manifest>
+
+			<if>
+				<available file="${doc.dir}" />
+				<then>
+					<echo>Including files under "${doc.dir}"</echo>
+				</then>
+				<else>
+					<echo>No documents for inclusion found. Readmes and licenses can be stored under "${doc.dir}"</echo>
+				</else>
+			</if>
+
+			<jar destfile="${dist.dir}/${project.name}@{jar.extension}.jar" filesetmanifest="mergewithoutmain" manifest="${manifest.file}">
+				<bundle-fileset />
+				<fileset dir="${doc.dir}" />
+			</jar>
+		</sequential>
+	</macrodef>
+
+	<target name="update_lib">
+		<for param="file">
+			<path refid="classpath" />
+			<sequential>
+				<local name="lib.name" />
+				<local name="lib.project" />
+				<basename property="lib.name" file="@{file}" suffix=".jar" />
+				<property name="lib.project" location="../${lib.name}" />
+				<if>
+					<available file="${lib.project}" />
+					<then>
+						<echo>Check Update: ${lib.name}</echo>
+						<copy todir="${lib.dir}" overwrite="true">
+							<fileset dir="${lib.project}/build/dist">
+								<include name="**/${lib.name}*.jar" />
+								<exclude name="**/*javadoc?.jar" />
+							</fileset>
+						</copy >
+					</then>
+					<else>
+						<echo>Not found: ${lib.name}</echo>
+					</else>
+				</if>
+				<echo>${lib.project}</echo>
+			</sequential>
+		</for>
+	</target>
+
+	<target name="pack_binary" depends="compile_bin">
+		<!--<def-compile debug="off" />-->
+		<def-pack-jar jar.extension="">
+			<bundle-fileset>
+				<fileset dir="${bin.dir}" />
+			</bundle-fileset>
+		</def-pack-jar>
+	</target>
+
+	<target name="pack_source">
+		<!--<def-compile debug="off" />-->
+		<def-pack-jar jar.extension="-source">
+			<bundle-fileset>
+				<fileset dir="${src.dir}" />
+			</bundle-fileset>
+		</def-pack-jar>
+	</target>
+
+	<target name="pack_javadoc" depends="create_javadoc">
+		<!--<def-compile debug="off" />-->
+		<def-pack-jar jar.extension="-javadoc">
+			<bundle-fileset>
+				<fileset dir="${javadoc.dir}" />
+			</bundle-fileset>
+		</def-pack-jar>
+	</target>
+
+	<target name="pack_all" depends="pack_binary, pack_source, pack_javadoc">
+	</target>
+
+	<target name="main" depends="" description="">
+	</target>
+
+
+</project>
