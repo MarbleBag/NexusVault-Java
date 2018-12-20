@@ -11,7 +11,6 @@
 
 	<property name="project.path" location="${basedir}" />
 	<basename property="project.name" file="${project.path}" />
-	<property name="doc.dir" location="${project.path}/docs" />
 	<property name="src.dir" location="${project.path}/src" />
 	<property name="lib.dir" location="${project.path}/lib" />
 
@@ -76,7 +75,8 @@
 		<element name="bundle-fileset" description="fileset of which files should be stored in the jar" />
 		<sequential>
 			<mkdir dir="${dist.dir}" />
-			<mkdir dir="${doc.dir}" />
+			<mkdir dir="${lib.dir}" />
+			<mkdir dir="${project.path}/docs" />
 
 			<pathconvert property="manifest.classpath" pathsep=" ">
 				<path refid="classpath" />
@@ -97,57 +97,66 @@
 			</manifest>
 
 			<if>
-				<available file="${doc.dir}" />
+				<available file="${project.path}/docs" />
 				<then>
-					<echo>Including files under "${doc.dir}"</echo>
+					<echo>Including files under "${project.path}/docs"</echo>
 				</then>
 				<else>
-					<echo>No documents for inclusion found. Readmes and licenses can be stored under "${doc.dir}"</echo>
+					<echo>No documents for inclusion found. Readmes and licenses can be stored under "${project.path}/docs"</echo>
 				</else>
 			</if>
 
 			<jar destfile="${dist.dir}/${project.name}@{jar.extension}.jar" filesetmanifest="mergewithoutmain" manifest="${manifest.file}">
 				<bundle-fileset />
-				<fileset dir="${doc.dir}" />
+				<fileset dir="${project.path}">
+					<include name="docs/**" />
+				</fileset>
 			</jar>
 		</sequential>
 	</macrodef>
 
 	<target name="update_lib">
+		<mkdir dir="${lib.dir}" />
 		<for param="file">
 			<path refid="classpath" />
 			<sequential>
 				<local name="lib.name" />
-				<local name="lib.project" />
 				<basename property="lib.name" file="@{file}" suffix=".jar" />
-				<property name="lib.project" location="../${lib.name}" />
 				<if>
-					<available file="${lib.project}" />
+					<not>
+						<contains string="${lib.dependencies}" substring="${lib.name}" />
+					</not>
 					<then>
-						<echo>Check Update: ${lib.name}</echo>
-						<copy todir="${lib.dir}" overwrite="true">
-							<fileset dir="${lib.project}/build/dist">
-								<include name="**/${lib.name}*.jar" />
-								<exclude name="**/*javadoc?.jar" />
-							</fileset>
+						<echo>Check Update by lib: ${lib.name}</echo>
+						<copy todir="${lib.dir}" overwrite="true" failonerror="no" flatten="yes">
+							<fileset dir="../${lib.name}" includes="**/dist/${lib.name}.jar" />
+							<fileset dir="../lib" includes="**/${lib.name}.jar" />
 						</copy >
 					</then>
-					<else>
-						<echo>Not found: ${lib.name}</echo>
-					</else>
 				</if>
-				<echo>${lib.project}</echo>
+			</sequential>
+		</for>
+		<for param="file" list="${lib.dependencies}">
+			<sequential>
+				<local name="lib.name" />
+				<basename property="lib.name" file="@{file}" suffix=".jar" />
+				<echo>Check for Update by property: ${lib.name}</echo>
+				<copy todir="${lib.dir}" overwrite="true" failonerror="no" flatten="yes">
+					<fileset dir="../${lib.name}" includes="**/dist/${lib.name}.jar" />
+					<fileset dir="../lib" includes="**/${lib.name}.jar" />
+				</copy >
 			</sequential>
 		</for>
 	</target>
 
-	<target name="pack_binary" depends="compile_bin">
+	<target name="pack_binary" depends="compile_bin" >
 		<!--<def-compile debug="off" />-->
 		<def-pack-jar jar.extension="">
 			<bundle-fileset>
 				<fileset dir="${bin.dir}" />
 			</bundle-fileset>
 		</def-pack-jar>
+		<antcall target="clean_bin"/>
 	</target>
 
 	<target name="pack_source">
@@ -166,6 +175,7 @@
 				<fileset dir="${javadoc.dir}" />
 			</bundle-fileset>
 		</def-pack-jar>
+		<antcall target="clean_javadoc"/>
 	</target>
 
 	<target name="pack_all" depends="pack_binary, pack_source, pack_javadoc">
