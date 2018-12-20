@@ -1,0 +1,9 @@
+Manifest-Version: 1.0
+Ant-Version: Apache Ant 1.9.6
+Created-By: 1.8.0_121-b13 (Oracle Corporation)
+Bundle-SymbolicName: nexusvault.shared.exception
+Bundle-Vendor: Kreed
+Implementation-Version: 1.0.0
+Built-Date: 2018-12-20-0503
+Class-Path: 
+
