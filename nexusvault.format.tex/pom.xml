@@ -35,7 +35,7 @@
 		</dependency>
 		<dependency>
 			<groupId>nexusvault</groupId>
-			<artifactId>nexusvault.shared.exception</artifactId>
+			<artifactId>nexusvault.shared</artifactId>
 			<version>[1,)</version>
 		</dependency>
 		<dependency>
