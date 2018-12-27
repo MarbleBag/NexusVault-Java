@@ -39,7 +39,7 @@ abstract class BaseVaultReader {
 		final BinaryReader reader = getArchiveBinaryReader();
 		try {
 
-			reader.seek(Seek.START, block.getOffset());
+			reader.seek(Seek.BEGIN, block.getOffset());
 			final int compressionType = file.getFlags();
 
 			ByteBuffer result = null;

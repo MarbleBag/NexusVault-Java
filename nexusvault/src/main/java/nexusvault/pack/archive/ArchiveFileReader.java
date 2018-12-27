@@ -32,7 +32,7 @@ public final class ArchiveFileReader {
 	}
 
 	protected void loadHeader(ArchiveFile archiveFile, BinaryReader reader) {
-		reader.seek(Seek.START, 0);
+		reader.seek(Seek.BEGIN, 0);
 
 		final StructArchiveFileHeader header = new StructArchiveFileHeader();
 		archiveFile.header = header;
@@ -68,7 +68,7 @@ public final class ArchiveFileReader {
 					String.format("Archive File : Number of pack headers (%d) exceed integer range", archiveFile.header.numPackHeaders));
 		}
 
-		reader.seek(Seek.START, archiveFile.header.offsetPackHeaders);
+		reader.seek(Seek.BEGIN, archiveFile.header.offsetPackHeaders);
 		archiveFile.packHeader = new PackHeader[(int) archiveFile.header.numPackHeaders];
 		for (int i = 0; i < archiveFile.packHeader.length; ++i) {
 			archiveFile.packHeader[i] = new PackHeader(reader.readInt64(), reader.readInt64());
@@ -82,7 +82,7 @@ public final class ArchiveFileReader {
 		}
 
 		final PackHeader header = archiveFile.packHeader[(int) archiveFile.header.rootPackHeaderIndex];
-		reader.seek(Seek.START, header.getOffset());
+		reader.seek(Seek.BEGIN, header.getOffset());
 		final AARC rootBlock = new AARC(reader.readInt32(), reader.readInt32(), reader.readInt32(), reader.readInt32());
 		if (rootBlock.signature != SIGNATURE_AARC) {
 			throw new SignatureMismatchException("Archive file: AARC block", SIGNATURE_AARC, rootBlock.signature);
@@ -92,7 +92,7 @@ public final class ArchiveFileReader {
 
 	protected void loadAARCEntries(ArchiveFile archiveFile, BinaryReader reader) {
 		final PackHeader header = archiveFile.getRootHeader();
-		reader.seek(Seek.START, header.getOffset());
+		reader.seek(Seek.BEGIN, header.getOffset());
 
 		final List<AARCEntry> entries = new ArrayList<>(archiveFile.aarc.entryCount);
 

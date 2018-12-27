@@ -38,7 +38,7 @@ public final class IndexFileReader {
 	}
 
 	protected void loadHeader(IndexFile indexFile, BinaryReader reader) {
-		reader.seek(Seek.START, 0);
+		reader.seek(Seek.BEGIN, 0);
 
 		final StructIndexFileHeader header = new StructIndexFileHeader();
 		indexFile.header = header;
@@ -73,7 +73,7 @@ public final class IndexFileReader {
 			throw new IllegalArgumentException(String.format("Index File : Number of pack headers (%d) exceed integer range", indexFile.header.numPackHeaders));
 		}
 
-		reader.seek(Seek.START, indexFile.header.offsetPackHeaders);
+		reader.seek(Seek.BEGIN, indexFile.header.offsetPackHeaders);
 		indexFile.packHeader = new PackHeader[(int) indexFile.header.numPackHeaders];
 		for (int i = 0; i < indexFile.packHeader.length; ++i) {
 			indexFile.packHeader[i] = new PackHeader(reader.readInt64(), reader.readInt64());
@@ -87,7 +87,7 @@ public final class IndexFileReader {
 		}
 
 		final PackHeader header = indexFile.packHeader[(int) indexFile.header.rootPackHeaderIndex];
-		reader.seek(Seek.START, header.getOffset());
+		reader.seek(Seek.BEGIN, header.getOffset());
 		final AIDX rootBlock = new AIDX(reader.readInt32(), reader.readInt32(), reader.readInt32(), reader.readInt32());
 		if (rootBlock.signature != SIGNATURE_AIDX) {
 			throw new SignatureMismatchException("Index file: AIDX block", SIGNATURE_INDEX, rootBlock.signature);
@@ -113,7 +113,7 @@ public final class IndexFileReader {
 
 	protected void loadDirectory(IndexFile indexFile, BinaryReader reader, IdxDirectory parent) {
 		final PackHeader packheader = indexFile.getPackHeader(parent.packHeaderIdx);
-		reader.seek(Seek.START, packheader.getOffset());
+		reader.seek(Seek.BEGIN, packheader.getOffset());
 
 		final long numSubDirectories = reader.readUInt32();
 		final long numFiles = reader.readUInt32();
@@ -160,7 +160,7 @@ public final class IndexFileReader {
 		final byte[] entryNameAsBytes = new byte[(int) nameLengthInByte];
 		reader.readInt8(entryNameAsBytes, 0, entryNameAsBytes.length);
 		final String nameTwine = new String(entryNameAsBytes, Charset.forName("UTF8"));
-		reader.seek(Seek.START, dataPosition);
+		reader.seek(Seek.BEGIN, dataPosition);
 		return nameTwine;
 	}
 
