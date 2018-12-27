@@ -59,7 +59,7 @@ public final class TableReader {
 
 		final StructTableFieldHeader[] fields = new StructTableFieldHeader[(int) header.fieldCount];
 		for (int i = 0; i < fields.length; ++i) {
-			reader.seek(Seek.START, fieldHeaderPosition + (i * StructTableFieldHeader.SIZE_IN_BYTES));
+			reader.seek(Seek.BEGIN, fieldHeaderPosition + (i * StructTableFieldHeader.SIZE_IN_BYTES));
 			fields[i] = new StructTableFieldHeader(reader);
 		}
 
@@ -71,7 +71,7 @@ public final class TableReader {
 
 		for (final StructTableFieldHeader field : fields) {
 			final StructTableFieldHeader fieldHeader = field;
-			reader.seek(Seek.START, tblNamePosition + fieldHeader.nameOffset);
+			reader.seek(Seek.BEGIN, tblNamePosition + fieldHeader.nameOffset);
 			fieldHeader.name = extractUTF16String(reader, (fieldHeader.nameLength - 1) * 2);
 		}
 
@@ -84,7 +84,7 @@ public final class TableReader {
 		final List<TableRecord> records = new ArrayList<>((int) header.recordCount);
 
 		for (int i = 0; i < header.recordCount; ++i) {
-			reader.seek(Seek.START, tblRecordPosition + (i * header.recordSize));
+			reader.seek(Seek.BEGIN, tblRecordPosition + (i * header.recordSize));
 
 			final TableRecord record = new TableRecord(fields.length);
 			records.add(record);
@@ -123,10 +123,10 @@ public final class TableReader {
 							throw new IntegerOverflowException();
 						}
 
-						reader.seek(Seek.START, dataOffset);
+						reader.seek(Seek.BEGIN, dataOffset);
 						final String value = extractNullTerminatedUTF16String(reader);
 						record.data[j] = value;
-						reader.seek(Seek.START, lastPosition);
+						reader.seek(Seek.BEGIN, lastPosition);
 						break;
 					default:
 						throw new IllegalArgumentException();
@@ -139,7 +139,7 @@ public final class TableReader {
 	}
 
 	protected int[] loadTableLookup(StructTableFileHeader header, long postHeaderPosition, BinaryReader reader) {
-		reader.seek(Seek.START, postHeaderPosition + header.lookupOffset);
+		reader.seek(Seek.BEGIN, postHeaderPosition + header.lookupOffset);
 		final int[] lookUps = new int[(int) header.maxId];
 		for (int i = 0; i < lookUps.length; ++i) {
 			lookUps[i] = reader.readInt32();
