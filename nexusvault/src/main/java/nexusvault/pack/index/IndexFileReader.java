@@ -58,7 +58,8 @@ public final class IndexFileReader {
 		header.fileSize = reader.readInt64(); // 520 - 528
 		reader.seek(Seek.CURRENT, 8); // 528 - 536
 		header.offsetPackHeaders = reader.readInt64(); // 536 - 544
-		header.numPackHeaders = reader.readInt64(); // 544 - 552
+		header.packHeaderCount = reader.readUInt32(); // 544 - 552
+		reader.seek(Seek.CURRENT, 4);
 		header.rootPackHeaderIndex = reader.readInt64(); // 552 - 560
 		reader.seek(Seek.CURRENT, 16); // 560 - 576
 	}
@@ -69,12 +70,13 @@ public final class IndexFileReader {
 			throw new IllegalArgumentException("Index File: Pack header offset: index overflow");
 		}
 
-		if ((indexFile.header.numPackHeaders > Integer.MAX_VALUE) || (indexFile.header.numPackHeaders < 0)) {
-			throw new IllegalArgumentException(String.format("Index File : Number of pack headers (%d) exceed integer range", indexFile.header.numPackHeaders));
+		if ((indexFile.header.packHeaderCount > Integer.MAX_VALUE) || (indexFile.header.packHeaderCount < 0)) {
+			throw new IllegalArgumentException(
+					String.format("Index File : Number of pack headers (%d) exceed integer range", indexFile.header.packHeaderCount));
 		}
 
 		reader.seek(Seek.BEGIN, indexFile.header.offsetPackHeaders);
-		indexFile.packHeader = new PackHeader[(int) indexFile.header.numPackHeaders];
+		indexFile.packHeader = new PackHeader[(int) indexFile.header.packHeaderCount];
 		for (int i = 0; i < indexFile.packHeader.length; ++i) {
 			indexFile.packHeader[i] = new PackHeader(reader.readInt64(), reader.readInt64());
 		}

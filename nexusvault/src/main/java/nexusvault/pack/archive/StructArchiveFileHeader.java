@@ -34,14 +34,18 @@ class StructArchiveFileHeader {
 	public long offsetPackHeaders; // 0x218
 
 	@Order(7)
-	@StructField(DataType.UBIT_64)
-	public long numPackHeaders; // 0x220
+	@StructField(DataType.UBIT_32)
+	public long packHeaderCount; // 0x220
 
 	@Order(8)
+	@StructField(DataType.BIT_32)
+	public int unk_224; // 0x224
+
+	@Order(9)
 	@StructField(DataType.UBIT_64)
 	public long rootPackHeaderIndex; // 0x228
 
-	@Order(9)
+	@Order(10)
 	@StructField(value = DataType.BIT_8, length = 16)
 	private byte[] unknown_230; // 0x230
 
