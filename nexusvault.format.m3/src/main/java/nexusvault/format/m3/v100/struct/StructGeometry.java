@@ -51,18 +51,6 @@ public class StructGeometry implements VisitableStruct {
 	@StructField(UBIT_16)
 	public int vertexBlockSizeInBytes; // 0x01C
 
-	private static final int VB_FLAGS_LOCATION = 0x0001;
-	private static final int VB_FLAGS_3_UNK_1 = 0x0002;
-	private static final int VB_FLAGS_3_UNK_2 = 0x0004;
-	private static final int VB_FLAGS_3_UNK_3 = 0x0008;
-	private static final int VB_FLAGS_4_BONE_INDICES = 0x0010;
-	private static final int VB_FLAGS_4_BONE_WEIGHTS = 0x0020;
-	private static final int VB_FLAGS_4_UNK_3 = 0x0040;
-	private static final int VB_FLAGS_4_UNK_4 = 0x0080;
-	private static final int VB_FLAGS_UV_MAP_1 = 0x0100;
-	private static final int VB_FLAGS_UV_MAP_2 = 0x0200;
-	private static final int VB_FLAGS_6_UNK = 0x0400;
-
 	/**
 	 * Flag which indicates which fields the vertex block contains
 	 *
@@ -178,7 +166,11 @@ public class StructGeometry implements VisitableStruct {
 	@StructField(STRUCT)
 	public ATP_S4 submeshVertexBlockRange; // 4b //0x098
 
-	// Contains a huge amount of data, related to submeshes, see unk_offset_0B8
+	/**
+	 * Contains a huge amount of data, related to submeshes, see unk_offset_0B8 <br>
+	 * Number of elements seems to be indentical to (numberOfIndices/3)-1. <br>
+	 * Maybe related to faces? Could be normalized face-normals (2 x Byte nx,ny)
+	 */
 	@Order(20)
 	@StructField(STRUCT)
 	public ATP_UInt16 unk_offset_0A8; // 2b //0x0A8
@@ -186,6 +178,7 @@ public class StructGeometry implements VisitableStruct {
 	// Maybe related to submeshes, seems to contain |submeshes|+1 elements
 	// Related to unk_offset_0A8, it seems it contains ranges like submeshVertexBlockRange
 	// goes from 0 to X to unk_offset_0A8.size - 1
+
 	@Order(21)
 	@StructField(STRUCT)
 	public ATP_UInt32 unk_offset_0B8; // 4b //0x0B8
@@ -206,15 +199,129 @@ public class StructGeometry implements VisitableStruct {
 		process.process(fileReader, dataPosition, unk_offset_0B8);
 	}
 
+	@Deprecated
+	private static final int VB_FLAGS_1_2_LOCATION = 0x0001; // 0
+	@Deprecated
+	private static final int VB_FLAGS_3_UNK_1 = 0x0002; // 1
+	@Deprecated
+	private static final int VB_FLAGS_3_UNK_2 = 0x0004; // 2
+	@Deprecated
+	private static final int VB_FLAGS_3_UNK_3 = 0x0008; // 3
+	@Deprecated
+	private static final int VB_FLAGS_4_BONE_INDICES = 0x0010; // 4
+	@Deprecated
+	private static final int VB_FLAGS_4_BONE_WEIGHTS = 0x0020; // 5
+	@Deprecated
+	private static final int VB_FLAGS_4_UNK_3 = 0x0040; // 6
+	@Deprecated
+	private static final int VB_FLAGS_4_UNK_4 = 0x0080; // 7
+	@Deprecated
+	private static final int VB_FLAGS_5_UV_MAP_1 = 0x0100; // 8
+	@Deprecated
+	private static final int VB_FLAGS_5_UV_MAP_2 = 0x0200; // 9
+	@Deprecated
+	private static final int VB_FLAGS_6_UNK = 0x0400; // 10
+
+	public static enum VertexField {
+		/** Contains the location of the vertex. How this field is to read depends on {@link StructGeometry#getVertexFieldLocationType()} */
+		LOCATION(0),
+
+		/** 2 byte */
+		FIELD_3_UNK_1(1), // prob. tangents
+
+		/** 2 byte */
+		FIELD_3_UNK_2(2), // prob. normals
+
+		/** 2 byte */
+		FIELD_3_UNK_3(3), // prob. binormals
+
+		/** 4 x int8 values. Each value represents a bone index. A value of 0, besides the first value, indicates the value is not used. */
+		BONE_MAP(4),
+
+		/** 4 x int8 values. A value of 0 indicates the value is not used. All values sum up to 255 */
+		BONE_WEIGHTS(5),
+
+		/** 4 byte */
+		FIELD_4_UNK_1(6),
+
+		/** 4 byte */
+		FIELD_4_UNK_2(7),
+
+		/** 2 x float16 values, uv */
+		UV_MAP_1(8),
+
+		/** 2 x float16 values, uv */
+		UV_MAP_2(9),
+
+		/** 1 byte */
+		FIELD_6_UNK_1(10);
+
+		private final int index;
+
+		private VertexField(int index) {
+			this.index = index;
+		}
+	}
+
+	public static enum VertexFieldLocationType {
+		/** 3 x float32 values, xyz */
+		FLOAT32(1),
+		/** 3 x int16 values, xyz */
+		INT16(2);
+		private final int type;
+
+		private VertexFieldLocationType(int type) {
+			this.type = type;
+		}
+	}
+
+	public final boolean isVertexFieldAvailable(VertexField field) {
+		if (field == null) {
+			throw new IllegalArgumentException("'field' must not be null");
+		}
+		return (vertexBlockFlags & (1 << field.index)) != 0;
+	}
+
+	public final VertexFieldLocationType getVertexFieldLocationType() {
+		final int type = getVertexFieldValue(VertexField.LOCATION);
+		if (type == VertexFieldLocationType.INT16.type) {
+			return VertexFieldLocationType.INT16;
+		} else if (type == VertexFieldLocationType.FLOAT32.type) {
+			return VertexFieldLocationType.FLOAT32;
+		} else {
+			return null;
+		}
+	}
+
+	private final int getVertexFieldValue(VertexField field) {
+		return vertexBlockFieldType[field.index];
+	}
+
+	public final int[] getVertexFieldPosition(VertexField field) {
+		if (!isVertexFieldAvailable(field)) {
+			throw new VertexBlockFieldNotFoundException(String.format("Vertex field %s not available.", field.name()));
+		}
+
+		for (int i = field.index + 1; i < vertexBlockFieldPosition.length; ++i) {
+			if (vertexBlockFieldPosition[i] != 0) {
+				return new int[] { vertexBlockFieldPosition[field.index], vertexBlockFieldPosition[i] };
+			}
+		}
+		return new int[] { vertexBlockFieldPosition[field.index], vertexBlockSizeInBytes };
+	}
+
+	@Deprecated
 	public final int getVertexBlockFieldCount() {
 		return vertexBlockFieldType.length;
 	}
 
+	@Deprecated
 	public final boolean isVertexBlockFieldUsed(int index) {
 		return getVertexBlockFieldType(index) != 0;
 		// return (vertexBlockFlags & (1 << index)) != 0;
 	}
 
+	@Deprecated
 	public final int getVertexBlockFieldType(int index) {
 		if ((index < 0) || (vertexBlockFieldType.length <= index)) {
 			throw new IndexOutOfBoundsException(String.format("Index %d is out of range [0,%d)", index, vertexBlockFieldType.length));
@@ -222,6 +329,7 @@ public class StructGeometry implements VisitableStruct {
 		return vertexBlockFieldType[index];
 	}
 
+	@Deprecated
 	public final int[] getVertexBlockFieldPosition(int index) {
 		if (!isVertexBlockFieldUsed(index)) {
 			throw new VertexBlockFieldNotFoundException("No informations found for index " + index);
