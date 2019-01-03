@@ -14,12 +14,12 @@ import nexusvault.format.m3.v100.pointer.ArrayTypePointer;
 import nexusvault.format.m3.v100.pointer.DoubleArrayTypePointer;
 import nexusvault.shared.exception.IntegerOverflowException;
 
-class ModelPointerUpdater implements StructVisitor {
+class ReferenceUpdater implements StructVisitor {
 
 	private final StructReader<ByteBuffer> structBuilder;
 	private final StructWriter<ByteBuffer> structSaver;
 
-	public ModelPointerUpdater() {
+	public ReferenceUpdater() {
 		structBuilder = StructReader.build(StructFactory.build(), DataReadDelegator.build(new ByteBufferReader()), true);
 		structSaver = StructWriter.build(StructFactory.build(), DataWriteDelegator.build(new ByteBufferWriter()), true);
 	}
