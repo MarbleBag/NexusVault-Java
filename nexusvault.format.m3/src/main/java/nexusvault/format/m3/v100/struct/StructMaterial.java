@@ -9,6 +9,14 @@ import nexusvault.format.m3.v100.StructVisitor;
 import nexusvault.format.m3.v100.VisitableStruct;
 import nexusvault.format.m3.v100.pointer.ATP_MaterialDescriptor;
 
+/**
+ * Contains:
+ * <ul>
+ * <li>{@link StructMaterialDescriptor material descriptors}
+ * </ul>
+ * <p>
+ * TODO
+ */
 public class StructMaterial implements VisitableStruct {
 	public static final int SIZE_IN_BYTES = StructUtil.sizeOf(StructMaterial.class);
 

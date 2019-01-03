@@ -10,6 +10,14 @@ import nexusvault.format.m3.v100.VisitableStruct;
 import nexusvault.format.m3.v100.pointer.DATP_S4_S12;
 import nexusvault.format.m3.v100.pointer.DATP_S4_S4;
 
+/**
+ * Contains:
+ * <ul>
+ * <li>{@link StructTexture texture} selectors, linked under {@link StructM3Header header}
+ * </ul>
+ * <p>
+ * TODO
+ */
 public class StructMaterialDescriptor implements VisitableStruct {
 	public static final int SIZE_IN_BYTES = StructUtil.sizeOf(StructMaterialDescriptor.class);
 
@@ -17,10 +25,12 @@ public class StructMaterialDescriptor implements VisitableStruct {
 		System.out.println(StructUtil.analyzeStruct(StructMaterialDescriptor.class, false));
 	}
 
+	/** points to the texture containing the diffuse, etc */
 	@Order(1)
 	@StructField(DataType.UBIT_16)
 	public int textureSelectorA; // 000
 
+	/** points to the texture containing the normals, etc */
 	@Order(2)
 	@StructField(DataType.UBIT_16)
 	public int textureSelectorB; // 002

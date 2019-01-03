@@ -42,9 +42,13 @@ public class StructTexture implements VisitableStruct {
 	@StructField(value = DataType.BIT_8, length = 8)
 	public int[] unk_gap_008;
 
+	/**
+	 * UTF16 encoded. 2 bytes per character. Pointer contains length, but string is also 0-terminated. In some cases the given length is to long for the string,
+	 * resulting in null-characters at the end of the string
+	 */
 	@Order(6)
 	@StructField(DataType.STRUCT)
-	public ATP_S2 textureName; // 0-terminated, may be longer than necessary because of padding.
+	public ATP_S2 textureName;
 
 	private String name;
 
