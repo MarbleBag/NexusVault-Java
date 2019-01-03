@@ -6,29 +6,29 @@ import kreed.reflection.struct.StructField;
 import kreed.reflection.struct.StructUtil;
 import nexusvault.format.m3.v100.VisitableStruct;
 
-public class DoubleArrayTypePointer {
+public class DoubleArrayTypePointer<A extends VisitableStruct, B extends VisitableStruct> {
 	public static final int SIZE_IN_BYTES = StructUtil.sizeOf(DoubleArrayTypePointer.class);
 
 	@Order(1)
 	@StructField(DataType.BIT_32)
-	public int elements;
+	private int elements;
 
 	@Order(2)
 	@StructField(DataType.BIT_32)
-	public int unused;
+	private int unused;
 
 	@Order(3)
 	@StructField(DataType.BIT_64)
-	public long offsetA;
+	private long offsetA;
 
 	@Order(4)
 	@StructField(DataType.BIT_64)
-	public long offsetB;
+	private long offsetB;
 
-	private final Class<? extends VisitableStruct> typeOfA;
+	private final Class<A> typeOfA;
 	private final int byteSizeA;
 
-	private final Class<? extends VisitableStruct> typeOfB;
+	private final Class<B> typeOfB;
 	private final int byteSizeB;
 
 	public DoubleArrayTypePointer(int byteSizeA, int byteSizeB) {
@@ -38,7 +38,7 @@ public class DoubleArrayTypePointer {
 		this.byteSizeB = byteSizeB;
 	}
 
-	public DoubleArrayTypePointer(Class<? extends VisitableStruct> typeOfA, Class<? extends VisitableStruct> typeOfB) {
+	public DoubleArrayTypePointer(Class<A> typeOfA, Class<B> typeOfB) {
 		this.typeOfA = typeOfA;
 		this.byteSizeA = StructUtil.sizeOf(this.typeOfA);
 		this.typeOfB = typeOfB;
@@ -65,7 +65,7 @@ public class DoubleArrayTypePointer {
 		return byteSizeA;
 	}
 
-	public Class<? extends VisitableStruct> getTypeOfElementA() {
+	public Class<A> getTypeOfElementA() {
 		return typeOfA;
 	}
 
@@ -85,7 +85,7 @@ public class DoubleArrayTypePointer {
 		return byteSizeB;
 	}
 
-	public Class<? extends VisitableStruct> getTypeOfElementB() {
+	public Class<B> getTypeOfElementB() {
 		return typeOfB;
 	}
 
@@ -98,8 +98,6 @@ public class DoubleArrayTypePointer {
 		final StringBuilder builder = new StringBuilder();
 		builder.append("DoubleArrayTypePointer [elements=");
 		builder.append(elements);
-		builder.append(", unused=");
-		builder.append(unused);
 		builder.append(", offsetA=");
 		builder.append(offsetA);
 		builder.append(", offsetB=");

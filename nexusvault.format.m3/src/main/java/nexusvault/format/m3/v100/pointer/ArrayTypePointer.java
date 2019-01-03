@@ -6,22 +6,22 @@ import kreed.reflection.struct.StructField;
 import kreed.reflection.struct.StructUtil;
 import nexusvault.format.m3.v100.VisitableStruct;
 
-public class ArrayTypePointer {
+public class ArrayTypePointer<T extends VisitableStruct> {
 	public static final int SIZE_IN_BYTES = StructUtil.sizeOf(ArrayTypePointer.class);
 
 	@Order(1)
 	@StructField(DataType.BIT_32)
-	public int elements;
+	private int elements;
 
 	@Order(2)
 	@StructField(DataType.BIT_32)
-	public int unused;
+	private int unused;
 
 	@Order(3)
 	@StructField(DataType.BIT_64)
-	public long offset;
+	private long offset;
 
-	private final Class<? extends VisitableStruct> typeOf;
+	private final Class<T> typeOf;
 	private final int byteSize;
 
 	public ArrayTypePointer(int byteSize) {
@@ -29,12 +29,12 @@ public class ArrayTypePointer {
 		this.byteSize = byteSize;
 	}
 
-	public ArrayTypePointer(Class<? extends VisitableStruct> type) {
+	public ArrayTypePointer(Class<T> type) {
 		this.typeOf = type;
 		this.byteSize = StructUtil.sizeOf(type);
 	}
 
-	public ArrayTypePointer(Class<? extends VisitableStruct> type, int elements, long offset) {
+	public ArrayTypePointer(Class<T> type, int elements, long offset) {
 		this.typeOf = type;
 		this.byteSize = StructUtil.sizeOf(type);
 		this.elements = elements;
@@ -61,7 +61,7 @@ public class ArrayTypePointer {
 		return byteSize;
 	}
 
-	public Class<? extends VisitableStruct> getTypeOfElement() {
+	public Class<T> getTypeOfElement() {
 		return typeOf;
 	}
 
