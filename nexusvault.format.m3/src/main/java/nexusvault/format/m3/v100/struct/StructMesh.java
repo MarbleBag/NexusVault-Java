@@ -8,12 +8,12 @@ import nexusvault.format.m3.v100.DataTracker;
 import nexusvault.format.m3.v100.StructVisitor;
 import nexusvault.format.m3.v100.VisitableStruct;
 
-public class StructSubMesh implements VisitableStruct {
-	public static final int SIZE_IN_BYTES = StructUtil.sizeOf(StructSubMesh.class);
+public class StructMesh implements VisitableStruct {
+	public static final int SIZE_IN_BYTES = StructUtil.sizeOf(StructMesh.class);
 
 	public static void main(String[] arg) {
-		System.out.println(StructUtil.analyzeStruct(StructSubMesh.class, false));
-		final int size = StructUtil.sizeOf(StructSubMesh.class);
+		System.out.println(StructUtil.analyzeStruct(StructMesh.class, false));
+		final int size = StructUtil.sizeOf(StructMesh.class);
 		if (size != 0x70) {
 			throw new IllegalStateException();
 		}
@@ -25,20 +25,21 @@ public class StructSubMesh implements VisitableStruct {
 
 	@Order(2)
 	@StructField(value = DataType.UBIT_32)
-	public long startVertexBlock; // 0x004
+	public long startVertex; // 0x004
 
 	@Order(3)
 	@StructField(value = DataType.UBIT_32)
-	public long numberOfIndices; // 0x008
+	public long indexCount; // 0x008
 
 	@Order(4)
 	@StructField(value = DataType.UBIT_32)
-	public long numberOfVertices; // 0x00C
+	public long vertexCount; // 0x00C
 
 	@Order(5)
 	@StructField(value = DataType.BIT_8, length = 6)
 	public byte[] gap_010; // 0x010
 
+	/** {@link StructMaterial material} index, linked under {@link StructM3Header header} */
 	@Order(6)
 	@StructField(value = DataType.UBIT_8)
 	public int materialSelector; // 0x016
