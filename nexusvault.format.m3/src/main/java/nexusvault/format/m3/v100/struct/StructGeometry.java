@@ -16,7 +16,7 @@ import nexusvault.format.m3.v100.StructVisitor;
 import nexusvault.format.m3.v100.VisitableStruct;
 import nexusvault.format.m3.v100.pointer.ATP_S1;
 import nexusvault.format.m3.v100.pointer.ATP_S4;
-import nexusvault.format.m3.v100.pointer.ATP_SubMesh;
+import nexusvault.format.m3.v100.pointer.ATP_Mesh;
 import nexusvault.format.m3.v100.pointer.ATP_UInt16;
 import nexusvault.format.m3.v100.pointer.ATP_UInt32;
 
@@ -32,7 +32,7 @@ public class StructGeometry implements VisitableStruct {
 	}
 
 	/**
-	 * For all 34712 scanned m3, the first value is 80, the other seven are 0. This is probably a 64 uint, maybe used as a signature to identifiy this packet.
+	 * For all 34712 scanned m3, the first value is 80, the other seven are 0. This is probably a 64 uint, maybe used as a signature to identify this packet.
 	 */
 	@Order(1)
 	@StructField(value = BIT_8, length = 8)
@@ -45,7 +45,7 @@ public class StructGeometry implements VisitableStruct {
 
 	@Order(3)
 	@StructField(UBIT_32)
-	public long nVertexBlocks; // 0x018
+	public long vertexBlockCount; // 0x018
 
 	@Order(4)
 	@StructField(UBIT_16)
@@ -120,7 +120,7 @@ public class StructGeometry implements VisitableStruct {
 	public long numberOfIndices; // 0x068
 
 	/**
-	 * Seems relevant to {@link #nVertexBlocks}. As soon {@link #nVertexBlocks} passes 65536 (max value for uint16), this entry changes from {2,1} to {4,2}.
+	 * Seems relevant to {@link #vertexBlockCount}. As soon {@link #vertexBlockCount} passes 65536 (max value for uint16), this entry changes from {2,1} to {4,2}.
 	 * <br>
 	 * Opposite to {2,1}, {4,2} indices do not start at 0 for each submesh. The index can also be far greater than the number of available vertices. Additional,
 	 * if 4 bytes are read, the bytes which hole the actual index can be the first 2 LSB or MSB.
@@ -139,10 +139,10 @@ public class StructGeometry implements VisitableStruct {
 
 	@Order(16)
 	@StructField(STRUCT)
-	public ATP_SubMesh submeshes; // 112b //0x080
+	public ATP_Mesh meshes; // 112b //0x080
 
 	/**
-	 * Mostly equal to {@link #nVertexBlocks}, probably part of a struct within this struct, so this value doesn't need to be passed around as a seperate value.
+	 * Mostly equal to {@link #vertexBlockCount}, probably part of a struct within this struct, so this value doesn't need to be passed around as a seperate value.
 	 * <br>
 	 * Sometimes this value is smaller than the other
 	 */
@@ -156,26 +156,25 @@ public class StructGeometry implements VisitableStruct {
 	public int gap_093;
 
 	/**
-	 * This pointer directs to an array <b>A</b>, containing indices for the vertex block array. Start index, and end index, for submesh <b>i</b> can be found
-	 * at <b>A[i]</b> and <b>A[i+1]</b>
+	 * This pointer directs to an array <b>A</b>, containing indices for the vertex block array. Start index, and end index, for mesh <b>i</b> can be found at
+	 * <b>A[i]</b> and <b>A[i+1]</b>
 	 * <p>
-	 * Prob. legacy stuff, because this information is also encoded in each submesh, or used as a lookup table so it's not necessary to follow the submesh
-	 * pointer.
+	 * Prob. legacy stuff, because this information is also encoded in each mesh, or used as a lookup table so it's not necessary to follow the mesh pointer.
 	 */
 	@Order(19)
 	@StructField(STRUCT)
-	public ATP_S4 submeshVertexBlockRange; // 4b //0x098
+	public ATP_S4 meshVertexBlockRange; // 4b //0x098
 
 	/**
-	 * Contains a huge amount of data, related to submeshes, see unk_offset_0B8 <br>
-	 * Number of elements seems to be indentical to (numberOfIndices/3)-1. <br>
+	 * Contains a huge amount of data, related to meshes, see unk_offset_0B8 <br>
+	 * Number of elements seems to be identical to (numberOfIndices/3)-1. <br>
 	 * Maybe related to faces? Could be normalized face-normals (2 x Byte nx,ny)
 	 */
 	@Order(20)
 	@StructField(STRUCT)
 	public ATP_UInt16 unk_offset_0A8; // 2b //0x0A8
 
-	// Maybe related to submeshes, seems to contain |submeshes|+1 elements
+	// Maybe related to mesh, seems to contain |mesh|+1 elements
 	// Related to unk_offset_0A8, it seems it contains ranges like submeshVertexBlockRange
 	// goes from 0 to X to unk_offset_0A8.size - 1
 
@@ -192,35 +191,12 @@ public class StructGeometry implements VisitableStruct {
 		process.process(fileReader, dataPosition, unk_offset_058);
 
 		process.process(fileReader, dataPosition, indexData);
-		process.process(fileReader, dataPosition, submeshes);
+		process.process(fileReader, dataPosition, meshes);
 
-		process.process(fileReader, dataPosition, submeshVertexBlockRange);
+		process.process(fileReader, dataPosition, meshVertexBlockRange);
 		process.process(fileReader, dataPosition, unk_offset_0A8);
 		process.process(fileReader, dataPosition, unk_offset_0B8);
 	}
-
-	@Deprecated
-	private static final int VB_FLAGS_1_2_LOCATION = 0x0001; // 0
-	@Deprecated
-	private static final int VB_FLAGS_3_UNK_1 = 0x0002; // 1
-	@Deprecated
-	private static final int VB_FLAGS_3_UNK_2 = 0x0004; // 2
-	@Deprecated
-	private static final int VB_FLAGS_3_UNK_3 = 0x0008; // 3
-	@Deprecated
-	private static final int VB_FLAGS_4_BONE_INDICES = 0x0010; // 4
-	@Deprecated
-	private static final int VB_FLAGS_4_BONE_WEIGHTS = 0x0020; // 5
-	@Deprecated
-	private static final int VB_FLAGS_4_UNK_3 = 0x0040; // 6
-	@Deprecated
-	private static final int VB_FLAGS_4_UNK_4 = 0x0080; // 7
-	@Deprecated
-	private static final int VB_FLAGS_5_UV_MAP_1 = 0x0100; // 8
-	@Deprecated
-	private static final int VB_FLAGS_5_UV_MAP_2 = 0x0200; // 9
-	@Deprecated
-	private static final int VB_FLAGS_6_UNK = 0x0400; // 10
 
 	public static enum VertexField {
 		/** Contains the location of the vertex. How this field is to read depends on {@link StructGeometry#getVertexFieldLocationType()} */
@@ -308,40 +284,6 @@ public class StructGeometry implements VisitableStruct {
 			}
 		}
 		return new int[] { vertexBlockFieldPosition[field.index], vertexBlockSizeInBytes };
-	}
-
-	@Deprecated
-	public final int getVertexBlockFieldCount() {
-		return vertexBlockFieldType.length;
-	}
-
-	@Deprecated
-	public final boolean isVertexBlockFieldUsed(int index) {
-		return getVertexBlockFieldType(index) != 0;
-		// return (vertexBlockFlags & (1 << index)) != 0;
-	}
-
-	@Deprecated
-	public final int getVertexBlockFieldType(int index) {
-		if ((index < 0) || (vertexBlockFieldType.length <= index)) {
-			throw new IndexOutOfBoundsException(String.format("Index %d is out of range [0,%d)", index, vertexBlockFieldType.length));
-		}
-		return vertexBlockFieldType[index];
-	}
-
-	@Deprecated
-	public final int[] getVertexBlockFieldPosition(int index) {
-		if (!isVertexBlockFieldUsed(index)) {
-			throw new VertexBlockFieldNotFoundException("No informations found for index " + index);
-		}
-
-		final int start = index + 1;
-		for (int i = start; i < vertexBlockFieldPosition.length; ++i) {
-			if (vertexBlockFieldPosition[i] != 0) {
-				return new int[] { vertexBlockFieldPosition[index], vertexBlockFieldPosition[i] };
-			}
-		}
-		return new int[] { vertexBlockFieldPosition[index], vertexBlockSizeInBytes };
 	}
 
 }
