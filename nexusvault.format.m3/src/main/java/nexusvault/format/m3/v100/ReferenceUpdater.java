@@ -38,7 +38,7 @@ class ReferenceUpdater implements StructVisitor {
 	}
 
 	@Override
-	public void process(DataTracker fileReader, int dataPosition, ArrayTypePointer pointer) {
+	public void process(DataTracker fileReader, int dataPosition, ArrayTypePointer<?> pointer) {
 		final int totalSize = pointer.getArraySize() * pointer.getElementSize();
 		final int blockStart = (int) (pointer.getOffset() + dataPosition);
 		final int blockEnd = blockStart + totalSize;
@@ -58,7 +58,7 @@ class ReferenceUpdater implements StructVisitor {
 	}
 
 	@Override
-	public void process(DataTracker fileReader, int dataPosition, DoubleArrayTypePointer pointer) {
+	public void process(DataTracker fileReader, int dataPosition, DoubleArrayTypePointer<?, ?> pointer) {
 		{
 			final int totalSizeA = pointer.getArraySize() * pointer.getElementSizeA();
 			final int blockStartA = (int) (pointer.getOffsetA() + dataPosition);
@@ -111,15 +111,15 @@ class ReferenceUpdater implements StructVisitor {
 		}
 	}
 
-	private int padPosition(ArrayTypePointer pointer) {
+	private int padPosition(ArrayTypePointer<?> pointer) {
 		return padPosition(pointer.getOffset(), pointer.getArraySize(), pointer.getElementSize());
 	}
 
-	private int padPositionA(DoubleArrayTypePointer pointer) {
+	private int padPositionA(DoubleArrayTypePointer<?, ?> pointer) {
 		return padPosition(pointer.getOffsetA(), pointer.getArraySize(), pointer.getElementSizeA());
 	}
 
-	private int padPositionB(DoubleArrayTypePointer pointer) {
+	private int padPositionB(DoubleArrayTypePointer<?, ?> pointer) {
 		return padPosition(pointer.getOffsetB(), pointer.getArraySize(), pointer.getElementSizeB());
 	}
 
