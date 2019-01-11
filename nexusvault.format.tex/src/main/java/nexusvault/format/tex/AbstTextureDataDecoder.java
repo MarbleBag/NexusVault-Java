@@ -1,5 +1,7 @@
 package nexusvault.format.tex;
 
+import nexusvault.format.tex.struct.StructTextureFileHeader;
+
 public abstract class AbstTextureDataDecoder implements TextureDataDecoder {
 
 	protected abstract ImageMetaInformation getImageInformation(StructTextureFileHeader header, int idx);

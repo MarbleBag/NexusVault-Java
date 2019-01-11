@@ -2,7 +2,7 @@ package nexusvault.format.tex.jpg;
 
 import nexusvault.format.tex.jpg.HuffmanTable.HuffmanValue;
 
-class HuffmanDecoder {
+final class HuffmanDecoder {
 
 	public int[] decode(HuffmanTable dc, HuffmanTable ac, BitSupply supplier, int dstSize) {
 		final int[] result = new int[dstSize];

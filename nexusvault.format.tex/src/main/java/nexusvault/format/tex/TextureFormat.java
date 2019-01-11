@@ -16,10 +16,15 @@ public enum TextureFormat {
 		this.type = type;
 	}
 
+	public boolean isOf(int value) {
+		return type == value;
+	}
+
 	public static TextureFormat resolve(int type) {
-		for (TextureFormat f : TextureFormat.values()) {
-			if (f.type == type)
+		for (final TextureFormat f : TextureFormat.values()) {
+			if (f.type == type) {
 				return f;
+			}
 		}
 		return UNKNOWN;
 	}

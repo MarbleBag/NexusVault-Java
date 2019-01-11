@@ -3,9 +3,9 @@ package nexusvault.format.tex.jpg;
 import java.util.stream.IntStream;
 
 import nexusvault.format.tex.ImageMetaInformation;
-import nexusvault.format.tex.StructTextureFileHeader;
+import nexusvault.format.tex.struct.StructTextureFileHeader;
 
-final class JPGDecoderChromaSubsampling extends JPGDecoderBase {
+public final class JPGDecoderChromaSubsampling extends JPGDecoderBase {
 
 	private final int[] layerOffsets = { 0, 4 * Constants.BLOCK_SIZE, 5 * Constants.BLOCK_SIZE, 6 * Constants.BLOCK_SIZE, 10 * Constants.BLOCK_SIZE };
 	private final int[] blocksPerLayer = Constants.DECODES_PER_LAYER_TYPE[0];
@@ -16,6 +16,10 @@ final class JPGDecoderChromaSubsampling extends JPGDecoderBase {
 	private int layerBlocksPerColumn;
 	private int imageStacksPerRow;
 	private int imageStacksPerColumn;
+
+	public JPGDecoderChromaSubsampling(PixelCompositionProvider pixelCalculatorProvider) {
+		super(pixelCalculatorProvider);
+	}
 
 	@Override
 	void loadFormatSpecificConfig(StructTextureFileHeader header, ImageMetaInformation meta) {
@@ -144,7 +148,7 @@ final class JPGDecoderChromaSubsampling extends JPGDecoderBase {
 						final int pixelLayerC = stack.data[layerOffsets[2] + blockOffsets[2] + (x / 2) + ((y / 2) * Constants.BLOCK_WIDTH)];
 						final int pixelLayerD = stack.data[layerOffsets[3] + blockOffsets[3] + x + (y * Constants.BLOCK_WIDTH)];
 
-						getPixelCalculator().compute(image, imageXY, pixelLayerA, pixelLayerB, pixelLayerC, pixelLayerD);
+						getPixelComposition().composite(image, imageXY, pixelLayerA, pixelLayerB, pixelLayerC, pixelLayerD);
 					}
 					imageYOffset += image.getImageWidth();
 				}

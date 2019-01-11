@@ -1,16 +1,24 @@
 package nexusvault.format.tex.jpg;
 
 import nexusvault.format.tex.ImageMetaInformation;
-import nexusvault.format.tex.StructTextureFileHeader;
 import nexusvault.format.tex.TextureImage;
 import nexusvault.format.tex.TextureRawData;
+import nexusvault.format.tex.struct.StructTextureFileHeader;
 
 /**
  * Decodes ws jpg encoded texture files of type 0, which use chroma sub sampling
  */
-public class JPG0TextureDataDecoder extends JPGTextureDataEncoder {
+public final class JPG0TextureDataDecoder extends JPGTextureDataEncoder {
 
-	private final JPGDecoderChromaSubsampling decoder = new JPGDecoderChromaSubsampling();
+	private final JPGDecoderChromaSubsampling decoder;
+
+	public JPG0TextureDataDecoder() {
+		this(new JPGDecoderChromaSubsampling(new DefaultPixelCompositionProvider()));
+	}
+
+	public JPG0TextureDataDecoder(JPGDecoderChromaSubsampling decoder) {
+		this.decoder = decoder;
+	}
 
 	@Override
 	public boolean accepts(StructTextureFileHeader header) {

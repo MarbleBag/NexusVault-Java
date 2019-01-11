@@ -3,9 +3,9 @@ package nexusvault.format.tex.jpg;
 import java.util.LinkedList;
 import java.util.List;
 
-class Constants {
+final class Constants {
 	private Constants() {
-
+		throw new UnsupportedOperationException();
 	}
 
 	// uint8

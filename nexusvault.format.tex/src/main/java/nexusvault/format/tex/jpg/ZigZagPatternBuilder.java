@@ -1,6 +1,9 @@
 package nexusvault.format.tex.jpg;
 
-class ZigZagPatternBuilder {
+final class ZigZagPatternBuilder {
+	private ZigZagPatternBuilder() {
+		throw new UnsupportedOperationException();
+	}
 
 	/**
 	 * Be i row index and j column index of a mXn matrix and 0&lt=i&ltm and 0&lt=j&ltn. The returned array <b>R</b> is one dimensional of length m*n and

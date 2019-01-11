@@ -1,6 +1,6 @@
 package nexusvault.format.tex.jpg;
 
-class IDCTLookUp {
+final class IDCTLookUp {
 
 	private static final double Cx_sqr = 1 / Math.sqrt(2);
 

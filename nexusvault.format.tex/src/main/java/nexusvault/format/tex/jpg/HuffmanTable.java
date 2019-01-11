@@ -5,7 +5,7 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
-class HuffmanTable {
+final class HuffmanTable {
 
 	public static class HuffmanValue {
 		/** number of used bits in the encodedWord, starting with the lsb */

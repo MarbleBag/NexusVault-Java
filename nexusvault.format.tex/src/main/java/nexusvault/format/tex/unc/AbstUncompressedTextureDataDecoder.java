@@ -2,7 +2,7 @@ package nexusvault.format.tex.unc;
 
 import nexusvault.format.tex.AbstTextureDataDecoder;
 import nexusvault.format.tex.ImageMetaInformation;
-import nexusvault.format.tex.StructTextureFileHeader;
+import nexusvault.format.tex.struct.StructTextureFileHeader;
 
 abstract class AbstUncompressedTextureDataDecoder extends AbstTextureDataDecoder {
 

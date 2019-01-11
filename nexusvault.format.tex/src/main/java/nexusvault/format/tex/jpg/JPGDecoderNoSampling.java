@@ -1,17 +1,21 @@
 package nexusvault.format.tex.jpg;
 
 import nexusvault.format.tex.ImageMetaInformation;
-import nexusvault.format.tex.StructTextureFileHeader;
+import nexusvault.format.tex.struct.StructTextureFileHeader;
 
 /**
  * Simple, clean code to decode ws jpgs without chroma subsampling.
  *
  */
-final class JPGDecoderNoSampling extends JPGDecoderBase {
+public final class JPGDecoderNoSampling extends JPGDecoderBase {
 
 	private int stacksPerRow;
 	private int stacksPerColumn;
 	private int numberOfDecodes;
+
+	public JPGDecoderNoSampling(PixelCompositionProvider pixelCalculatorProvider) {
+		super(pixelCalculatorProvider);
+	}
 
 	@Override
 	protected final void loadFormatSpecificConfig(StructTextureFileHeader header, ImageMetaInformation meta) {
@@ -127,7 +131,7 @@ final class JPGDecoderNoSampling extends JPGDecoderBase {
 				final int pixelLayerC = stack.data[blockXY + (2 * Constants.BLOCK_SIZE)];
 				final int pixelLayerD = stack.data[blockXY + (3 * Constants.BLOCK_SIZE)];
 
-				getPixelCalculator().compute(image, pixelXY, pixelLayerA, pixelLayerB, pixelLayerC, pixelLayerD);
+				getPixelComposition().composite(image, pixelXY, pixelLayerA, pixelLayerB, pixelLayerC, pixelLayerD);
 				blockXY += 1;
 			}
 			pixelLineXY += image.getImageWidth();

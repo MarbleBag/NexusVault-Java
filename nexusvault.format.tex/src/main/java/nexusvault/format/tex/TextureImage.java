@@ -5,10 +5,12 @@ import java.awt.image.DataBufferByte;
 import java.awt.image.DataBufferInt;
 import java.awt.image.Raster;
 import java.nio.ByteBuffer;
-import java.util.LinkedList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
-public class TextureImage {
+public final class TextureImage {
 
 	private final int width;
 	private final int height;
@@ -31,12 +33,12 @@ public class TextureImage {
 
 		for (int i = 0; i < channels.length; ++i) {
 			final TextureChannel channel = channels[i];
-			final int bytesPerPixel = channel.type.getBytesPerPixel();
+			final int bytesPerPixel = channel.format.getBytesPerPixel();
 			final int expectedBytes = width * height * bytesPerPixel;
 			if (channel.data.length != expectedBytes) {
 				throw new IllegalArgumentException(
 						String.format("Channel [%d] %s does not fit an image of %dx%d of type %s. Expected number of bytes %d, actual number of bytes %d", i,
-								channel, width, height, channel.type.name(), expectedBytes, channel.data.length));
+								channel, width, height, channel.format.name(), expectedBytes, channel.data.length));
 			}
 		}
 	}
@@ -49,6 +51,10 @@ public class TextureImage {
 		return width;
 	}
 
+	public List<TextureChannel> getChannels() {
+		return Collections.unmodifiableList(Arrays.asList(channels));
+	}
+
 	public TextureChannel getChannel(int channelIdx) {
 		return channels[channelIdx];
 	}
@@ -57,40 +63,40 @@ public class TextureImage {
 		return channels.length;
 	}
 
-	public final List<BufferedImage> convertToBufferedImage() {
-		final List<BufferedImage> result = new LinkedList<>();
-		for (final TextureChannel channel : channels) {
-			BufferedImage image = null;
-			switch (channel.type) {
-				case GRAYSCALE: {// grayscale
-					image = new BufferedImage(width, height, BufferedImage.TYPE_BYTE_GRAY);
-					image.setData(Raster.createRaster(image.getSampleModel(), new DataBufferByte(channel.data, channel.data.length), null));
-					break;
-				}
-
-				case RGB: {// RGB
-					final int[] tmp = new int[channel.data.length / 3];
-					for (int i = 0; i < tmp.length; ++i) {
-						tmp[i] = 0xFF000000 | (channel.data[(i * 3) + 0] << 16) | (channel.data[(i * 3) + 1] << 8) | channel.data[(i * 3) + 2];
-					}
-					image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
-					image.setData(Raster.createRaster(image.getSampleModel(), new DataBufferInt(tmp, tmp.length), null));
-					break;
-				}
-
-				case ARGB: {// ARGB
-					final int[] tmp = new int[channel.data.length / Integer.BYTES];
-					ByteBuffer.wrap(channel.data).asIntBuffer().get(tmp);
-					image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
-					image.setData(Raster.createRaster(image.getSampleModel(), new DataBufferInt(tmp, tmp.length), null));
-					break;
-				}
-
-				default:
-					throw new IllegalArgumentException();
+	public final BufferedImage convertToBufferedImage(TextureChannel channel) {
+		BufferedImage image = null;
+		switch (channel.format) {
+			case GRAYSCALE: {// grayscale
+				image = new BufferedImage(width, height, BufferedImage.TYPE_BYTE_GRAY);
+				image.setData(Raster.createRaster(image.getSampleModel(), new DataBufferByte(channel.data, channel.data.length), null));
+				break;
 			}
-			result.add(image);
+
+			case RGB: {// RGB
+				final int[] tmp = new int[channel.data.length / 3];
+				for (int i = 0; i < tmp.length; ++i) {
+					tmp[i] = 0xFF000000 | (channel.data[(i * 3) + 0] << 16) | (channel.data[(i * 3) + 1] << 8) | channel.data[(i * 3) + 2];
+				}
+				image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+				image.setData(Raster.createRaster(image.getSampleModel(), new DataBufferInt(tmp, tmp.length), null));
+				break;
+			}
+
+			case ARGB: {// ARGB
+				final int[] tmp = new int[channel.data.length / Integer.BYTES];
+				ByteBuffer.wrap(channel.data).asIntBuffer().get(tmp);
+				image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+				image.setData(Raster.createRaster(image.getSampleModel(), new DataBufferInt(tmp, tmp.length), null));
+				break;
+			}
+
+			default:
+				throw new IllegalArgumentException();
 		}
-		return result;
+		return image;
+	}
+
+	public final List<BufferedImage> convertToBufferedImage() {
+		return Arrays.stream(channels).map(this::convertToBufferedImage).collect(Collectors.toList());
 	}
 }

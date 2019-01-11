@@ -2,7 +2,7 @@ package nexusvault.format.tex.jpg;
 
 import java.nio.ByteBuffer;
 
-class ByteBufferBitSupplier implements BitSupply {
+final class ByteBufferBitSupplier implements BitSupply {
 
 	private final ByteBuffer input;
 	private final BitQueue queue;

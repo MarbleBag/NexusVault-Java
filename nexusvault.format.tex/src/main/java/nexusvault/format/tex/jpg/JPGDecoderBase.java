@@ -5,14 +5,17 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import nexusvault.format.tex.ImageMetaInformation;
-import nexusvault.format.tex.StructTextureFileHeader;
 import nexusvault.format.tex.TextureChannel;
-import nexusvault.format.tex.TextureChannelType;
 import nexusvault.format.tex.TextureImage;
 import nexusvault.format.tex.TextureRawData;
 import nexusvault.format.tex.jpg.Constants.LayerType;
+import nexusvault.format.tex.struct.StructTextureFileHeader;
 
-abstract class JPGDecoderBase {
+public abstract class JPGDecoderBase {
+
+	public static interface PixelCompositionProvider {
+		PixelCompositionStrategy getPixelCalculator(StructTextureFileHeader header);
+	}
 
 	private static final IDCTLookUp IDCT = new IDCTLookUp(Constants.BLOCK_HEIGHT, Constants.BLOCK_WIDTH);
 	private static final HuffmanDecoder decoder = new HuffmanDecoder();
@@ -26,10 +29,19 @@ abstract class JPGDecoderBase {
 	private StructTextureFileHeader textureHeader;
 	private BitSupply source;
 
-	private PixelCalculator pixelCalculator;
+	private final PixelCompositionProvider pixelCompositionProvider;
+
+	private PixelCompositionStrategy pixelCompositor;
 
 	protected TextureImage image;
 	private int lastStackId;
+
+	protected JPGDecoderBase(PixelCompositionProvider pixelCompositionProvider) {
+		if (pixelCompositionProvider == null) {
+			throw new IllegalArgumentException("'pixelCompositionProvider' must not be null");
+		}
+		this.pixelCompositionProvider = pixelCompositionProvider;
+	}
 
 	public final TextureImage decodeImage(StructTextureFileHeader header, TextureRawData data, ImageMetaInformation meta) {
 		initializeData(header, meta, data);
@@ -48,17 +60,10 @@ abstract class JPGDecoderBase {
 	private void initializeConstants(StructTextureFileHeader header) {
 		final int format = header.compressionFormat;
 		this.typePerLayer = Constants.TYPE_PER_LAYER[format];
-
-		switch (format) {
-			case 0:
-			case 2:
-				pixelCalculator = new Type0And2PixelCalculator();
-				break;
-			case 1:
-				pixelCalculator = new Type1PixelCalculator();
-				break;
+		this.pixelCompositor = pixelCompositionProvider.getPixelCalculator(header);
+		if (pixelCompositor == null) {
+			throw new IllegalStateException("'pixelCompositor' is null");
 		}
-
 		this.lastStackId = 0;
 	}
 
@@ -68,8 +73,9 @@ abstract class JPGDecoderBase {
 	}
 
 	protected final void initializeTextureImage(ImageMetaInformation meta) {
-		final List<TextureChannelType> types = pixelCalculator.getTextureChannelTypes();
-		final TextureChannel[] channels = types.stream().map(type -> new TextureChannel(type, new byte[meta.height * meta.width * type.getBytesPerPixel()]))
+		final List<TextureChannelInfo> infos = pixelCompositor.getTextureChannelInfo();
+		final TextureChannel[] channels = infos.stream()
+				.map(info -> new TextureChannel(info.getFormat(), info.getType(), new byte[meta.height * meta.width * info.getFormat().getBytesPerPixel()]))
 				.toArray(TextureChannel[]::new);
 		image = new TextureImage(meta.width, meta.height, channels);
 	}
@@ -88,8 +94,22 @@ abstract class JPGDecoderBase {
 	}
 
 	private final void startDecoding() {
+		// TODO needs to be replaced with a proper ServiceExecutor, so it can work in a resource sensible way.
+
+		// while(numberOfStacksToDecode>0){
+		// while(isFreeStackAvailable()){
+		// StackSet stackSet = getNextStack();
+		// decodeStack(stackSet);
+		// queueForProcessing(stackSet);
+		// numberOfStacksToDecode += -1;
+		// }
+		//
+		// }
+		//
+
 		final List<StackSet> intermediate = Stream.generate(this::getNextStack).peek(this::decodeStack).limit(getNumberOfDecodableStacks())
 				.collect(Collectors.toList());
+
 		intermediate.parallelStream().peek(this::processStack).peek(this::writeStack).forEach(this::returnStack);
 	}
 
@@ -132,6 +152,7 @@ abstract class JPGDecoderBase {
 		}
 	}
 
+	// TODO this should be further optimized. This is the most time consuming part of decoding
 	protected final void inverseDCT(int[] data, int dataOffset, int[] inverseDCTBuffer) {
 		for (int y0 = 0; y0 < Constants.BLOCK_HEIGHT; ++y0) {
 			for (int x0 = 0; x0 < Constants.BLOCK_WIDTH; ++x0) {
@@ -181,8 +202,8 @@ abstract class JPGDecoderBase {
 		return textureHeader.getLayer(layerId).getQuality();
 	}
 
-	protected final PixelCalculator getPixelCalculator() {
-		return pixelCalculator;
+	protected final PixelCompositionStrategy getPixelComposition() {
+		return pixelCompositor;
 	}
 
 	abstract void loadFormatSpecificConfig(StructTextureFileHeader header, ImageMetaInformation meta);

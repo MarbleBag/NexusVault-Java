@@ -1,6 +1,6 @@
 package nexusvault.format.tex.jpg;
 
-class DCTLookup {
+final class DCTLookup {
 
 	private static final double Cx_sqr = 1 / Math.sqrt(2);
 

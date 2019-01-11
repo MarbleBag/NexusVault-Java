@@ -2,7 +2,7 @@ package nexusvault.format.tex;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 import kreed.io.util.BinaryReader;
@@ -11,14 +11,36 @@ import nexusvault.format.tex.dxt.DXTTextureDataEncoder;
 import nexusvault.format.tex.jpg.JPG0TextureDataDecoder;
 import nexusvault.format.tex.jpg.JPG1TextureDataDecoder;
 import nexusvault.format.tex.jpg.JPG2TextureDataDecoder;
+import nexusvault.format.tex.struct.StructTextureFileHeader;
 import nexusvault.format.tex.unc.ARGB8888TextureDataDecoder;
 import nexusvault.format.tex.unc.Gray8TextureDataDecoder;
 import nexusvault.format.tex.unc.RGB565TextureDataDecoder;
 import nexusvault.shared.exception.IntegerOverflowException;
 
+/**
+ * Digests <tt>.tex</tt> data and produces a {@link TextureObject}
+ */
 public final class TextureReader {
 
-	public static TextureReader build() {
+	/**
+	 * Builds a {@link TextureReader} and registers the default set of decoders which should be able to decode any texture formats.
+	 * <p>
+	 * Registered decoders are:
+	 * <ul>
+	 * <li>{@link JPG0TextureDataDecoder}
+	 * <li>{@link JPG1TextureDataDecoder}
+	 * <li>{@link JPG2TextureDataDecoder}
+	 * <li>{@link DXTTextureDataEncoder}
+	 * <li>{@link ARGB8888TextureDataDecoder}
+	 * <li>{@link RGB565TextureDataDecoder}
+	 * <li>{@link Gray8TextureDataDecoder}
+	 * </ul>
+	 *
+	 * To create a {@link TextureReader} without any decoder use the default {@link TextureReader#TextureReader() constructor}
+	 *
+	 * @return
+	 */
+	public static TextureReader buildDefault() {
 		final TextureReader reader = new TextureReader();
 		reader.registerDecoder(new JPG0TextureDataDecoder());
 		reader.registerDecoder(new JPG1TextureDataDecoder());
@@ -32,15 +54,46 @@ public final class TextureReader {
 
 	private final List<TextureDataDecoder> decoders;
 
+	/**
+	 * Creates a {@link TextureReader} without any registered decoder. By default, this reader can not read any texture formats. To retrieve a reader with the
+	 * default set of decoder use {@link #buildDefault()}. <br>
+	 * To make a decoder useable it is necessary to {@link #registerDecoder(TextureDataDecoder) register} it.
+	 */
 	public TextureReader() {
-		decoders = new LinkedList<>();
+		decoders = new ArrayList<>();
 	}
 
+	/**
+	 * Registers a new decoder. Does not check for duplicates.
+	 */
 	public void registerDecoder(TextureDataDecoder decoder) {
 		if (decoder == null) {
 			throw new IllegalArgumentException("'decoder' must not be null");
 		}
 		decoders.add(decoder);
+	}
+
+	public void registerDecoder(int idx, TextureDataDecoder decoder) {
+		if (decoder == null) {
+			throw new IllegalArgumentException("'decoder' must not be null");
+		}
+		if (idx >= getDecoderCount()) {
+			decoders.add(decoder);
+		} else {
+			decoders.add(idx, decoder);
+		}
+	}
+
+	public TextureDataDecoder getDecoder(int idx) {
+		return decoders.get(idx);
+	}
+
+	public void removeDecoder(int idx) {
+		decoders.remove(idx);
+	}
+
+	public int getDecoderCount() {
+		return decoders.size();
 	}
 
 	public TextureObject read(ByteBuffer byteBuffer) {

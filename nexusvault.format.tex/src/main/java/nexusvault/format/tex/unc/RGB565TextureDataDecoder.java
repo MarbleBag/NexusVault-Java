@@ -3,12 +3,13 @@ package nexusvault.format.tex.unc;
 import java.nio.ShortBuffer;
 
 import nexusvault.format.tex.ImageMetaInformation;
-import nexusvault.format.tex.StructTextureFileHeader;
 import nexusvault.format.tex.TextureChannel;
+import nexusvault.format.tex.TextureChannelFormat;
 import nexusvault.format.tex.TextureChannelType;
 import nexusvault.format.tex.TextureConversionException;
 import nexusvault.format.tex.TextureImage;
 import nexusvault.format.tex.TextureRawData;
+import nexusvault.format.tex.struct.StructTextureFileHeader;
 
 public final class RGB565TextureDataDecoder extends AbstUncompressedTextureDataDecoder {
 
@@ -43,7 +44,7 @@ public final class RGB565TextureDataDecoder extends AbstUncompressedTextureDataD
 			throw new TextureConversionException("Unable to convert R5G6B5 to R8G8B8");
 		}
 
-		final TextureChannel channel = new TextureChannel(TextureChannelType.RGB, channelData);
+		final TextureChannel channel = new TextureChannel(TextureChannelFormat.RGB, TextureChannelType.DIFFUSE, channelData);
 		return new TextureImage(meta.width, meta.height, channel);
 	}
 

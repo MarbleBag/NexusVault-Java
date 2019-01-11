@@ -1,5 +1,7 @@
 package nexusvault.format.tex;
 
+import nexusvault.format.tex.struct.StructTextureFileHeader;
+
 public class TextureObject {
 
 	private final StructTextureFileHeader header;
@@ -11,6 +13,10 @@ public class TextureObject {
 		this.header = header;
 		this.data = data;
 		this.interpreter = interpreter;
+	}
+
+	public int getMipMapCount() {
+		return header.mipMaps;
 	}
 
 	public byte[] getImageData(int idx) {

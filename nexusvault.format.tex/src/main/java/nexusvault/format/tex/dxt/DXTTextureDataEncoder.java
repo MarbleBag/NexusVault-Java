@@ -8,13 +8,14 @@ import ddsutil.DDSUtil;
 import gr.zdimensions.jsquish.Squish;
 import nexusvault.format.tex.AbstTextureDataDecoder;
 import nexusvault.format.tex.ImageMetaInformation;
-import nexusvault.format.tex.StructTextureFileHeader;
 import nexusvault.format.tex.TextureChannel;
+import nexusvault.format.tex.TextureChannelFormat;
 import nexusvault.format.tex.TextureChannelType;
 import nexusvault.format.tex.TextureConversionException;
 import nexusvault.format.tex.TextureDataDecoder;
 import nexusvault.format.tex.TextureImage;
 import nexusvault.format.tex.TextureRawData;
+import nexusvault.format.tex.struct.StructTextureFileHeader;
 
 public final class DXTTextureDataEncoder extends AbstTextureDataDecoder implements TextureDataDecoder {
 
@@ -81,7 +82,7 @@ public final class DXTTextureDataEncoder extends AbstTextureDataDecoder implemen
 			rawData[i + 3] = tmp;
 		}
 
-		final TextureChannel channel = new TextureChannel(TextureChannelType.ARGB, rawData);
+		final TextureChannel channel = new TextureChannel(TextureChannelFormat.ARGB, TextureChannelType.DIFFUSE, rawData);
 		return new TextureImage(meta.width, meta.height, channel);
 	}
 

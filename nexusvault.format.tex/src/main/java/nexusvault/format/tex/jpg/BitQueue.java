@@ -1,6 +1,6 @@
 package nexusvault.format.tex.jpg;
 
-class BitQueue {
+final class BitQueue {
 	private long bitQueue;
 	private int pos;
 

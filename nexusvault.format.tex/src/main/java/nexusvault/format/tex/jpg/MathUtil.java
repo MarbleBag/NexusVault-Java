@@ -1,8 +1,8 @@
 package nexusvault.format.tex.jpg;
 
-class MathUtil {
+final class MathUtil {
 	private MathUtil() {
-
+		throw new UnsupportedOperationException();
 	}
 
 	public static int clamp(int value, int min, int max) {
