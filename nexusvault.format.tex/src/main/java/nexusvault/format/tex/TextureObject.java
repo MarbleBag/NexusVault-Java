@@ -23,6 +23,11 @@ public class TextureObject {
 		return header.mipMaps;
 	}
 
+	/**
+	 * @param idx
+	 *            - mip map index. 0 referes to level 0 (largest image version)
+	 * @return unprocessed image data
+	 */
 	public byte[] getImageData(int idx) {
 		if ((idx < 0) || (header.mipMaps < idx)) {
 			throw new IndexOutOfBoundsException("Available index range [" + 0 + " and " + (header.mipMaps - 1) + ") was " + idx);
@@ -31,6 +36,11 @@ public class TextureObject {
 		return this.interpreter.getImageData(header, data, inverseIdx);
 	}
 
+	/**
+	 * @param idx
+	 *            - mip map index. 0 referes to level 0 (largest image version)
+	 * @return converted image data
+	 */
 	public TextureImage getImage(int idx) {
 		if ((idx < 0) || (header.mipMaps < idx)) {
 			throw new IndexOutOfBoundsException("Available index range [" + 0 + " and " + (header.mipMaps - 1) + ") was " + idx);
@@ -49,7 +59,7 @@ public class TextureObject {
 	 * something more appropriated.
 	 *
 	 * return A list containing its components. List will be empty for unsplittable images.
-	 * 
+	 *
 	 * @see #hasImageMultipleComponents()
 	 */
 	public List<TextureImage> splitImageIntoComponents(TextureImage image) {
