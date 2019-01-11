@@ -6,40 +6,39 @@ import java.awt.image.DataBufferInt;
 import java.awt.image.Raster;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.Collectors;
 
 public final class TextureImage {
 
+	public final TextureImageFormat format;
 	private final int width;
 	private final int height;
-	private final TextureChannel[] channels;
+	private final byte[] data;
 
-	public TextureImage(int width, int height, TextureChannel... channels) {
+	public TextureImage(int width, int height, TextureImageFormat format, byte[] data) {
 		if (width <= 0) {
 			throw new IllegalArgumentException();
 		}
 		if (height <= 0) {
 			throw new IllegalArgumentException();
 		}
-		if (channels == null) {
+		if (format == null) {
+			throw new IllegalArgumentException();
+		}
+		if (data == null) {
 			throw new IllegalArgumentException();
 		}
 
 		this.width = width;
 		this.height = height;
-		this.channels = channels;
+		this.format = format;
+		this.data = data;
 
-		for (int i = 0; i < channels.length; ++i) {
-			final TextureChannel channel = channels[i];
-			final int bytesPerPixel = channel.format.getBytesPerPixel();
-			final int expectedBytes = width * height * bytesPerPixel;
-			if (channel.data.length != expectedBytes) {
-				throw new IllegalArgumentException(
-						String.format("Channel [%d] %s does not fit an image of %dx%d of type %s. Expected number of bytes %d, actual number of bytes %d", i,
-								channel, width, height, channel.format.name(), expectedBytes, channel.data.length));
-			}
+		final int bytesPerPixel = format.getBytesPerPixel();
+		final int expectedBytes = width * height * bytesPerPixel;
+		if (data.length != expectedBytes) {
+			throw new IllegalArgumentException(
+					String.format("Image data does not fit an image of %dx%d of type %s. Expected number of bytes %d, actual number of bytes %d", width, height,
+							format.name(), expectedBytes, data.length));
 		}
 	}
 
@@ -51,31 +50,27 @@ public final class TextureImage {
 		return width;
 	}
 
-	public List<TextureChannel> getChannels() {
-		return Collections.unmodifiableList(Arrays.asList(channels));
+	public byte[] getImageData() {
+		return data;
 	}
 
-	public TextureChannel getChannel(int channelIdx) {
-		return channels[channelIdx];
+	public TextureImageFormat getImageFormat() {
+		return format;
 	}
 
-	public int getChannelCount() {
-		return channels.length;
-	}
-
-	public final BufferedImage convertToBufferedImage(TextureChannel channel) {
+	public BufferedImage convertToBufferedImage() {
 		BufferedImage image = null;
-		switch (channel.format) {
+		switch (format) {
 			case GRAYSCALE: {// grayscale
 				image = new BufferedImage(width, height, BufferedImage.TYPE_BYTE_GRAY);
-				image.setData(Raster.createRaster(image.getSampleModel(), new DataBufferByte(channel.data, channel.data.length), null));
+				image.setData(Raster.createRaster(image.getSampleModel(), new DataBufferByte(data, data.length), null));
 				break;
 			}
 
 			case RGB: {// RGB
-				final int[] tmp = new int[channel.data.length / 3];
+				final int[] tmp = new int[data.length / 3];
 				for (int i = 0; i < tmp.length; ++i) {
-					tmp[i] = 0xFF000000 | (channel.data[(i * 3) + 0] << 16) | (channel.data[(i * 3) + 1] << 8) | channel.data[(i * 3) + 2];
+					tmp[i] = 0xFF000000 | (data[(i * 3) + 0] << 16) | (data[(i * 3) + 1] << 8) | data[(i * 3) + 2];
 				}
 				image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
 				image.setData(Raster.createRaster(image.getSampleModel(), new DataBufferInt(tmp, tmp.length), null));
@@ -83,8 +78,8 @@ public final class TextureImage {
 			}
 
 			case ARGB: {// ARGB
-				final int[] tmp = new int[channel.data.length / Integer.BYTES];
-				ByteBuffer.wrap(channel.data).asIntBuffer().get(tmp);
+				final int[] tmp = new int[data.length / Integer.BYTES];
+				ByteBuffer.wrap(data).asIntBuffer().get(tmp);
 				image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
 				image.setData(Raster.createRaster(image.getSampleModel(), new DataBufferInt(tmp, tmp.length), null));
 				break;
@@ -96,7 +91,55 @@ public final class TextureImage {
 		return image;
 	}
 
-	public final List<BufferedImage> convertToBufferedImage() {
-		return Arrays.stream(channels).map(this::convertToBufferedImage).collect(Collectors.toList());
+	@Override
+	public String toString() {
+		final StringBuilder builder = new StringBuilder();
+		builder.append("TextureImage [format=");
+		builder.append(format);
+		builder.append(", width=");
+		builder.append(width);
+		builder.append(", height=");
+		builder.append(height);
+		builder.append("]");
+		return builder.toString();
 	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = (prime * result) + Arrays.hashCode(data);
+		result = (prime * result) + ((format == null) ? 0 : format.hashCode());
+		result = (prime * result) + height;
+		result = (prime * result) + width;
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (obj == null) {
+			return false;
+		}
+		if (getClass() != obj.getClass()) {
+			return false;
+		}
+		final TextureImage other = (TextureImage) obj;
+		if (!Arrays.equals(data, other.data)) {
+			return false;
+		}
+		if (format != other.format) {
+			return false;
+		}
+		if (height != other.height) {
+			return false;
+		}
+		if (width != other.width) {
+			return false;
+		}
+		return true;
+	}
+
 }

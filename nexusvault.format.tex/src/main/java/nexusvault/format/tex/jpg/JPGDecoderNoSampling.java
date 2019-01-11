@@ -131,7 +131,7 @@ public final class JPGDecoderNoSampling extends JPGDecoderBase {
 				final int pixelLayerC = stack.data[blockXY + (2 * Constants.BLOCK_SIZE)];
 				final int pixelLayerD = stack.data[blockXY + (3 * Constants.BLOCK_SIZE)];
 
-				getPixelComposition().composite(image, pixelXY, pixelLayerA, pixelLayerB, pixelLayerC, pixelLayerD);
+				getPixelCompositor().composite(image.getImageData(), pixelXY * 4, pixelLayerA, pixelLayerB, pixelLayerC, pixelLayerD);
 				blockXY += 1;
 			}
 			pixelLineXY += image.getImageWidth();

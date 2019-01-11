@@ -5,13 +5,13 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import nexusvault.format.tex.ImageMetaInformation;
-import nexusvault.format.tex.TextureChannel;
 import nexusvault.format.tex.TextureImage;
+import nexusvault.format.tex.TextureImageFormat;
 import nexusvault.format.tex.TextureRawData;
 import nexusvault.format.tex.jpg.Constants.LayerType;
 import nexusvault.format.tex.struct.StructTextureFileHeader;
 
-public abstract class JPGDecoderBase {
+abstract class JPGDecoderBase {
 
 	public static interface PixelCompositionProvider {
 		PixelCompositionStrategy getPixelCalculator(StructTextureFileHeader header);
@@ -73,11 +73,9 @@ public abstract class JPGDecoderBase {
 	}
 
 	protected final void initializeTextureImage(ImageMetaInformation meta) {
-		final List<TextureChannelInfo> infos = pixelCompositor.getTextureChannelInfo();
-		final TextureChannel[] channels = infos.stream()
-				.map(info -> new TextureChannel(info.getFormat(), info.getType(), new byte[meta.height * meta.width * info.getFormat().getBytesPerPixel()]))
-				.toArray(TextureChannel[]::new);
-		image = new TextureImage(meta.width, meta.height, channels);
+		final TextureImageFormat imageFormat = TextureImageFormat.ARGB;
+		final byte[] imageData = new byte[meta.height * meta.width * imageFormat.getBytesPerPixel()];
+		image = new TextureImage(meta.width, meta.height, imageFormat, imageData);
 	}
 
 	protected final void initializeQuantTables() {
@@ -202,7 +200,7 @@ public abstract class JPGDecoderBase {
 		return textureHeader.getLayer(layerId).getQuality();
 	}
 
-	protected final PixelCompositionStrategy getPixelComposition() {
+	protected final PixelCompositionStrategy getPixelCompositor() {
 		return pixelCompositor;
 	}
 

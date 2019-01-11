@@ -8,12 +8,10 @@ import ddsutil.DDSUtil;
 import gr.zdimensions.jsquish.Squish;
 import nexusvault.format.tex.AbstTextureDataDecoder;
 import nexusvault.format.tex.ImageMetaInformation;
-import nexusvault.format.tex.TextureChannel;
-import nexusvault.format.tex.TextureChannelFormat;
-import nexusvault.format.tex.TextureChannelType;
 import nexusvault.format.tex.TextureConversionException;
 import nexusvault.format.tex.TextureDataDecoder;
 import nexusvault.format.tex.TextureImage;
+import nexusvault.format.tex.TextureImageFormat;
 import nexusvault.format.tex.TextureRawData;
 import nexusvault.format.tex.struct.StructTextureFileHeader;
 
@@ -75,15 +73,14 @@ public final class DXTTextureDataEncoder extends AbstTextureDataDecoder implemen
 		}
 
 		final DataBufferByte buffer = (DataBufferByte) image.getRaster().getDataBuffer();
-		final byte[] rawData = buffer.getData();
-		for (int i = 0; i < rawData.length; i += 4) {
-			final byte tmp = rawData[i + 1];
-			rawData[i + 1] = rawData[i + 3];
-			rawData[i + 3] = tmp;
+		final byte[] imageData = buffer.getData();
+		for (int i = 0; i < imageData.length; i += 4) {
+			final byte tmp = imageData[i + 1];
+			imageData[i + 1] = imageData[i + 3];
+			imageData[i + 3] = tmp;
 		}
 
-		final TextureChannel channel = new TextureChannel(TextureChannelFormat.ARGB, TextureChannelType.DIFFUSE, rawData);
-		return new TextureImage(meta.width, meta.height, channel);
+		return new TextureImage(meta.width, meta.height, TextureImageFormat.ARGB, imageData);
 	}
 
 }

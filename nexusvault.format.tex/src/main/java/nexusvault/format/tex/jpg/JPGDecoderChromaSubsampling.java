@@ -148,7 +148,7 @@ public final class JPGDecoderChromaSubsampling extends JPGDecoderBase {
 						final int pixelLayerC = stack.data[layerOffsets[2] + blockOffsets[2] + (x / 2) + ((y / 2) * Constants.BLOCK_WIDTH)];
 						final int pixelLayerD = stack.data[layerOffsets[3] + blockOffsets[3] + x + (y * Constants.BLOCK_WIDTH)];
 
-						getPixelComposition().composite(image, imageXY, pixelLayerA, pixelLayerB, pixelLayerC, pixelLayerD);
+						getPixelCompositor().composite(image.getImageData(), imageXY * 4, pixelLayerA, pixelLayerB, pixelLayerC, pixelLayerD);
 					}
 					imageYOffset += image.getImageWidth();
 				}

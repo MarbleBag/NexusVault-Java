@@ -1,10 +1,8 @@
 package nexusvault.format.tex.unc;
 
 import nexusvault.format.tex.ImageMetaInformation;
-import nexusvault.format.tex.TextureChannel;
-import nexusvault.format.tex.TextureChannelFormat;
-import nexusvault.format.tex.TextureChannelType;
 import nexusvault.format.tex.TextureImage;
+import nexusvault.format.tex.TextureImageFormat;
 import nexusvault.format.tex.TextureRawData;
 import nexusvault.format.tex.struct.StructTextureFileHeader;
 
@@ -23,10 +21,9 @@ public final class Gray8TextureDataDecoder extends AbstUncompressedTextureDataDe
 
 	@Override
 	protected TextureImage getImage(StructTextureFileHeader header, TextureRawData data, ImageMetaInformation meta, int idx) {
-		final byte[] channelData = new byte[meta.length];
-		data.copyTo(meta.offset, channelData, 0, meta.length);
-		final TextureChannel channel = new TextureChannel(TextureChannelFormat.GRAYSCALE, TextureChannelType.UNKNOWN, channelData);
-		return new TextureImage(meta.width, meta.height, channel);
+		final byte[] imageData = new byte[meta.length];
+		data.copyTo(meta.offset, imageData, 0, meta.length);
+		return new TextureImage(meta.width, meta.height, TextureImageFormat.GRAYSCALE, imageData);
 	}
 
 }
