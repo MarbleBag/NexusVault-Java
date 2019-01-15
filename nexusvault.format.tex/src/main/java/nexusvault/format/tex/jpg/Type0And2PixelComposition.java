@@ -7,17 +7,10 @@ public final class Type0And2PixelComposition implements PixelCompositionStrategy
 		final int beta = MathUtil.clamp(alpha + pixelC, 0, 0xFF);
 		final int gamma = MathUtil.clamp(alpha - (pixelB >> 1), 0, 0xFF);
 		final int delta = MathUtil.clamp(gamma + pixelB, 0, 0xFF);
-
-		final int g1 = beta;
-		final int b1 = gamma;
-		final int r1 = delta;
-
-		final int r2 = pixelD;
-
-		imageData[imageDataPixelOffset + 0] = (byte) MathUtil.clamp(r2, 0, 0xFF);
-		imageData[imageDataPixelOffset + 1] = (byte) MathUtil.clamp(r1, 0, 0xFF);
-		imageData[imageDataPixelOffset + 2] = (byte) MathUtil.clamp(g1, 0, 0xFF);
-		imageData[imageDataPixelOffset + 3] = (byte) MathUtil.clamp(b1, 0, 0xFF);
+		imageData[imageDataPixelOffset + 0] = (byte) MathUtil.clamp(pixelD, 0, 0xFF);
+		imageData[imageDataPixelOffset + 1] = (byte) MathUtil.clamp(delta, 0, 0xFF);
+		imageData[imageDataPixelOffset + 2] = (byte) MathUtil.clamp(beta, 0, 0xFF);
+		imageData[imageDataPixelOffset + 3] = (byte) MathUtil.clamp(gamma, 0, 0xFF);
 	}
 
 }
