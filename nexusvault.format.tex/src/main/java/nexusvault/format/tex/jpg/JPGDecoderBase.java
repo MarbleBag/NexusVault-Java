@@ -17,7 +17,7 @@ abstract class JPGDecoderBase {
 		PixelCompositionStrategy getPixelCalculator(StructTextureFileHeader header);
 	}
 
-	private static final IDCTLookUp IDCT = new IDCTLookUp(Constants.BLOCK_HEIGHT, Constants.BLOCK_WIDTH);
+	// private static final IDCTLookUp IDCT = new IDCTLookUp(Constants.BLOCK_HEIGHT, Constants.BLOCK_WIDTH);
 	private static final HuffmanDecoder decoder = new HuffmanDecoder();
 
 	private final int[] decoderOutput = new int[Constants.BLOCK_SIZE];
@@ -108,7 +108,7 @@ abstract class JPGDecoderBase {
 		final List<StackSet> intermediate = Stream.generate(this::getNextStack).peek(this::decodeStack).limit(getNumberOfDecodableStacks())
 				.collect(Collectors.toList());
 
-		intermediate.parallelStream().peek(this::processStack).peek(this::writeStack).forEach(this::returnStack);
+		intermediate.stream()/* .parallelStream() */.peek(this::processStack).peek(this::writeStack).forEach(this::returnStack);
 	}
 
 	private final StackSet getNextStack() { // TODO
@@ -152,13 +152,16 @@ abstract class JPGDecoderBase {
 
 	// TODO this should be further optimized. This is the most time consuming part of decoding
 	protected final void inverseDCT(int[] data, int dataOffset, int[] inverseDCTBuffer) {
-		for (int y0 = 0; y0 < Constants.BLOCK_HEIGHT; ++y0) {
-			for (int x0 = 0; x0 < Constants.BLOCK_WIDTH; ++x0) {
-				final double value = IDCT.IDCT(x0, y0, data, dataOffset, Constants.BLOCK_WIDTH, Constants.BLOCK_HEIGHT);
-				inverseDCTBuffer[x0 + (y0 * Constants.BLOCK_WIDTH)] = (int) Math.round(value);
-			}
-		}
-		System.arraycopy(inverseDCTBuffer, 0, data, dataOffset, Constants.BLOCK_SIZE);
+		// for (int y0 = 0; y0 < Constants.BLOCK_HEIGHT; ++y0) {
+		// for (int x0 = 0; x0 < Constants.BLOCK_WIDTH; ++x0) {
+		// final double value = IDCT.IDCT(x0, y0, data, dataOffset, Constants.BLOCK_WIDTH, Constants.BLOCK_HEIGHT);
+		// inverseDCTBuffer[x0 + (y0 * Constants.BLOCK_WIDTH)] = (int) Math.round(value);
+		// }
+		// }
+		// System.arraycopy(inverseDCTBuffer, 0, data, dataOffset, Constants.BLOCK_SIZE);
+
+		// TODO faster, but doesn't work yet
+		FastIntegerIDCT.idct(data, dataOffset);
 	}
 
 	protected void shiftAndClamp(int layerId, int[] data, int dataOffset) {
