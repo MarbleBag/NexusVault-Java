@@ -3,10 +3,17 @@ package nexusvault.format.m3.export.gltf;
 import java.util.LinkedList;
 import java.util.List;
 
+/**
+ *
+ *
+ */
 public final class ResourceBundle {
 
 	private final List<TextureResource> resources = new LinkedList<>();
 
+	/**
+	 * See {@link TextureResource} for a list of possible resource types
+	 */
 	public void addTextureResource(List<TextureResource> resource) {
 		if (resource == null) {
 			return;
@@ -14,6 +21,9 @@ public final class ResourceBundle {
 		resources.addAll(resource);
 	}
 
+	/**
+	 * See {@link TextureResource} for a list of possible resource types
+	 */
 	public void addTextureResource(TextureResource resource) {
 		if (resource == null) {
 			return;

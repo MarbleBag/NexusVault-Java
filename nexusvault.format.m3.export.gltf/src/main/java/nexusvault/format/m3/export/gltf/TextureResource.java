@@ -5,6 +5,10 @@ import java.nio.file.Path;
 
 import de.javagl.jgltf.impl.v2.Image;
 
+/**
+ *
+ * @see PathTextureResource
+ */
 public abstract class TextureResource {
 	static enum TextureType {
 		DIFFUSE,
