@@ -4,7 +4,7 @@
 
 Provides a reader to convert WS .tex files into a more accessible format
 
-###Currently supported###
+### Currently supported ###
 
 * All .tex formats
 ** DXT1, DXT3, DXT5
