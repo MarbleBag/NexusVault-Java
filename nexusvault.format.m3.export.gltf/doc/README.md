@@ -4,7 +4,7 @@
 
 Provides a m3 to glTF exporter to extract WS model files, which can be used with [nexusvault m3 models](https://github.com/MarbleBag/NexusVault/tree/java/nexusvault.format.m3)
 
-###Currently supported###
+### Currently supported
 
 * All m3 mesh types
 * Multiple UV maps
