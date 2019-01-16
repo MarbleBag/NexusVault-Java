@@ -7,9 +7,9 @@ Provides a reader to convert WS .tex files into a more accessible format
 ### Currently supported ###
 
 * All .tex formats
-** DXT1, DXT3, DXT5
-** Uncompressed Grayscale, ARGB8, RGB565,
-** Compressed .tex (jpg like) with and without subsampling
+  * DXT1, DXT3, DXT5
+  * Uncompressed Grayscale, ARGB8, RGB565,
+  * Compressed .tex (jpg like) with and without subsampling
 
 ## Built With
 
