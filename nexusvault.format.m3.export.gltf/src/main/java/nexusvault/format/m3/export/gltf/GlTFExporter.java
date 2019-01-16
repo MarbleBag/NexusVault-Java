@@ -54,7 +54,7 @@ import nexusvault.shared.exception.IntegerOverflowException;
  * @see #exportModel(Path, String, Model)
  * @see <a href="https://github.com/KhronosGroup/glTF">https://github.com/KhronosGroup/glTF</a>
  */
-// TODO adding kind of property to control some export functions
+// TODO add kind of property to control some export functions
 public class GlTFExporter {
 
 	private static final class LookupIndex {
