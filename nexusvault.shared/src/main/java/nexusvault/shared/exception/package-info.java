@@ -1,0 +1,4 @@
+/**
+ *
+ */
+package nexusvault.shared.exception;
