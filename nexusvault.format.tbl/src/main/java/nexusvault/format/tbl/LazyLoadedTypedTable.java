@@ -1,5 +1,10 @@
 package nexusvault.format.tbl;
 
+/**
+ * Builds only table entries which are requested (no caching)
+ *
+ * @see AbstTypedTable
+ */
 public class LazyLoadedTypedTable<T> extends AbstTypedTable<T> {
 	protected final RawTable table;
 

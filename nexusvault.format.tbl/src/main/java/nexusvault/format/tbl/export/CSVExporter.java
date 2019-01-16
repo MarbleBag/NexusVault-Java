@@ -7,7 +7,11 @@ import java.util.List;
 import nexusvault.format.tbl.RawTable;
 import nexusvault.format.tbl.TableRecord;
 
-public class CSVExporter {
+/**
+ * Simple exporter which is able to convert a {@link RawTable} to csv. The default element delimiter is <tt>;</tt> but can be changed. Each line will end with a
+ * <tt>line feed</tt>.
+ */
+public final class CSVExporter {
 
 	private final String elementDelimiter;
 

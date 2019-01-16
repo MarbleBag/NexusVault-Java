@@ -5,17 +5,37 @@ import java.lang.reflect.Field;
 import kreed.reflection.struct.StructFactory;
 import kreed.reflection.struct.exception.InvalidStructInstanceException;
 
+/**
+ * Provides a typed {@link GameTable} by reflection. The class which is used for the entries needs to have a public/protected or private constructor with no
+ * arguments. The class needs to have a number of fields which is equal to the number of columns in the table (.tbl file). The order of the fields need to
+ * reflect the order of columns in the table. Each field must have a type that's assignable for the tables column type. Those types can be
+ * <ul>
+ * <li>{@link boolean} / {@link Boolean}
+ * <li>{@link float} / {@link Float} (Alternately: {@link double} / {@link Double})
+ * <li>{@link int} / {@link Integer} (Alternately : {@link long} / {@link Long})
+ * <li>{@link long} / {@link Long}
+ * <li>{@link String}
+ * </ul>
+ */
 abstract class AbstTypedTable<T> implements GameTable<T>, Iterable<T> {
 
 	protected final Class<T> entryClass;
 	private final StructFactory entryFactory;
 
-	public AbstTypedTable(Class<T> entryClass) {
+	/**
+	 *
+	 * @param entryClass
+	 */
+	public AbstTypedTable(Class<T> entryClass, StructFactory entryFactory) {
 		if (entryClass == null) {
 			throw new IllegalArgumentException();
 		}
 		this.entryClass = entryClass;
-		this.entryFactory = StructFactory.build();
+		this.entryFactory = entryFactory;
+	}
+
+	public AbstTypedTable(Class<T> entryClass) {
+		this(entryClass, StructFactory.build());
 	}
 
 	protected T buildRecord(RawTable table, int recordIdx) {

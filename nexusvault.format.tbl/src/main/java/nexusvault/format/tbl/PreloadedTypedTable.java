@@ -2,6 +2,11 @@ package nexusvault.format.tbl;
 
 import java.lang.reflect.Array;
 
+/**
+ * Builds all table entries on construction
+ * 
+ * @see AbstTypedTable
+ */
 public class PreloadedTypedTable<T> extends AbstTypedTable<T> {
 	protected final T[] entries;
 

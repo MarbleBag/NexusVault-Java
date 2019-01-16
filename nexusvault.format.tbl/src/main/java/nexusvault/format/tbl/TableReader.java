@@ -1,10 +1,5 @@
 package nexusvault.format.tbl;
 
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.nio.CharBuffer;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -50,7 +45,7 @@ public final class TableReader {
 	protected StructTableFileHeader loadTableHeader(BinaryReader reader) {
 		final StructTableFileHeader tblHeader = new StructTableFileHeader(reader);
 		final long length = (tblHeader.tableNameLength - 1) * 2;
-		tblHeader.name = extractUTF16String(reader, length);
+		tblHeader.name = TextUtil.extractUTF16(reader, length);
 		return tblHeader;
 	}
 
@@ -72,7 +67,7 @@ public final class TableReader {
 		for (final StructTableFieldHeader field : fields) {
 			final StructTableFieldHeader fieldHeader = field;
 			reader.seek(Seek.BEGIN, tblNamePosition + fieldHeader.nameOffset);
-			fieldHeader.name = extractUTF16String(reader, (fieldHeader.nameLength - 1) * 2);
+			fieldHeader.name = TextUtil.extractUTF16(reader, (fieldHeader.nameLength - 1) * 2);
 		}
 
 		return fields;
@@ -124,7 +119,7 @@ public final class TableReader {
 						}
 
 						reader.seek(Seek.BEGIN, dataOffset);
-						final String value = extractNullTerminatedUTF16String(reader);
+						final String value = TextUtil.extractNullTerminatedUTF16(reader);
 						record.data[j] = value;
 						reader.seek(Seek.BEGIN, lastPosition);
 						break;
@@ -145,61 +140,6 @@ public final class TableReader {
 			lookUps[i] = reader.readInt32();
 		}
 		return lookUps;
-	}
-
-	protected String extractUTF16String(BinaryReader reader, long bytes) {
-		final Charset charset = findCharset(reader);
-		final byte[] data = new byte[(int) bytes];
-		reader.readInt8(data, 0, data.length);
-		final CharBuffer charBuffer = charset.decode(ByteBuffer.wrap(data));
-		return charBuffer.toString();
-	}
-
-	protected String extractNullTerminatedUTF16String(BinaryReader reader) {
-
-		final ByteBuffer buffer = ByteBuffer.allocate(64); // small buffer, just big enough to digest most small strings in one go
-		final StringBuilder builder = new StringBuilder(128);
-
-		final Charset charset = findCharset(buffer);
-		boolean isTerminated = false;
-		while (!isTerminated && !reader.isEndOfData()) {
-			final short character = reader.readInt16();
-			isTerminated = character == 0;
-			if (!isTerminated) {
-				buffer.putShort(character);
-			}
-
-			if (!buffer.hasRemaining()) {
-				buffer.flip();
-				final CharBuffer tmp = charset.decode(buffer);
-				builder.append(tmp.toString());
-				buffer.rewind();
-			}
-		}
-
-		buffer.flip();
-		if (buffer.hasRemaining()) {
-			final CharBuffer tmp = charset.decode(buffer);
-			builder.append(tmp.toString());
-		}
-
-		return builder.toString();
-	}
-
-	private Charset findCharset(BinaryReader reader) {
-		return findCharset(reader.getOrder());
-	}
-
-	private Charset findCharset(ByteBuffer buffer) {
-		return findCharset(buffer.order());
-	}
-
-	private Charset findCharset(ByteOrder order) {
-		if (ByteOrder.LITTLE_ENDIAN.equals(order)) {
-			return StandardCharsets.UTF_16LE;
-		} else {
-			return StandardCharsets.UTF_16BE;
-		}
 	}
 
 }
