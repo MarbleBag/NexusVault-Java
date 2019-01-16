@@ -45,6 +45,8 @@ out/
 .project
 .settings/
 bin/
+!**/src/**/bin/
+!**/src/**/bin/**
 tmp/
 *.tmp
 *.bak
