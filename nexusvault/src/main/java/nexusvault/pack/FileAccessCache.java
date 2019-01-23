@@ -16,7 +16,7 @@ import java.util.concurrent.TimeUnit;
 import kreed.io.util.BinaryReader;
 import kreed.io.util.SeekableByteChannelBinaryReader;
 
-class FileAccessCache {
+final class FileAccessCache {
 
 	private final long cacheTime;
 	private final Path filePath;

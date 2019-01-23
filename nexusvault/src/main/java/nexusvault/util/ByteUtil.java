@@ -13,7 +13,7 @@ public class ByteUtil {
 		return sb.toString();
 	}
 
-	public static final int toMagicNumber(String in) {
+	static final int toMagicNumber(String in) {
 		final byte[] data = in.getBytes(Charset.forName("UTF8"));
 		if (data.length > 4) {
 			throw new IllegalArgumentException();
@@ -28,7 +28,7 @@ public class ByteUtil {
 		return result;
 	}
 
-	public static final String fromMagicNumber(int in) {
+	static final String fromMagicNumber(int in) {
 		final Charset charset = StandardCharsets.UTF_8;
 		final byte[] data = new byte[4];
 		int firstNon0 = -1;
@@ -50,7 +50,7 @@ public class ByteUtil {
 		return new String(nString, charset);
 	}
 
-	public static final int toInt(byte[] in) {
+	static final int toInt(byte[] in) {
 		int result = 0;
 		for (int i = 0; i < in.length; ++i) {
 			result |= (in[i] << (8 * (in.length - 1 - i)));
@@ -58,7 +58,7 @@ public class ByteUtil {
 		return result;
 	}
 
-	public static final int toInt(String in) {
+	static final int toInt(String in) {
 		final byte[] data = in.getBytes(Charset.forName("UTF8"));
 		if (data.length > 4) {
 			throw new IllegalArgumentException();
@@ -72,7 +72,7 @@ public class ByteUtil {
 		return result;
 	}
 
-	public static final String toASCII(int in, int bytesPerChar) {
+	static final String toASCII(int in, int bytesPerChar) {
 		Charset charset;
 		switch (bytesPerChar) {
 			case 1:
@@ -91,19 +91,19 @@ public class ByteUtil {
 		return new String(data, charset);
 	}
 
-	public static String toBinary(int i) {
+	static String toBinary(int i) {
 		return String.format("%32s", Integer.toBinaryString(i)).replace(" ", "0");
 	}
 
-	public static String toBinary(short i) {
+	static String toBinary(short i) {
 		return String.format("%16s", Integer.toBinaryString(i & 0xFFFF)).replace(" ", "0");
 	}
 
-	public static String toBinary(byte i) {
+	static String toBinary(byte i) {
 		return String.format("%8s", Integer.toBinaryString(i & 0xFF)).replace(" ", "0");
 	}
 
-	public static String toBinary(byte[] i) {
+	static String toBinary(byte[] i) {
 		final StringBuilder sb = new StringBuilder();
 		for (final byte b : i) {
 			if (sb.length() > 0) {
