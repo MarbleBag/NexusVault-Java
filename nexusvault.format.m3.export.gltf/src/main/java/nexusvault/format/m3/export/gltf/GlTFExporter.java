@@ -45,6 +45,7 @@ import nexusvault.format.m3.ModelMaterialDescription;
 import nexusvault.format.m3.ModelMesh;
 import nexusvault.format.m3.ModelTexture;
 import nexusvault.format.m3.ModelVertex;
+import nexusvault.format.m3.export.gltf.Bi2NiLookUp.Bi2NiEntry;
 import nexusvault.shared.exception.IntegerOverflowException;
 
 /**
@@ -95,7 +96,7 @@ public class GlTFExporter {
 	private List<LookupIndex> materialLookUp;
 	private Map<String, int[]> textureLookUpByURI;
 	private List<TextureResource> textureResources;
-	private List<Integer> jointLookUp;
+	private Bi2NiLookUp boneIndexToNodeIndexLookUp;
 
 	private VertexField[] fieldAccessors;
 	private int vertexSizeInBytes;
@@ -133,22 +134,27 @@ public class GlTFExporter {
 	 * @throws IOException
 	 */
 	public void exportModel(Path directory, String fileName, Model model) throws IOException {
-		setOutputDirectory(directory);
-		setOutputFileName(fileName);
-		setExportModel(model);
-		computeVertex();
+		try {
+			setOutputDirectory(directory);
+			setOutputFileName(fileName);
+			setExportModel(model);
+			computeVertex();
 
-		prepareOutputDirectory();
-		prepareGltf();
-		prepareLookups();
+			prepareOutputDirectory();
+			prepareGltf();
+			prepareLookups();
 
-		prepareDefaultScene();
-		prepareBinaryBuffer();
+			prepareDefaultScene();
+			prepareBinaryBuffer();
 
-		processMeshes();
+			processMeshes();
 
-		clearLookups();
-		writeGltf();
+			writeGltf();
+		} finally {
+			clearLookups();
+			clearExportModel();
+			clearGltf();
+		}
 	}
 
 	private int getLastUsedIndex(List<LookupIndex> lookups) {
@@ -243,33 +249,45 @@ public class GlTFExporter {
 		gltf.addSkins(skin);
 
 		for (final ModelBone modelBone : modelBones) {
-			final float x = modelBone.getLocationX();
-			final float y = modelBone.getLocationY();
-			final float z = modelBone.getLocationZ();
-
 			final Node node = new Node();
 			gltf.addNodes(node);
 			node.setName("Bone_" + modelBone.getBoneIndex());
 
 			final int nodeIndex = gltf.getNodes().size() - 1;
 
-			// final float[] mat = modelBone.getTransformationMatrix(1);
-			// node.setMatrix(modelBone.getTransformationMatrix(1));
-			// node.setTranslation(new float[] { mat[12], mat[13], mat[14] });
-			node.setTranslation(new float[] { x, y, z });
-
-			jointLookUp.add(nodeIndex);
+			final Bi2NiEntry lookUpEntry = new Bi2NiEntry(modelBone.getBoneIndex(), nodeIndex);
+			boneIndexToNodeIndexLookUp.add(lookUpEntry);
 
 			skin.addJoints(nodeIndex);
 
 			if (modelBone.hasParentBone()) {
-				final int jointIndex = jointLookUp.get(modelBone.getParentBoneReference());
-				final Node parentNode = gltf.getNodes().get(jointIndex);
-				parentNode.addChildren(nodeIndex);
+				lookUpEntry.setParentOriginalIndex(modelBone.getParentBoneReference());
+			}
+		}
+
+		for (final Bi2NiEntry node : boneIndexToNodeIndexLookUp) {
+			// set gltf parents
+			if (node.hasParent()) {
+				final Bi2NiEntry parent = boneIndexToNodeIndexLookUp.getForOriginalIndex(node.getParentOriginalIndex());
+				final Node parentNode = gltf.getNodes().get(parent.getLookUpIndex());
+				parentNode.addChildren(node.getLookUpIndex());
 			} else {
-				baseNode.addChildren(nodeIndex);
+				baseNode.addChildren(node.getLookUpIndex());
 			}
 
+			// update bone translation
+			final Node gltfNode = gltf.getNodes().get(node.getLookUpIndex());
+			final ModelBone bone = modelBones.get(node.getOriginalIndex());
+			final float[] translation = new float[] { bone.getLocationX(), bone.getLocationY(), bone.getLocationZ() };
+
+			if (node.hasParent()) {
+				final ModelBone parentBone = modelBones.get(node.getParentOriginalIndex());
+				translation[0] -= parentBone.getLocationX();
+				translation[1] -= parentBone.getLocationY();
+				translation[2] -= parentBone.getLocationZ();
+			}
+
+			gltfNode.setTranslation(translation);
 		}
 
 	}
@@ -278,14 +296,22 @@ public class GlTFExporter {
 		materialLookUp = new ArrayList<>(10);
 		textureLookUpByURI = new HashMap<>();
 		textureResources = new ArrayList<>(20);
-		jointLookUp = new ArrayList<>(20);
+		boneIndexToNodeIndexLookUp = new Bi2NiLookUp();
 	}
 
 	private void clearLookups() {
 		materialLookUp = null;
 		textureLookUpByURI = null;
 		textureResources = null;
-		jointLookUp = null;
+		boneIndexToNodeIndexLookUp = null;
+	}
+
+	private void clearExportModel() {
+		this.model = null;
+	}
+
+	private void clearGltf() {
+		this.gltf = null;
 	}
 
 	private void addTextures() throws IOException {
@@ -556,9 +582,10 @@ public class GlTFExporter {
 
 		if (modelGeometry.hasVertexBoneIndices()) {
 			final int offset = getOffsetWithinVertex(vertexFields);
-			final VertexField field = new VertexFieldBoneIndices(offset);
+			final VertexField field = new VertexFieldBoneIndices(offset, model.getBoneLookUp());
 			vertexFields.add(field);
 		}
+
 		if (modelGeometry.hasVertexBoneWeights()) {
 			final int offset = getOffsetWithinVertex(vertexFields);
 			final VertexField field = new VertexFieldBoneWeights(offset);
@@ -578,6 +605,7 @@ public class GlTFExporter {
 		final Node node = new Node();
 		node.setMesh(meshId);
 		node.setName("node" + name);
+		node.setSkin(0);
 		gltf.addNodes(node);
 		baseNode.addChildren(gltf.getNodes().size() - 1);
 

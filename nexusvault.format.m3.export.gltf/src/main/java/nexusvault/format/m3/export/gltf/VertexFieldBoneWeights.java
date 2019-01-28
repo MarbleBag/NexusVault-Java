@@ -9,7 +9,7 @@ final class VertexFieldBoneWeights extends VertexField {
 	private int[] max;
 
 	VertexFieldBoneWeights(int offsetWithinVertex) {
-		super("BoneWeight", GlTFComponentType.UINT8, GlTFType.VEC4, GlTFMeshAttribute.WEIGHTS, offsetWithinVertex);
+		super("BoneWeight", GlTFComponentType.FLOAT, GlTFType.VEC4, GlTFMeshAttribute.WEIGHTS, offsetWithinVertex);
 		resetField();
 	}
 
@@ -19,10 +19,10 @@ final class VertexFieldBoneWeights extends VertexField {
 		final int b = vertex.getBoneWeight2();
 		final int c = vertex.getBoneWeight3();
 		final int d = vertex.getBoneWeight4();
-		writer.writeInt8(a);
-		writer.writeInt8(b);
-		writer.writeInt8(c);
-		writer.writeInt8(d);
+		writer.writeFloat32(a / 255f);
+		writer.writeFloat32(b / 255f);
+		writer.writeFloat32(c / 255f);
+		writer.writeFloat32(d / 255f);
 
 		min[0] = Math.min(min[0], a & 0xFF);
 		min[1] = Math.min(min[1], b & 0xFF);
@@ -40,6 +40,9 @@ final class VertexFieldBoneWeights extends VertexField {
 
 		min = new int[] { Integer.MAX_VALUE, Integer.MAX_VALUE, Integer.MAX_VALUE, Integer.MAX_VALUE };
 		max = new int[] { Integer.MIN_VALUE, Integer.MIN_VALUE, Integer.MIN_VALUE, Integer.MIN_VALUE };
+
+		// min = new int[] { 0, 0, 0, 0 };
+		// max = new int[] { 255, 255, 255, 255 };
 	}
 
 	@Override

@@ -7,18 +7,26 @@ final class VertexFieldBoneIndices extends VertexField {
 
 	private int[] min;
 	private int[] max;
+	private final int[] boneLookUp;
 
-	VertexFieldBoneIndices(int offsetWithinVertex) {
+	VertexFieldBoneIndices(int offsetWithinVertex, int[] boneLookUp) {
 		super("BoneIdx", GlTFComponentType.UINT16, GlTFType.VEC4, GlTFMeshAttribute.JOINTS, offsetWithinVertex);
 		resetField();
+		this.boneLookUp = boneLookUp;
 	}
 
 	@Override
 	public void writeTo(BinaryWriter writer, ModelVertex vertex) {
-		final int a = vertex.getBoneIndex1();
-		final int b = vertex.getBoneIndex2();
-		final int c = vertex.getBoneIndex3();
-		final int d = vertex.getBoneIndex4();
+		int a = vertex.getBoneIndex1();
+		int b = vertex.getBoneIndex2();
+		int c = vertex.getBoneIndex3();
+		int d = vertex.getBoneIndex4();
+
+		a = boneLookUp[a];
+		b = b != 0 ? boneLookUp[b] : 0;
+		c = c != 0 ? boneLookUp[c] : 0;
+		d = d != 0 ? boneLookUp[d] : 0;
+
 		writer.writeInt16(a);
 		writer.writeInt16(b);
 		writer.writeInt16(c);
