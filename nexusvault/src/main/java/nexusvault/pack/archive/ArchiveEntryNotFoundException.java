@@ -1,6 +1,6 @@
 package nexusvault.pack.archive;
 
-public class ArchiveEntryNotFoundException extends RuntimeException {
+public final class ArchiveEntryNotFoundException extends ArchiveException {
 
 	private static final long serialVersionUID = 5530467723975048345L;
 

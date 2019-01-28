@@ -12,6 +12,7 @@ import java.util.EnumSet;
 import kreed.io.util.BinaryReader;
 import kreed.io.util.SeekableByteChannelBinaryReader;
 import nexusvault.pack.archive.AARCEntry;
+import nexusvault.pack.archive.ArchiveEntryNotFoundException;
 import nexusvault.pack.archive.ArchiveFile;
 import nexusvault.pack.archive.ArchiveFileReader;
 import nexusvault.pack.index.IdxDirectory;
@@ -47,10 +48,18 @@ final class BaseVaultReader extends AbstVaultReader {
 			fileName = fileName.substring(0, fileName.lastIndexOf(".archive")) + ".index";
 			idxPath = path.resolveSibling(fileName);
 		} else {
-			throw new IllegalArgumentException("todo");
+			throw new IllegalArgumentException(String.format("Path %s neither points to an index- nor an archive-file", path));
 		}
 
 		this.pathArchive = arcPath;
+
+		if (!Files.exists(arcPath)) {
+			throw new IllegalArgumentException(String.format("Archive-file at %s not found", arcPath));
+		}
+
+		if (!Files.exists(idxPath)) {
+			throw new IllegalArgumentException(String.format("Index-file at %s not found", idxPath));
+		}
 
 		try (SeekableByteChannel fileStream = Files.newByteChannel(idxPath, EnumSet.of(StandardOpenOption.READ))) {
 			final BinaryReader fileReader = new SeekableByteChannelBinaryReader(fileStream, ByteBuffer.allocate(32 * 1024).order(ByteOrder.LITTLE_ENDIAN));
@@ -106,7 +115,7 @@ final class BaseVaultReader extends AbstVaultReader {
 	}
 
 	@Override
-	PackHeader getPackHeaderForFile(IdxFileLink file) {
+	PackHeader getPackHeaderForFile(IdxFileLink file) throws ArchiveEntryNotFoundException {
 		final AARCEntry entry = fileArchive.getEntry(file.getShaHash());
 		final PackHeader header = fileArchive.getPackHeader(entry);
 		return header;

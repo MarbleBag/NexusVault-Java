@@ -61,6 +61,39 @@ public final class ArchivePath implements Iterable<String> {
 		return path.iterator();
 	}
 
+	private IdxEntry findIn(IdxDirectory dir, String entryName) {
+		for (final IdxEntry entry : dir.getChilds()) {
+			if (entry.getName().equals(entryName)) {
+				return entry;
+			}
+		}
+		return null;
+	}
+
+	public boolean isResolvable(IdxDirectory root) {
+		IdxDirectory currentDir = root;
+		final Iterator<String> it = path.iterator();
+
+		while (it.hasNext()) {
+			final String expectedEntryName = it.next();
+			final IdxEntry entry = findIn(currentDir, expectedEntryName);
+			if (entry == null) {
+				return false;
+			}
+
+			if (entry.isFile()) {
+				if (it.hasNext()) {
+					return false;
+				}
+				return true;
+			}
+
+			currentDir = entry.asDirectory();
+		}
+
+		return true;
+	}
+
 	public IdxEntry resolve(IdxDirectory root) throws IdxEntryNotFound, IdxEntryNotADirectory {
 		IdxDirectory currentDir = root;
 		final Iterator<String> it = path.iterator();
@@ -103,13 +136,11 @@ public final class ArchivePath implements Iterable<String> {
 	}
 
 	public String getNameOf(int elementIdx) {
-		// TODO
-		return null;
+		return path.get(elementIdx);
 	}
 
 	public String getLastName() {
-		// TODO
-		return null;
+		return path.getLast();
 	}
 
 	public ArchivePath resolve(String element) {
@@ -121,33 +152,21 @@ public final class ArchivePath implements Iterable<String> {
 		}
 
 		if (element.equals(File.separator)) {
-			return toRoot();
+			return getRoot();
 		}
 
 		if (element.equals("..")) {
-			return toParent();
+			return getParent();
 		}
 
-		path.add(element);
-
-		return this;
+		final ArchivePath path = new ArchivePath(this.path);
+		path.path.add(element);
+		return path;
 	}
 
 	public void setTo(ArchivePath otherPath) {
 		this.path.clear();
 		this.path.addAll(otherPath.path);
-	}
-
-	public ArchivePath toParent() {
-		if (!path.isEmpty()) {
-			path.removeLast();
-		}
-		return this;
-	}
-
-	public ArchivePath toRoot() {
-		path.clear();
-		return this;
 	}
 
 	@Override

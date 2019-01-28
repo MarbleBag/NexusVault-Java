@@ -1,6 +1,6 @@
 package nexusvault.pack.archive;
 
-public class ArchiveHashCollisionException extends RuntimeException {
+public class ArchiveHashCollisionException extends ArchiveException {
 
 	private static final long serialVersionUID = 5530467723975048345L;
 

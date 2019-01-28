@@ -6,6 +6,7 @@ import java.nio.ByteOrder;
 
 import kreed.io.util.BinaryReader;
 import kreed.io.util.Seek;
+import nexusvault.pack.archive.ArchiveEntryNotFoundException;
 import nexusvault.pack.index.IdxFileLink;
 import nexusvault.shared.exception.IntegerOverflowException;
 
@@ -24,10 +25,10 @@ abstract class AbstVaultReader implements VaultReader {
 
 	abstract BinaryReader getArchiveBinaryReader() throws IOException;
 
-	abstract PackHeader getPackHeaderForFile(IdxFileLink file);
+	abstract PackHeader getPackHeaderForFile(IdxFileLink file) throws ArchiveEntryNotFoundException;
 
 	@Override
-	final public ByteBuffer getData(IdxFileLink file) throws IOException {
+	final public ByteBuffer getData(IdxFileLink file) throws IOException, ArchiveEntryNotFoundException {
 		final PackHeader block = getPackHeaderForFile(file);
 
 		startArchiveAccess();
