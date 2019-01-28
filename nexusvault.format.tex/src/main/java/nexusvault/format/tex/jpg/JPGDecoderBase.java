@@ -108,7 +108,7 @@ abstract class JPGDecoderBase {
 		final List<StackSet> intermediate = Stream.generate(this::getNextStack).peek(this::decodeStack).limit(getNumberOfDecodableStacks())
 				.collect(Collectors.toList());
 
-		intermediate.stream()/* .parallelStream() */.peek(this::processStack).peek(this::writeStack).forEach(this::returnStack);
+		intermediate.parallelStream().peek(this::processStack).peek(this::writeStack).forEach(this::returnStack);
 	}
 
 	private final StackSet getNextStack() { // TODO
