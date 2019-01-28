@@ -25,10 +25,10 @@ public final class ModelReader {
 	public Model read(ByteBuffer buffer) {
 		final DataTracker fileReader = new DataTracker(buffer.position(), buffer.remaining(), buffer);
 
-		final ReferenceUpdater pointerUpdater = new ReferenceUpdater();
-		final StructM3Header header = pointerUpdater.start(fileReader, StructM3Header.class);
+		final ReferenceUpdater updater = new ReferenceUpdater();
+		final StructM3Header header = updater.start(fileReader, StructM3Header.class);
 
-		return new TestModel(header, fileReader);
+		return new InMemoryModel(header, fileReader);
 	}
 
 }

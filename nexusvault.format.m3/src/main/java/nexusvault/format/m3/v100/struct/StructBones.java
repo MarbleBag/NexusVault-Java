@@ -18,7 +18,7 @@ import nexusvault.format.m3.v100.pointer.DATP_S4_S8;
 public class StructBones implements VisitableStruct {
 	public static final int SIZE_IN_BYTES = StructUtil.sizeOf(StructBones.class);
 
-	public static class StructInnerBones {
+	private static class StructInnerBones {
 		public static final int SIZE_IN_BYTES = StructUtil.sizeOf(StructInnerBones.class);
 
 		@Order(1)
@@ -34,17 +34,17 @@ public class StructBones implements VisitableStruct {
 	}
 
 	public static void main(String[] arg) {
-		System.out.println(StructUtil.analyzeStruct(StructBones.class, false));
-		if (0x160 != StructUtil.sizeOf(StructBones.class)) {
-			throw new IllegalStateException();
-		}
+		nexusvault.format.m3.v100.struct.SizeTest.ensureSizeAndOrder(StructBones.class, 0x160);
 	}
 
-	// Is sometimes not -1
+	// Most of the time this field is 65535 (-1)
 	@Order(1)
 	@StructField(BIT_32)
 	public int gap_000;
 
+	/**
+	 * A value of <tt>-1</tt> indicates this bone has no parent
+	 */
 	@Order(2)
 	@StructField(BIT_16)
 	public int parentId; // 0x004
@@ -75,51 +75,33 @@ public class StructBones implements VisitableStruct {
 	@StructField(value = STRUCT, length = 2)
 	public DATP_S4_S12[] unk_block_0A0; // 0x0A0
 
+	/**
+	 * Looks like a column-major transformation matrix
+	 */
 	@Order(9)
-	@StructField(STRUCT)
-	public StructInnerBones gap_0D0; // 0x0D0
+	@StructField(value = BIT_32, length = 16)
+	public float[] matrix_0D0; // 0x0D0
 
+	/**
+	 * Looks like a column-major transformation matrix
+	 */
 	@Order(10)
-	@StructField(STRUCT)
-	public StructInnerBones gap_0E0; // 0x0E0
+	@StructField(value = BIT_32, length = 16)
+	public float[] matrix_110; // 0x110
 
 	@Order(11)
-	@StructField(STRUCT)
-	public StructInnerBones gap_0F0; // 0x0F0
-
-	@Order(12)
-	@StructField(STRUCT)
-	public StructInnerBones gap_100; // 0x100
-
-	@Order(13)
-	@StructField(STRUCT)
-	public StructInnerBones gap_110; // 0x110
-
-	@Order(14)
-	@StructField(STRUCT)
-	public StructInnerBones gap_120; // 0x120
-
-	@Order(15)
-	@StructField(STRUCT)
-	public StructInnerBones gap_130; // 0x130
-
-	@Order(16)
-	@StructField(STRUCT)
-	public StructInnerBones gap140; // 0x140
-
-	@Order(17)
 	@StructField(BIT_32)
 	public float x; // 0x150
 
-	@Order(18)
+	@Order(12)
 	@StructField(BIT_32)
 	public float y; // 0x154
 
-	@Order(19)
+	@Order(13)
 	@StructField(BIT_32)
 	public float z; // 0x158
 
-	@Order(20)
+	@Order(14)
 	@StructField(BIT_32)
 	public int padding_15C; // 0x15C
 

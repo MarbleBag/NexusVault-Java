@@ -18,11 +18,12 @@ import nexusvault.format.m3.v100.pointer.ATP_MaterialDescriptor;
  * TODO
  */
 public class StructMaterial implements VisitableStruct {
-	public static final int SIZE_IN_BYTES = StructUtil.sizeOf(StructMaterial.class);
 
 	public static void main(String[] arg) {
-		System.out.println(StructUtil.analyzeStruct(StructMaterial.class, false));
+		nexusvault.format.m3.v100.struct.SizeTest.ensureSizeAndOrder(StructMaterial.class, 0x30);
 	}
+
+	public static final int SIZE_IN_BYTES = StructUtil.sizeOf(StructMaterial.class);
 
 	@Order(1)
 	@StructField(value = DataType.BIT_8, length = 32)

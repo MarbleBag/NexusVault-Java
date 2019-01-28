@@ -19,11 +19,12 @@ import nexusvault.format.m3.v100.pointer.DATP_S4_S4;
  * TODO
  */
 public class StructMaterialDescriptor implements VisitableStruct {
-	public static final int SIZE_IN_BYTES = StructUtil.sizeOf(StructMaterialDescriptor.class);
 
 	public static void main(String[] arg) {
-		System.out.println(StructUtil.analyzeStruct(StructMaterialDescriptor.class, false));
+		nexusvault.format.m3.v100.struct.SizeTest.ensureSizeAndOrder(StructMaterialDescriptor.class, 0x128);
 	}
+
+	public static final int SIZE_IN_BYTES = StructUtil.sizeOf(StructMaterialDescriptor.class);
 
 	/** points to the texture containing the diffuse, etc */
 	@Order(1)

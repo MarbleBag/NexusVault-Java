@@ -36,7 +36,7 @@ import nexusvault.format.m3.v100.pointer.DATP_S4_S4;
 public class StructM3Header implements VisitableStruct {
 
 	public static void main(String[] arg) {
-		System.out.println(StructUtil.analyzeStruct(StructM3Header.class, true));
+		nexusvault.format.m3.v100.struct.SizeTest.ensureSizeAndOrder(StructM3Header.class, 0x630);
 	}
 
 	public static final int SIGNATURE = ('M' << 24) | ('O' << 16) | ('D' << 8) | 'L';

@@ -14,22 +14,19 @@ import kreed.reflection.struct.StructUtil;
 import nexusvault.format.m3.v100.DataTracker;
 import nexusvault.format.m3.v100.StructVisitor;
 import nexusvault.format.m3.v100.VisitableStruct;
+import nexusvault.format.m3.v100.pointer.ATP_Mesh;
 import nexusvault.format.m3.v100.pointer.ATP_S1;
 import nexusvault.format.m3.v100.pointer.ATP_S4;
-import nexusvault.format.m3.v100.pointer.ATP_Mesh;
 import nexusvault.format.m3.v100.pointer.ATP_UInt16;
 import nexusvault.format.m3.v100.pointer.ATP_UInt32;
 
 public class StructGeometry implements VisitableStruct {
-	public static final int SIZE_IN_BYTES = StructUtil.sizeOf(StructGeometry.class);
 
 	public static void main(String[] arg) {
-		System.out.println(StructUtil.analyzeStruct(StructGeometry.class, true));
-		final int size = StructUtil.sizeOf(StructGeometry.class);
-		if (size != 0xC8) {
-			throw new IllegalStateException();
-		}
+		nexusvault.format.m3.v100.struct.SizeTest.ensureSizeAndOrder(StructGeometry.class, 0xC8);
 	}
+
+	public static final int SIZE_IN_BYTES = StructUtil.sizeOf(StructGeometry.class);
 
 	/**
 	 * For all 34712 scanned m3, the first value is 80, the other seven are 0. This is probably a 64 uint, maybe used as a signature to identify this packet.
@@ -52,7 +49,7 @@ public class StructGeometry implements VisitableStruct {
 	public int vertexBlockSizeInBytes; // 0x01C
 
 	/**
-	 * Flag which indicates which fields the vertex block contains
+	 * This flags indicate which fields each vertex has.
 	 *
 	 * <li>vertexBlockFlags & 0x0001 != 0 -> vertexBlockFieldType[0] is used (value 1 or 2)</li>
 	 * <li>vertexBlockFlags & 0x0002 != 0 -> vertexBlockFieldType[1] is used (value 3)</li>
@@ -65,7 +62,7 @@ public class StructGeometry implements VisitableStruct {
 	 * <li>vertexBlockFlags & 0x0080 != 0 -> vertexBlockFieldType[7] is used (value 4), 4 bytes, at any time, only one byte is set to -1, every other byte to
 	 * 0</li>
 	 * <li>vertexBlockFlags & 0x0100 != 0 -> vertexBlockFieldType[8] is used (value 5), uv map 1</li>
-	 * <li>vertexBlockFlags & 0x0200 != 0 -> vertexBlockFieldType[9] is used (value 5, uv map 2)</li>
+	 * <li>vertexBlockFlags & 0x0200 != 0 -> vertexBlockFieldType[9] is used (value 5, uv map 2</li>
 	 * <li>vertexBlockFlags & 0x0400 != 0 -> vertexBlockFieldType[10] is used (value 6)</li>
 	 *
 	 */
@@ -117,11 +114,11 @@ public class StructGeometry implements VisitableStruct {
 
 	@Order(12)
 	@StructField(UBIT_32)
-	public long numberOfIndices; // 0x068
+	public long indexCount; // 0x068
 
 	/**
-	 * Seems relevant to {@link #vertexBlockCount}. As soon {@link #vertexBlockCount} passes 65536 (max value for uint16), this entry changes from {2,1} to {4,2}.
-	 * <br>
+	 * Seems relevant to {@link #vertexBlockCount}. As soon {@link #vertexBlockCount} passes 65536 (max value for uint16), this entry changes from {2,1} to
+	 * {4,2}. <br>
 	 * Opposite to {2,1}, {4,2} indices do not start at 0 for each submesh. The index can also be far greater than the number of available vertices. Additional,
 	 * if 4 bytes are read, the bytes which hole the actual index can be the first 2 LSB or MSB.
 	 */
@@ -142,8 +139,8 @@ public class StructGeometry implements VisitableStruct {
 	public ATP_Mesh meshes; // 112b //0x080
 
 	/**
-	 * Mostly equal to {@link #vertexBlockCount}, probably part of a struct within this struct, so this value doesn't need to be passed around as a seperate value.
-	 * <br>
+	 * Mostly equal to {@link #vertexBlockCount}, probably part of a struct within this struct, so this value doesn't need to be passed around as a seperate
+	 * value. <br>
 	 * Sometimes this value is smaller than the other
 	 */
 	@Order(17)
@@ -244,6 +241,7 @@ public class StructGeometry implements VisitableStruct {
 		FLOAT32(1),
 		/** 3 x int16 values, xyz */
 		INT16(2);
+
 		private final int type;
 
 		private VertexFieldLocationType(int type) {

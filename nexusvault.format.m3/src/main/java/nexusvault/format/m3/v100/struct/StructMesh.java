@@ -9,15 +9,12 @@ import nexusvault.format.m3.v100.StructVisitor;
 import nexusvault.format.m3.v100.VisitableStruct;
 
 public class StructMesh implements VisitableStruct {
-	public static final int SIZE_IN_BYTES = StructUtil.sizeOf(StructMesh.class);
 
 	public static void main(String[] arg) {
-		System.out.println(StructUtil.analyzeStruct(StructMesh.class, false));
-		final int size = StructUtil.sizeOf(StructMesh.class);
-		if (size != 0x70) {
-			throw new IllegalStateException();
-		}
+		nexusvault.format.m3.v100.struct.SizeTest.ensureSizeAndOrder(StructMesh.class, 0x70);
 	}
+
+	public static final int SIZE_IN_BYTES = StructUtil.sizeOf(StructMesh.class);
 
 	@Order(1)
 	@StructField(value = DataType.UBIT_32)

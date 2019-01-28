@@ -1,9 +1,8 @@
 package nexusvault.format.m3.v100.struct;
 
-import java.nio.charset.Charset;
 import java.util.Arrays;
 
-import kreed.io.util.ByteBufferUtil;
+import kreed.io.util.ByteBufferBinaryReader;
 import kreed.reflection.struct.DataType;
 import kreed.reflection.struct.Order;
 import kreed.reflection.struct.StructField;
@@ -14,6 +13,11 @@ import nexusvault.format.m3.v100.VisitableStruct;
 import nexusvault.format.m3.v100.pointer.ATP_S2;
 
 public class StructTexture implements VisitableStruct {
+
+	public static void main(String[] arg) {
+		nexusvault.format.m3.v100.struct.SizeTest.ensureSizeAndOrder(StructTexture.class, 0x20);
+	}
+
 	public static final int SIZE_IN_BYTES = StructUtil.sizeOf(StructTexture.class);
 
 	// -1, -1 -> not set?
@@ -25,7 +29,13 @@ public class StructTexture implements VisitableStruct {
 	@StructField(value = DataType.BIT_8, length = 2)
 	public int[] unk_gap_000; // o: 0x000
 
-	// 0 diffuse, 1 normal, 2 FX(?)
+	/**
+	 * <ul>
+	 * <li>0 - diffuse
+	 * <li>1 - normal
+	 * <li>2 - FX(?)
+	 * </ul>
+	 */
 	@Order(2)
 	@StructField(DataType.BIT_8)
 	public byte textureType; // o: 0x002
@@ -50,22 +60,18 @@ public class StructTexture implements VisitableStruct {
 	@StructField(DataType.STRUCT)
 	public ATP_S2 textureName;
 
-	private String name;
-
 	@Override
 	public void visit(StructVisitor process, DataTracker fileReader, int dataPosition) {
 		process.process(fileReader, dataPosition, textureName);
 	}
 
-	public void setName(DataTracker data) {
+	public String getName(DataTracker data) {
 		data.setPosition(textureName.getOffset());
-		final Charset charset = ByteBufferUtil.getUTF16CharSet(data.getData());
-		final int numberOfBytes = (textureName.getArraySize() - 1) * 2; // 0 terminated
-		this.name = ByteBufferUtil.getString(data.getData(), numberOfBytes, charset);
-	}
-
-	public String getName() {
-		return name;
+		return TextUtil.extractNullTerminatedUTF16(new ByteBufferBinaryReader(data.getData()));
+		// data.setPosition(textureName.getOffset());
+		// final Charset charset = ByteBufferUtil.getUTF16CharSet(data.getData());
+		// final int numberOfBytes = (textureName.getArraySize() - 1) * 2; // 0 terminated
+		// this.name = ByteBufferUtil.getString(data.getData(), numberOfBytes, charset);
 	}
 
 	@Override
@@ -83,8 +89,6 @@ public class StructTexture implements VisitableStruct {
 		builder.append(Arrays.toString(unk_gap_008));
 		builder.append(", textureName=");
 		builder.append(textureName);
-		builder.append(", name=");
-		builder.append(name);
 		builder.append("]");
 		return builder.toString();
 	}
