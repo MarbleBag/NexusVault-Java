@@ -8,7 +8,7 @@ Provides a reader to convert WS .bin files into a more accessible dictionary for
 
 ## Versioning
 
-This project is versioned with [SemVer](http://semver.org/)
+This project is versioned with [semantic versioning](http://semver.org/)
 
 ## License
 

@@ -1,13 +1,12 @@
-# Nexusvault .tex format
+# Nexusvault m3
 
-Provides a reader to convert WS .tex files into a more accessible format
+**Note:** This library is still subject to change, until version 1 is reached, everything may change.
+
+Provides a reader to convert WS .m3 files into a more accessible format
 
 ### Currently supported
 
-* All .tex formats
-  * DXT1, DXT3, DXT5
-  * Uncompressed Grayscale, ARGB8, RGB565,
-  * Compressed .tex (jpg like) with and without subsampling
+* All m3 mesh types
 
 ## Built With
 
@@ -16,6 +15,7 @@ Provides a reader to convert WS .tex files into a more accessible format
 ## Versioning
 
 This project is versioned with [semantic versioning](http://semver.org/)
+and stores a list of major changes in its [changelog](CHANGELOG.md), including upcoming changes
 
 ## License
 

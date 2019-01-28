@@ -8,7 +8,7 @@ This project contains shared resources for all nexusvault projects.
 
 ## Versioning
 
-This project is versioned with [SemVer](http://semver.org/)
+This project is versioned with [semantic versioning](http://semver.org/)
 
 ## License
 

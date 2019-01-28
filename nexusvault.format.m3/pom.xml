@@ -5,7 +5,7 @@
 
 	<groupId>nexusvault</groupId>
 	<artifactId>nexusvault.format.m3</artifactId>
-	<version>1.0.0</version>
+	<version>0.6.0</version>
 
 	<properties>
 		<project.java.version>1.8</project.java.version>

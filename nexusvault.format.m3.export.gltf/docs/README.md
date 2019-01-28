@@ -8,8 +8,8 @@ Provides a m3 to glTF exporter to extract WS model files, which can be used with
 
 * All m3 mesh types
 * Multiple UV maps
-* Textures
-* Bones / Bone indices / Bone weights (prototype)
+* m3 texture lookup
+* Bones / Bone indices / Bone weights
 
 ## Getting Started
 
@@ -25,6 +25,7 @@ https://github.com/javagl/JglTF
 ## Versioning
 
 This project is versioned with [SemVer](http://semver.org/)
+and stores a list of major changes in its [changelog](CHANGELOG.md), including upcoming changes
 
 ## License
 
