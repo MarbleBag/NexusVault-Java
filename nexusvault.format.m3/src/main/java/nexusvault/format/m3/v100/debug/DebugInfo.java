@@ -4,7 +4,7 @@ import java.util.List;
 
 import nexusvault.format.m3.v100.DataTracker;
 
-public interface Util {
+public interface DebugInfo {
 	List<Object> loadStructs(long dataOffset, Class<?> structClass, int structCount);
 
 	DataTracker getDataModel();

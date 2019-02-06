@@ -15,9 +15,9 @@ public final class StructFormatTask implements Task {
 	}
 
 	@Override
-	public void runTask(Util debuger) {
-		final StructFormater formater = debuger.getStructFormater(structClass);
-		final Table table = formater.formatTable(debuger, dataOffset, structClass, structCount);
+	public void runTask(DebugInfo debugger) {
+		final StructFormater formater = debugger.getStructFormater(structClass);
+		final Table table = formater.formatTable(debugger, dataOffset, structClass, structCount);
 		out.setOutput(table);
 	}
 

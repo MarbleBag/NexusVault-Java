@@ -12,16 +12,24 @@ import nexusvault.shared.exception.IntegerOverflowException;
 import nexusvault.shared.exception.SignatureMismatchException;
 import nexusvault.shared.exception.VersionMismatchException;
 
-public class LanguageReader {
+public final class LanguageReader {
 
 	public static class LanguageEntry {
-		public final int id;
-		public final String text;
+		private final int id;
+		private final String text;
 
 		public LanguageEntry(int id, String text) {
 			super();
 			this.id = id;
 			this.text = text;
+		}
+
+		public int getId() {
+			return id;
+		}
+
+		public String getText() {
+			return text;
 		}
 
 	}

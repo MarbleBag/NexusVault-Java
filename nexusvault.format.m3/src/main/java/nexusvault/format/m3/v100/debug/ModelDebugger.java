@@ -13,9 +13,11 @@ import kreed.reflection.struct.StructReader;
 import kreed.reflection.struct.reader.ByteBufferReader;
 import nexusvault.format.m3.Model;
 import nexusvault.format.m3.v100.DataTracker;
+import nexusvault.format.m3.v100.struct.StructGeometry;
 import nexusvault.format.m3.v100.struct.StructM3Header;
+import nexusvault.format.m3.v100.struct.StructTexture;
 
-public final class ModelDebuger {
+public final class ModelDebugger {
 
 	private static DataTracker extractDataFromModel(Model m3) {
 		final Field[] fields = m3.getClass().getDeclaredFields();
@@ -57,6 +59,24 @@ public final class ModelDebuger {
 		}
 	}
 
+	public static ModelDebugger createDefaultModelDebugger() {
+		final ModelDebugger debugger = new ModelDebugger();
+
+		{
+			final BasicStructFormater formater = new BasicStructFormater();
+			formater.setFieldFormater("vertexBlockData", new IgnoreFieldFormater());
+			formater.setFieldFormater("indexData", new IgnoreFieldFormater());
+			debugger.setStructFormater(StructGeometry.class, formater);
+		}
+		{
+			final BasicStructFormater formater = new BasicStructFormater();
+			formater.setFieldFormater("textureName", new NullTerminatedStringFieldFormater());
+			debugger.setStructFormater(StructTexture.class, formater);
+		}
+
+		return debugger;
+	}
+
 	private final StructReader<ByteBuffer> structBuilder = StructReader.build(StructFactory.build(), DataReadDelegator.build(new ByteBufferReader()), true);
 
 	private Queue<Task> taskQueue;
@@ -64,7 +84,7 @@ public final class ModelDebuger {
 
 	private final Class2ObjectLookup<StructFormater> sturctFormaters;
 
-	public ModelDebuger() {
+	public ModelDebugger() {
 		sturctFormaters = new Class2ObjectLookup<>(null);
 		sturctFormaters.setLookUp(Object.class, new BasicStructFormater());
 	}
@@ -98,11 +118,11 @@ public final class ModelDebuger {
 	}
 
 	protected StructFormater getInternalStructFormater(Class<?> structClass) {
-		StructFormater formater = sturctFormaters.getLookUp(structClass);
-		if (formater == null) {
-			formater = new BasicStructFormater();
-			sturctFormaters.setLookUp(structClass, formater);
-		}
+		final StructFormater formater = sturctFormaters.getLookUp(structClass);
+		// if (formater == null) {
+		// formater = new BasicStructFormater();
+		// sturctFormaters.setLookUp(structClass, formater);
+		// }
 		return formater;
 	}
 
@@ -131,34 +151,34 @@ public final class ModelDebuger {
 	}
 
 	private void runTasks() {
-		final Util debuger = new Util() {
+		final DebugInfo debugger = new DebugInfo() {
 
 			@Override
 			public DataTracker getDataModel() {
-				return ModelDebuger.this.getDataModel();
+				return ModelDebugger.this.getDataModel();
 			}
 
 			@Override
 			public List<Object> loadStructs(long dataOffset, Class<?> structClass, int structCount) {
 				modelData.setPosition(dataOffset);
-				return ModelDebuger.this.loadStructs(structClass, structCount, modelData);
+				return ModelDebugger.this.loadStructs(structClass, structCount, modelData);
 			}
 
 			@Override
 			public StructFormater getStructFormater(Class<?> structClass) {
-				return ModelDebuger.this.getInternalStructFormater(structClass);
+				return ModelDebugger.this.getInternalStructFormater(structClass);
 			}
 
 			@Override
 			public void queueTask(Task task) {
-				ModelDebuger.this.queueTask(task);
+				ModelDebugger.this.queueTask(task);
 			}
 
 		};
 
 		while (!this.taskQueue.isEmpty()) {
 			final Task task = taskQueue.poll();
-			task.runTask(debuger);
+			task.runTask(debugger);
 		}
 	}
 

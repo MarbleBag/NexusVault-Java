@@ -2,8 +2,10 @@ package nexusvault.format.m3.v100.debug;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import kreed.reflection.struct.FieldExtractor;
 import kreed.reflection.struct.StructField;
@@ -16,9 +18,12 @@ import nexusvault.format.m3.v100.pointer.DoubleArrayTypePointer;
 public final class BasicStructFormater implements StructFormater {
 
 	private final Class2ObjectLookup<FieldFormater> fieldFormaters;
+	private final Map<String, FieldFormater> fieldFormaterByName;
 
 	public BasicStructFormater() {
 		fieldFormaters = new Class2ObjectLookup<>(null);
+		fieldFormaterByName = new HashMap<>();
+
 		fieldFormaters.setLookUp(ArrayTypePointer.class, new ATPFieldFormater());
 		fieldFormaters.setLookUp(DoubleArrayTypePointer.class, new DATPFieldFormater());
 
@@ -41,8 +46,12 @@ public final class BasicStructFormater implements StructFormater {
 		this.fieldFormaters.setLookUp(fieldType, formater);
 	}
 
+	public void setFieldFormater(String fieldName, FieldFormater formater) {
+		this.fieldFormaterByName.put(fieldName, formater);
+	}
+
 	@Override
-	public Table formatTable(Util debuger, long dataOffset, Class<?> structClass, int structCount) {
+	public Table formatTable(DebugInfo debuger, long dataOffset, Class<?> structClass, int structCount) {
 		final List<Object> structs = debuger.loadStructs(dataOffset, structClass, structCount);
 		final List<Field> fields = loadFields(structClass);
 
@@ -74,8 +83,13 @@ public final class BasicStructFormater implements StructFormater {
 	}
 
 	private FieldFormater getFieldFormater(Field field) {
+		FieldFormater formater = fieldFormaterByName.get(field.getName());
+		if (formater != null) {
+			return formater;
+		}
+
 		final Class<?> fieldType = field.getType().isArray() ? field.getType().getComponentType() : field.getType();
-		final FieldFormater formater = fieldFormaters.getLookUp(fieldType);
+		formater = fieldFormaters.getLookUp(fieldType);
 		if (formater == null) {
 			// if (fieldType.isPrimitive()) {
 			// formater = new UntypedFieldFormater();

@@ -22,7 +22,7 @@ final class PreloadedLanguageDictionary implements LanguageDictionary {
 		this.localeTag = localeTag;
 		this.localeLong = localeLong;
 		this.localeShort = localeShort;
-		this.map = Collections.unmodifiableMap(Arrays.stream(entries).collect(Collectors.toMap(e -> e.id, e -> e)));
+		this.map = Collections.unmodifiableMap(Arrays.stream(entries).collect(Collectors.toMap(e -> e.getId(), e -> e)));
 	}
 
 	@Override
@@ -44,7 +44,7 @@ final class PreloadedLanguageDictionary implements LanguageDictionary {
 	@Override
 	public String getText(int id) {
 		final LanguageEntry e = map.get(Integer.valueOf(id));
-		return e == null ? null : e.text;
+		return e == null ? null : e.getText();
 	}
 
 	@Override
