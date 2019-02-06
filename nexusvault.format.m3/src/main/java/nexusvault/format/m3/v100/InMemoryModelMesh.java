@@ -1,10 +1,10 @@
 package nexusvault.format.m3.v100;
 
+import java.util.Iterator;
 import java.util.List;
 
 import nexusvault.format.m3.ModelMesh;
 import nexusvault.format.m3.ModelVertex;
-import nexusvault.format.m3.ModelVertexIterator;
 import nexusvault.format.m3.v100.struct.StructMesh;
 
 class InMemoryModelMesh implements ModelMesh {
@@ -27,6 +27,14 @@ class InMemoryModelMesh implements ModelMesh {
 	@Override
 	public int getMeshIndex() {
 		return meshNo;
+	}
+
+	public boolean hasMeshGroup() {
+		return structMesh.meshGroupId != -1;
+	}
+
+	public int getMeshGroup() {
+		return structMesh.meshGroupId;
 	}
 
 	@Override
@@ -55,11 +63,12 @@ class InMemoryModelMesh implements ModelMesh {
 	}
 
 	@Override
+	@Deprecated
 	public Iterable<ModelVertex> iterateVertices() {
 		return () -> buildIterator(0);
 	}
 
-	private ModelVertexIterator buildIterator(int startIdx) {
+	private Iterator<ModelVertex> buildIterator(int startIdx) {
 		return model.buildIterator(startIdx, structMesh.startVertex, structMesh.vertexCount);
 	}
 
