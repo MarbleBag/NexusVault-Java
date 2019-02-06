@@ -1,13 +1,13 @@
 package nexusvault.format.m3.v100;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import kreed.io.util.ByteBufferUtil;
 import nexusvault.format.m3.ModelGeometry;
 import nexusvault.format.m3.ModelMesh;
 import nexusvault.format.m3.ModelVertex;
-import nexusvault.format.m3.ModelVertexIterator;
 import nexusvault.format.m3.v100.struct.StructGeometry;
 import nexusvault.format.m3.v100.struct.StructGeometry.VertexField;
 import nexusvault.format.m3.v100.struct.StructMesh;
@@ -117,10 +117,11 @@ class InMemoryModelGeometry implements ModelGeometry {
 		return result;
 	}
 
-	protected ModelVertexIterator buildIterator(int startIdx, long startVertex, long vertexCount) {
+	@Deprecated
+	protected Iterator<ModelVertex> buildIterator(int startIdx, long startVertex, long vertexCount) {
 		final long vertexDataOffset = struct.vertexBlockData.getOffset();
 
-		return new ModelVertexIterator() {
+		return new Iterator<ModelVertex>() {
 			private final long vertexSize = struct.vertexBlockSizeInBytes;
 			private final long vertexStart = vertexDataOffset + (startVertex * vertexSize);
 
@@ -131,7 +132,6 @@ class InMemoryModelGeometry implements ModelGeometry {
 				return idx < vertexCount;
 			}
 
-			@Override
 			public boolean hasPrevious() {
 				return idx > 0;
 			}
@@ -146,7 +146,6 @@ class InMemoryModelGeometry implements ModelGeometry {
 				return vertex;
 			}
 
-			@Override
 			public ModelVertex previous() {
 				if (--idx < 0) {
 					throw new IndexOutOfBoundsException();
