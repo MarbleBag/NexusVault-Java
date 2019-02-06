@@ -112,13 +112,13 @@ final class InMemoryModel implements Model {
 
 	@Override
 	public List<ModelBone> getBones() {
-		return getAllStructsPacked(header.bones_a, (idx, struct) -> new InMemoryModelBone(idx, struct, this));
+		return getAllStructsPacked(header.bones, (idx, struct) -> new InMemoryModelBone(idx, struct, this));
 	}
 
 	@Override
 	public int[] getBoneLookUp() {
-		this.modelData.setPosition(header.bones_B.getOffset());
-		final int[] lookUp = new int[header.bones_B.getArraySize()];
+		this.modelData.setPosition(header.boneMapping.getOffset());
+		final int[] lookUp = new int[header.boneMapping.getArraySize()];
 		for (int i = 0; i < lookUp.length; ++i) {
 			lookUp[i] = modelData.getData().getShort() & 0xFFFF;
 		}
@@ -127,7 +127,7 @@ final class InMemoryModel implements Model {
 
 	@Override
 	public ModelBone getBone(int idx) {
-		final StructBones struct = getStruct(header.bones_a, idx);
+		final StructBones struct = getStruct(header.bones, idx);
 		final ModelBone model = new InMemoryModelBone(idx, struct, this);
 		return model;
 	}
