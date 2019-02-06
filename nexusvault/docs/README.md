@@ -2,13 +2,14 @@
 
 Provides a mean to read .index and .archive files.
 
-
 ### Currently supported
 
 * reading .index files
 * reading .archive files
 * file-system for .index file
 * extraction of data from an archive in association with its index-file
+
+* files which have the ending '.lua', '.xml' or '.ttf' do not need any converter and can be directly exported with UTF16 encoding 
 
 ## Getting Started
 
