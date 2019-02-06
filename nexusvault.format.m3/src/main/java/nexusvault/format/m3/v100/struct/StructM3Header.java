@@ -29,11 +29,12 @@ import nexusvault.format.m3.v100.pointer.ATP_S76;
 import nexusvault.format.m3.v100.pointer.ATP_S8;
 import nexusvault.format.m3.v100.pointer.ATP_S80;
 import nexusvault.format.m3.v100.pointer.ATP_Texture;
+import nexusvault.format.m3.v100.pointer.ATP_UInt16;
 import nexusvault.format.m3.v100.pointer.DATP_S4_S1;
 import nexusvault.format.m3.v100.pointer.DATP_S4_S2;
 import nexusvault.format.m3.v100.pointer.DATP_S4_S4;
 
-public class StructM3Header implements VisitableStruct {
+public final class StructM3Header implements VisitableStruct {
 
 	public static void main(String[] arg) {
 		nexusvault.format.m3.v100.struct.SizeTest.ensureSizeAndOrder(StructM3Header.class, 0x630);
@@ -124,7 +125,7 @@ public class StructM3Header implements VisitableStruct {
 
 	@Order(21)
 	@StructField(DataType.STRUCT)
-	public ATP_Bones bones_a; // o: 0x180
+	public ATP_Bones bones; // o: 0x180
 
 	@Order(22)
 	@StructField(DataType.STRUCT)
@@ -136,7 +137,7 @@ public class StructM3Header implements VisitableStruct {
 
 	@Order(24)
 	@StructField(DataType.STRUCT)
-	public ATP_S2 bones_B; // 2 o: 0x1B0
+	public ATP_UInt16 boneMapping; // 2 o: 0x1B0
 
 	@Order(25)
 	@StructField(DataType.STRUCT)
@@ -342,10 +343,10 @@ public class StructM3Header implements VisitableStruct {
 		process.process(fileReader, dataPosition, unk_offset_148);
 		process.process(fileReader, dataPosition, unk_offset_160);
 
-		process.process(fileReader, dataPosition, bones_a);
+		process.process(fileReader, dataPosition, bones);
 		process.process(fileReader, dataPosition, unk_offset_190);
 		process.process(fileReader, dataPosition, unk_offset_1A0);
-		process.process(fileReader, dataPosition, bones_B);
+		process.process(fileReader, dataPosition, boneMapping);
 		process.process(fileReader, dataPosition, textures);
 		process.process(fileReader, dataPosition, unk_offset_1D0);
 		process.process(fileReader, dataPosition, unk_offset_1E0);

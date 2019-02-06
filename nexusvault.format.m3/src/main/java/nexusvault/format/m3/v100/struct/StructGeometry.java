@@ -20,7 +20,7 @@ import nexusvault.format.m3.v100.pointer.ATP_S4;
 import nexusvault.format.m3.v100.pointer.ATP_UInt16;
 import nexusvault.format.m3.v100.pointer.ATP_UInt32;
 
-public class StructGeometry implements VisitableStruct {
+public final class StructGeometry implements VisitableStruct {
 
 	public static void main(String[] arg) {
 		nexusvault.format.m3.v100.struct.SizeTest.ensureSizeAndOrder(StructGeometry.class, 0xC8);
@@ -145,7 +145,7 @@ public class StructGeometry implements VisitableStruct {
 	 */
 	@Order(17)
 	@StructField(UBIT_32)
-	public long nVertexBlocks2;
+	public long nVertexBlocks2; // 0x090
 
 	// For all 34712 scanned m3 empty (2018.12.11) Maybe padding
 	@Order(18)
@@ -160,7 +160,7 @@ public class StructGeometry implements VisitableStruct {
 	 */
 	@Order(19)
 	@StructField(STRUCT)
-	public ATP_S4 meshVertexBlockRange; // 4b //0x098
+	public ATP_UInt32 meshVertexBlockRange; // 4b //0x098
 
 	/**
 	 * Contains a huge amount of data, related to meshes, see unk_offset_0B8 <br>

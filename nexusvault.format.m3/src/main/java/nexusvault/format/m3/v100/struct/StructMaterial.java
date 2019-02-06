@@ -17,7 +17,7 @@ import nexusvault.format.m3.v100.pointer.ATP_MaterialDescriptor;
  * <p>
  * TODO
  */
-public class StructMaterial implements VisitableStruct {
+public final class StructMaterial implements VisitableStruct {
 
 	public static void main(String[] arg) {
 		nexusvault.format.m3.v100.struct.SizeTest.ensureSizeAndOrder(StructMaterial.class, 0x30);

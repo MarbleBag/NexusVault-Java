@@ -12,7 +12,7 @@ import nexusvault.format.m3.v100.StructVisitor;
 import nexusvault.format.m3.v100.VisitableStruct;
 import nexusvault.format.m3.v100.pointer.ATP_S2;
 
-public class StructTexture implements VisitableStruct {
+public final class StructTexture implements VisitableStruct {
 
 	public static void main(String[] arg) {
 		nexusvault.format.m3.v100.struct.SizeTest.ensureSizeAndOrder(StructTexture.class, 0x20);

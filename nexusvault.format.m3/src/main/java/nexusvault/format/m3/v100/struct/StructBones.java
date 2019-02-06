@@ -15,7 +15,7 @@ import nexusvault.format.m3.v100.pointer.DATP_S4_S12;
 import nexusvault.format.m3.v100.pointer.DATP_S4_S6;
 import nexusvault.format.m3.v100.pointer.DATP_S4_S8;
 
-public class StructBones implements VisitableStruct {
+public final class StructBones implements VisitableStruct {
 	public static final int SIZE_IN_BYTES = StructUtil.sizeOf(StructBones.class);
 
 	private static class StructInnerBones {
