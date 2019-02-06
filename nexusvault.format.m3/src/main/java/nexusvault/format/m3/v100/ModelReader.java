@@ -15,7 +15,7 @@ public final class ModelReader {
 	}
 
 	public boolean acceptFileSignature(int signature) {
-		return getFileSignature() != signature;
+		return getFileSignature() == signature;
 	}
 
 	public boolean acceptFileVersion(int version) {
