@@ -9,7 +9,7 @@ import java.nio.charset.StandardCharsets;
 import kreed.io.util.BinaryReader;
 
 // TODO move to shared
-abstract class TextUtil {
+public abstract class TextUtil {
 	private TextUtil() {
 
 	}

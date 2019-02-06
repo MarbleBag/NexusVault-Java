@@ -14,7 +14,7 @@ import nexusvault.format.m3.v100.pointer.ArrayTypePointer;
 import nexusvault.format.m3.v100.pointer.DoubleArrayTypePointer;
 import nexusvault.shared.exception.IntegerOverflowException;
 
-class ReferenceUpdater implements StructVisitor {
+final class ReferenceUpdater implements StructVisitor {
 
 	private final StructReader<ByteBuffer> structBuilder;
 	private final StructWriter<ByteBuffer> structSaver;
