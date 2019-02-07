@@ -41,12 +41,12 @@ public final class DoubleDataArrayFormatTask implements Task {
 			for (int columnIdx = 0; columnIdx < sizeOfElementA; ++columnIdx) {
 				final TableColumn column = table.getColumn("A" + columnIdx);
 				final TableCell cell = column.getCell(nextRow);
-				cell.addEntry(dataARow[columnIdx] & 0xFF);
+				cell.addEntry((dataARow[columnIdx] & 0xFF));
 			}
 			for (int columnIdx = 0; columnIdx < sizeOfElementB; ++columnIdx) {
 				final TableColumn column = table.getColumn("B" + columnIdx);
 				final TableCell cell = column.getCell(nextRow);
-				cell.addEntry(dataBRow[columnIdx] & 0xFF);
+				cell.addEntry((dataBRow[columnIdx] & 0xFF));
 			}
 		}
 		out.setOutput(table);

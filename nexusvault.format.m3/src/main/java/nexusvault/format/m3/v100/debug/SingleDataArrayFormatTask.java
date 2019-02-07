@@ -39,7 +39,7 @@ public final class SingleDataArrayFormatTask implements Task {
 			for (int c = 0; c < sizeOfElement; ++c) {
 				final TableColumn column = table.getColumn(c);
 				final TableCell cell = column.getCell(nextRow);
-				cell.addEntry(line[c] & 0xFF);
+				cell.addEntry((line[c] & 0xFF));
 			}
 		}
 		out.setOutput(table);

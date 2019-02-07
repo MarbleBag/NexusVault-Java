@@ -1,6 +1,7 @@
 package nexusvault.format.m3.v100.debug;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -20,6 +21,10 @@ public final class Table {
 			row.addEntry(column, value);
 		}
 
+		public void addEntries(Collection<? extends Object> value) {
+			row.addEntries(column, value);
+		}
+
 		public TableColumn getColumn() {
 			return column;
 		}
@@ -31,6 +36,7 @@ public final class Table {
 		public TableRow getRow() {
 			return row;
 		}
+
 	}
 
 	public static final class TableColumn {
@@ -94,6 +100,14 @@ public final class Table {
 			this.index = index;
 		}
 
+		TableColumn cloneColumn() {
+			final TableColumn clone = new TableColumn(columnName, columnId);
+			clone.subHeader.addAll(subHeader);
+			clone.maxNumberOfEntries = maxNumberOfEntries;
+			clone.index = index;
+			return clone;
+		}
+
 	}
 
 	public static final class TableRow {
@@ -122,6 +136,17 @@ public final class Table {
 				}
 			}
 			row[column.getIndex()].add(value);
+		}
+
+		public void addEntries(TableColumn column, Collection<? extends Object> value) {
+			if (row[column.getIndex()] == null) {
+				row[column.getIndex()] = new LinkedList<>();
+			} else {
+				if ((row[column.getIndex()].size() + value.size()) > column.getMaxNumberOfEntries()) {
+					throw new IllegalArgumentException("Column " + column.getId() + " can only have up to " + column.getMaxNumberOfEntries());
+				}
+			}
+			row[column.getIndex()].addAll(value);
 		}
 
 		List<Object> getEntries(TableColumn column) {
@@ -192,6 +217,39 @@ public final class Table {
 	@Override
 	public String toString() {
 		return "Table [" + super.hashCode() + ", columns=" + getColumnCount() + ", rows=" + getRowCount() + "]";
+	}
+
+	public static Table mergeColumns(Table a, Table b) {
+		if (a.getRowCount() != b.getRowCount()) {
+			throw new IllegalArgumentException("Tables need to have an equal row count");
+		}
+
+		final List<TableColumn> newColumns = new ArrayList<>(a.getColumnCount() + b.getColumnCount());
+		a.sortedColumns.stream().map(TableColumn::cloneColumn).forEach(newColumns::add);
+		b.sortedColumns.stream().map(TableColumn::cloneColumn).forEach(newColumns::add);
+		final Table newTable = new Table(newColumns);
+
+		final int rowCount = a.getRowCount();
+		final int columnCountA = a.getColumnCount();
+		final int columnCountB = b.getColumnCount();
+
+		for (int i = 0; i < rowCount; ++i) {
+			final TableRow row = newTable.addNewRow();
+			final TableRow rowA = a.getRow(i);
+			final TableRow rowB = b.getRow(i);
+			for (int j = 0; j < columnCountA; ++j) {
+				final TableColumn column = newTable.getColumn(j);
+				final TableColumn columnA = a.getColumn(j);
+				row.getCell(column).addEntries(rowA.getCell(columnA).getEntries());
+			}
+			for (int j = 0; j < columnCountB; ++j) {
+				final TableColumn column = newTable.getColumn(columnCountA + j);
+				final TableColumn columnB = b.getColumn(j);
+				row.getCell(column).addEntries(rowB.getCell(columnB).getEntries());
+			}
+		}
+
+		return newTable;
 	}
 
 }

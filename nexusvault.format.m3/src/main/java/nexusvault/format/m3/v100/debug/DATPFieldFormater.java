@@ -10,8 +10,9 @@ public final class DATPFieldFormater implements FieldFormater {
 			final Object val = fieldReader.get();
 			final DoubleArrayTypePointer<?, ?> ptr = (DoubleArrayTypePointer) val;
 			if (ptr.hasTypeA() && ptr.hasTypeB()) {
-				cell.addEntry(String.format("DATP [%d->%d[%d], %d[%d]]", ptr.getArraySize(), ptr.getOffsetA(), ptr.getElementSizeA(), ptr.getOffsetB(),
-						ptr.getElementSizeB()));
+				final TaskOutput<Table> callback = (result) -> cell.addEntry(result);
+				debuger.queueTask(new DoubleStructFormatTask(ptr.getOffsetA(), ptr.getTypeOfElementA(), ptr.getOffsetB(), ptr.getTypeOfElementB(),
+						ptr.getArraySize(), callback));
 			} else if (ptr.hasTypeA()) {
 				cell.addEntry(String.format("DATP [%d->%d[%d], %d[%d]]", ptr.getArraySize(), ptr.getOffsetA(), ptr.getElementSizeA(), ptr.getOffsetB(),
 						ptr.getElementSizeB()));
