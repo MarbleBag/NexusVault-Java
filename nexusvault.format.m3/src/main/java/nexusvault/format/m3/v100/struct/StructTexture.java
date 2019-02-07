@@ -30,6 +30,7 @@ public final class StructTexture implements VisitableStruct {
 	public int[] unk_gap_000; // o: 0x000
 
 	/**
+	 * This may actually be the reference to assetTextureXY, found in model2display.tbl.
 	 * <ul>
 	 * <li>0 - diffuse
 	 * <li>1 - normal

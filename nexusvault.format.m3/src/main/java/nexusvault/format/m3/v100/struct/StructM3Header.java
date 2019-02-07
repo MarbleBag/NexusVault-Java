@@ -10,6 +10,7 @@ import nexusvault.format.m3.v100.VisitableStruct;
 import nexusvault.format.m3.v100.pointer.ATP_Bones;
 import nexusvault.format.m3.v100.pointer.ATP_Geometry;
 import nexusvault.format.m3.v100.pointer.ATP_Material;
+import nexusvault.format.m3.v100.pointer.ATP_Model2Display;
 import nexusvault.format.m3.v100.pointer.ATP_S1;
 import nexusvault.format.m3.v100.pointer.ATP_S104;
 import nexusvault.format.m3.v100.pointer.ATP_S112;
@@ -33,6 +34,7 @@ import nexusvault.format.m3.v100.pointer.ATP_UInt16;
 import nexusvault.format.m3.v100.pointer.DATP_S4_S1;
 import nexusvault.format.m3.v100.pointer.DATP_S4_S2;
 import nexusvault.format.m3.v100.pointer.DATP_S4_S4;
+import nexusvault.format.m3.v100.pointer.DATP_UInt32_UInt8;
 
 public final class StructM3Header implements VisitableStruct {
 
@@ -93,7 +95,7 @@ public final class StructM3Header implements VisitableStruct {
 
 	@Order(13)
 	@StructField(DataType.STRUCT)
-	public DATP_S4_S1 unk_offset_0D8; // 4, 1 // 0x0D8
+	public DATP_UInt32_UInt8 unk_offset_0D8; // 4, 1 // 0x0D8
 
 	@Order(14)
 	@StructField(DataType.STRUCT)
@@ -157,11 +159,14 @@ public final class StructM3Header implements VisitableStruct {
 
 	@Order(29)
 	@StructField(DataType.STRUCT)
-	public ATP_S4 unk_offset_200; // 4 o: 0x200
+	public ATP_Model2Display model2Display; // 4 o: 0x200
 
+	/**
+	 * Contains the mapping for model2display to meshGroupId. And it is meshGroupId := display2meshGroupId[model2display]
+	 */
 	@Order(30)
 	@StructField(DataType.STRUCT)
-	public ATP_S2 unk_offset_210; // 2 //0x210
+	public ATP_UInt16 display2meshGroupId; // 2 //0x210
 
 	@Order(31)
 	@StructField(DataType.STRUCT)
@@ -185,7 +190,7 @@ public final class StructM3Header implements VisitableStruct {
 
 	@Order(36)
 	@StructField(DataType.STRUCT)
-	public ATP_S2 unk_offset_270; // 2 Byte data o: 0x270
+	public ATP_UInt16 unk_offset_270; // 2 Byte data o: 0x270
 
 	@Order(37)
 	@StructField(DataType.STRUCT)
@@ -233,7 +238,7 @@ public final class StructM3Header implements VisitableStruct {
 
 	@Order(48)
 	@StructField(DataType.STRUCT)
-	public ATP_S2 unk_offset_338; // 2b //0x338
+	public ATP_UInt16 unk_offset_338; // 2b //0x338
 
 	@Order(49)
 	@StructField(value = DataType.BIT_8, length = 8)
@@ -351,8 +356,8 @@ public final class StructM3Header implements VisitableStruct {
 		process.process(fileReader, dataPosition, unk_offset_1D0);
 		process.process(fileReader, dataPosition, unk_offset_1E0);
 		process.process(fileReader, dataPosition, material);
-		process.process(fileReader, dataPosition, unk_offset_200);
-		process.process(fileReader, dataPosition, unk_offset_210);
+		process.process(fileReader, dataPosition, model2Display);
+		process.process(fileReader, dataPosition, display2meshGroupId);
 		process.process(fileReader, dataPosition, unk_offset_220);
 		process.process(fileReader, dataPosition, unk_offset_230);
 		process.process(fileReader, dataPosition, unk_offset_240);
