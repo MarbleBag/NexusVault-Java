@@ -158,7 +158,7 @@ public final class StructMesh implements VisitableStruct {
 	 * <li>37 - Midriff
 	 * <li>38 - Left wrist
 	 * <li>39 - Right wrist
-	 * <li><b>40 -> 81 - missing</b>
+	 * <li><b>40 -&gt; 81 - missing</b>
 	 * <li>81 - Head
 	 * <li>85 - Chest
 	 * <li>88 - Tail
