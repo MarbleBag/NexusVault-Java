@@ -166,7 +166,7 @@ public final class StructM3Header implements VisitableStruct {
 	 */
 	@Order(30)
 	@StructField(DataType.STRUCT)
-	public ATP_UInt16 display2meshGroupId; // 2 //0x210
+	public ATP_UInt16 display2model; // 2 //0x210
 
 	@Order(31)
 	@StructField(DataType.STRUCT)
@@ -357,7 +357,7 @@ public final class StructM3Header implements VisitableStruct {
 		process.process(fileReader, dataPosition, unk_offset_1E0);
 		process.process(fileReader, dataPosition, material);
 		process.process(fileReader, dataPosition, model2Display);
-		process.process(fileReader, dataPosition, display2meshGroupId);
+		process.process(fileReader, dataPosition, display2model);
 		process.process(fileReader, dataPosition, unk_offset_220);
 		process.process(fileReader, dataPosition, unk_offset_230);
 		process.process(fileReader, dataPosition, unk_offset_240);

@@ -1,5 +1,8 @@
 package nexusvault.format.m3.v100.struct;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import kreed.reflection.struct.DataType;
 import kreed.reflection.struct.Order;
 import kreed.reflection.struct.StructField;
@@ -18,9 +21,17 @@ public final class StructModel2Display implements VisitableStruct {
 	@StructField(value = DataType.UBIT_16)
 	public int modelMeshId; // 0x000
 
+	/**
+	 * Default to display. In case no further information about which mesh groups to render is given, render each mesh groups with a value of 1
+	 * <ul>
+	 * <li>0 - not default
+	 * <li>1 - default
+	 * </ul>
+	 * Other values are not available
+	 */
 	@Order(2)
 	@StructField(value = DataType.UBIT_16)
-	public int unk_value_002; // 0x002
+	public int default2Render; // 0x002
 
 	@Override
 	public void visit(StructVisitor process, DataTracker fileReader, int dataPosition) {
