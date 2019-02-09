@@ -131,7 +131,7 @@ public final class StructM3Header implements VisitableStruct {
 
 	@Order(22)
 	@StructField(DataType.STRUCT)
-	public ATP_S2 unk_offset_190; // 2 o: 0x190
+	public ATP_UInt16 unk_offset_190; // 2 o: 0x190
 
 	@Order(23)
 	@StructField(DataType.STRUCT)

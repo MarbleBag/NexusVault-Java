@@ -38,6 +38,13 @@ public final class StructBones implements VisitableStruct {
 	}
 
 	// Most of the time this field is 65535 (-1)
+	/**
+	 * This number seems to be equal between a character bone and an item bone if both are 'at the same place', maybe this number acts as a kind of bind value
+	 * for items or it binds a bone to something else (for example: this is a finger bone)
+	 * <p>
+	 * Except -1, contains no number twice. <br>
+	 * In some cases this number becomes bigger than max(BIT_16), so it is probably not 1, but 2 numbers, each 16_BIT
+	 */
 	@Order(1)
 	@StructField(BIT_32)
 	public int gap_000;
@@ -53,6 +60,12 @@ public final class StructBones implements VisitableStruct {
 	@StructField(value = BIT_8, length = 2)
 	public byte[] gap_006; // 0x006
 
+	/**
+	 * Are the {@link #gap_000} values of two bones from two m3 equal, so are their {@link #gap_008} values.
+	 * <p>
+	 * In case of two bones with {@link #gap_000} = -1, {@link #gap_008} can still be equal to each other <br>
+	 * Good chance that {@link #gap_008} controls which bones 'go together', but it's not clear how its value is generated
+	 */
 	@Order(4)
 	@StructField(value = BIT_8, length = 4)
 	public byte[] gap_008; // 0x008
