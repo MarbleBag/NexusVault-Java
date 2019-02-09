@@ -35,7 +35,7 @@ public final class TableReader {
 	}
 
 	public boolean acceptFileSignature(int signature) {
-		return getFileSignature() != signature;
+		return getFileSignature() == signature;
 	}
 
 	public boolean acceptFileVersion(int version) {
