@@ -197,42 +197,48 @@ public final class StructGeometry implements VisitableStruct {
 
 	public static enum VertexField {
 		/** Contains the location of the vertex. How this field is to read depends on {@link StructGeometry#getVertexFieldLocationType()} */
-		LOCATION(0),
+		LOCATION(0, 3),
 
 		/** 2 byte */
-		FIELD_3_UNK_1(1), // prob. tangents
+		FIELD_3_UNK_1(1, 2), // prob. tangents
 
 		/** 2 byte */
-		FIELD_3_UNK_2(2), // prob. normals
+		FIELD_3_UNK_2(2, 2), // prob. normals
 
 		/** 2 byte */
-		FIELD_3_UNK_3(3), // prob. binormals
+		FIELD_3_UNK_3(3, 2), // prob. binormals
 
 		/** 4 x int8 values. Each value represents a bone index. A value of 0, besides the first value, indicates the value is not used. */
-		BONE_MAP(4),
+		BONE_MAP(4, 4),
 
 		/** 4 x int8 values. A value of 0 indicates the value is not used. All values sum up to 255 */
-		BONE_WEIGHTS(5),
+		BONE_WEIGHTS(5, 4),
 
 		/** 4 byte */
-		FIELD_4_UNK_1(6),
+		FIELD_4_UNK_1(6, 4),
 
 		/** 4 byte */
-		FIELD_4_UNK_2(7),
+		FIELD_4_UNK_2(7, 4),
 
 		/** 2 x float16 values, uv */
-		UV_MAP_1(8),
+		UV_MAP_1(8, 2),
 
 		/** 2 x float16 values, uv */
-		UV_MAP_2(9),
+		UV_MAP_2(9, 2),
 
 		/** 1 byte */
-		FIELD_6_UNK_1(10);
+		FIELD_6_UNK_1(10, 1);
 
 		private final int index;
+		private final int valuesPerField;
 
-		private VertexField(int index) {
+		private VertexField(int index, int valuesPerField) {
 			this.index = index;
+			this.valuesPerField = valuesPerField;
+		}
+
+		public int getValueCount() {
+			return valuesPerField;
 		}
 	}
 
