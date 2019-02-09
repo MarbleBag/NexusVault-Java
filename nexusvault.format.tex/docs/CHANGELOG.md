@@ -3,6 +3,8 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com)
 
 ## [Unreleased]
+
+## [1.0.1] - 2019-02-09
 ### Fixed 
 - Compressed textures of type 1 & 2 with non-equal-sized edges will no longer lose some of their blocks 
 - TextureReader#acceptFileSignature will now correctly return 'true' if the signature is accepted
