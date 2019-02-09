@@ -191,61 +191,58 @@ public final class GlTFExporter {
 
 		final List<ModelBone> modelBones = model.getBones();
 
-		// final SeekableByteChannel channel = Files.newByteChannel(binaryBufferFile, StandardOpenOption.CREATE, StandardOpenOption.WRITE,
-		// StandardOpenOption.APPEND);
-		// try (BinaryWriter writer = new WritableByteChannelBinaryWriter(channel, ByteBuffer.allocateDirect(1024 * 1024 * 1).order(ByteOrder.LITTLE_ENDIAN))) {
-		// final long byteOffset = writer.getPosition();
-		//
-		// for (int i = 0; i < modelBones.size(); ++i) {
-		// // column major
-		//
-		// for (final float x : modelBones.get(i).getTransformationMatrix(0)) {
-		// writer.writeFloat32(x);
-		// }
-		//
-		// // writer.writeFloat32(1f);
-		// // writer.writeFloat32(0f);
-		// // writer.writeFloat32(0f);
-		// // writer.writeFloat32(0f);
-		// //
-		// // writer.writeFloat32(0f);
-		// // writer.writeFloat32(1f);
-		// // writer.writeFloat32(0f);
-		// // writer.writeFloat32(0f);
-		// //
-		// // writer.writeFloat32(0f);
-		// // writer.writeFloat32(0f);
-		// // writer.writeFloat32(1f);
-		// // writer.writeFloat32(0f);
-		// //
-		// // writer.writeFloat32(0f);
-		// // writer.writeFloat32(0f);
-		// // writer.writeFloat32(0f);
-		// // writer.writeFloat32(1f);
-		// }
-		//
-		// final long byteWritten = modelBones.size() * 4 * 4 * 4;
-		//
-		// final BufferView bufferView = new BufferView();
-		// bufferView.setName("ViewSkinInverseBindMatrix");
-		// bufferView.setBuffer(0);
-		// bufferView.setByteOffset((int) byteOffset);
-		// bufferView.setByteLength((int) byteWritten);
-		// gltf.addBufferViews(bufferView);
-		//
-		// final Accessor accessor = new Accessor();
-		// accessor.setName("AccessorSkinInverseBindMatrix");
-		// accessor.setBufferView(gltf.getBufferViews().size() - 1);
-		// accessor.setType(GlTFType.MAT4.getId());
-		// accessor.setComponentType(GlTFComponentType.FLOAT.getId());
-		// accessor.setCount(modelBones.size());
-		// gltf.addAccessors(accessor);
-		// }
+		final SeekableByteChannel channel = Files.newByteChannel(binaryBufferFile, StandardOpenOption.CREATE, StandardOpenOption.WRITE,
+				StandardOpenOption.APPEND);
+		try (BinaryWriter writer = new WritableByteChannelBinaryWriter(channel, ByteBuffer.allocateDirect(1024 * 1024 * 1).order(ByteOrder.LITTLE_ENDIAN))) {
+			final long byteOffset = writer.getPosition();
+
+			for (int i = 0; i < modelBones.size(); ++i) {
+				// column major
+				writer.writeFloat32(1f);
+				writer.writeFloat32(0f);
+				writer.writeFloat32(0f);
+				writer.writeFloat32(0f);
+
+				writer.writeFloat32(0f);
+				writer.writeFloat32(1f);
+				writer.writeFloat32(0f);
+				writer.writeFloat32(0f);
+
+				writer.writeFloat32(0f);
+				writer.writeFloat32(0f);
+				writer.writeFloat32(1f);
+				writer.writeFloat32(0f);
+
+				writer.writeFloat32(0f);
+				writer.writeFloat32(0f);
+				writer.writeFloat32(0f);
+				writer.writeFloat32(1f);
+			}
+
+			final long byteWritten = modelBones.size() * 16;
+
+			final BufferView bufferView = new BufferView();
+			bufferView.setName("ViewSkinInverseBindMatrix");
+			bufferView.setBuffer(0);
+			bufferView.setByteOffset((int) byteOffset);
+			bufferView.setByteLength((int) byteWritten);
+			gltf.addBufferViews(bufferView);
+
+			final Accessor accessor = new Accessor();
+			accessor.setName("AccessorSkinInverseBindMatrix");
+			accessor.setBufferView(gltf.getBufferViews().size() - 1);
+			accessor.setType(GlTFType.MAT4.getId());
+			accessor.setComponentType(GlTFComponentType.FLOAT.getId());
+			accessor.setCount(modelBones.size());
+			gltf.addAccessors(accessor);
+		}
 
 		final Skin skin = new Skin();
 		skin.setName("Armature");
 		skin.setSkeleton(0);
-		// skin.setInverseBindMatrices(gltf.getAccessors().size() - 1); //seems not to work in blender?
+
+		// TODO: optional my ass. Bug in GltfModelV2#initSkinModels
+		skin.setInverseBindMatrices(gltf.getAccessors().size() - 1); // seems not to work in blender?
 		gltf.addSkins(skin);
 
 		for (final ModelBone modelBone : modelBones) {
