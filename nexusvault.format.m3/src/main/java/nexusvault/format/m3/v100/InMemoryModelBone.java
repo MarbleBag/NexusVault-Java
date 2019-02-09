@@ -3,6 +3,9 @@ package nexusvault.format.m3.v100;
 import nexusvault.format.m3.ModelBone;
 import nexusvault.format.m3.v100.struct.StructBones;
 
+/**
+ * Internal implementation. May change without notice.
+ */
 final class InMemoryModelBone implements ModelBone {
 
 	private final int idx;

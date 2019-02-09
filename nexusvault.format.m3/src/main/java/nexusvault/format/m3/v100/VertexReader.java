@@ -7,7 +7,7 @@ import nexusvault.format.m3.ModelVertex;
 import nexusvault.format.m3.v100.struct.StructGeometry;
 import nexusvault.format.m3.v100.struct.StructGeometry.VertexField;
 
-public class VertexReader {
+public final class VertexReader {
 
 	private final List<VertexFieldSetter> setter;
 

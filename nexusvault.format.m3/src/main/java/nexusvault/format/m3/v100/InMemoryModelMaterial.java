@@ -7,7 +7,10 @@ import nexusvault.format.m3.ModelMaterialDescription;
 import nexusvault.format.m3.v100.struct.StructMaterial;
 import nexusvault.format.m3.v100.struct.StructMaterialDescriptor;
 
-class InMemoryModelMaterial implements ModelMaterial {
+/**
+ * Internal implementation. May change without notice.
+ */
+final class InMemoryModelMaterial implements ModelMaterial {
 
 	private final int idx;
 	private final StructMaterial struct;

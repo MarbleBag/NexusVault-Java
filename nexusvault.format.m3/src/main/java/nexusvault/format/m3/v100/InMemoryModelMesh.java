@@ -7,7 +7,10 @@ import nexusvault.format.m3.ModelMesh;
 import nexusvault.format.m3.ModelVertex;
 import nexusvault.format.m3.v100.struct.StructMesh;
 
-class InMemoryModelMesh implements ModelMesh {
+/**
+ * Internal implementation. May change without notice.
+ */
+final class InMemoryModelMesh implements ModelMesh {
 
 	private final int meshNo;
 	private final StructMesh structMesh;

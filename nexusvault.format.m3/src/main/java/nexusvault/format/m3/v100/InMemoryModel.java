@@ -21,6 +21,9 @@ import nexusvault.format.m3.v100.struct.StructM3Header;
 import nexusvault.format.m3.v100.struct.StructMaterial;
 import nexusvault.format.m3.v100.struct.StructTexture;
 
+/**
+ * Internal implementation. May change without notice.
+ */
 final class InMemoryModel implements Model {
 
 	private final static StructReader<ByteBuffer> structBuilder = StructReader.build(StructFactory.build(), DataReadDelegator.build(new ByteBufferReader()),

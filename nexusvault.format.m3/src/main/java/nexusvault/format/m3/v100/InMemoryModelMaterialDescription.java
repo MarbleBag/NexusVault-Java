@@ -3,7 +3,10 @@ package nexusvault.format.m3.v100;
 import nexusvault.format.m3.ModelMaterialDescription;
 import nexusvault.format.m3.v100.struct.StructMaterialDescriptor;
 
-class InMemoryModelMaterialDescription implements ModelMaterialDescription {
+/**
+ * Internal implementation. May change without notice.
+ */
+final class InMemoryModelMaterialDescription implements ModelMaterialDescription {
 
 	private final int idx;
 	private final StructMaterialDescriptor struct;

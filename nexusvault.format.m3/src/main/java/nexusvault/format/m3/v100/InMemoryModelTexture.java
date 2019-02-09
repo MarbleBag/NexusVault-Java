@@ -3,7 +3,10 @@ package nexusvault.format.m3.v100;
 import nexusvault.format.m3.ModelTexture;
 import nexusvault.format.m3.v100.struct.StructTexture;
 
-class InMemoryModelTexture implements ModelTexture {
+/**
+ * Internal implementation. May change without notice.
+ */
+final class InMemoryModelTexture implements ModelTexture {
 
 	private final StructTexture texture;
 	private final InMemoryModel model;

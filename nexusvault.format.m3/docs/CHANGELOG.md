@@ -6,6 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com)
 ### Added
 - Support to 'debug' a m3 model, this means to write as many values/structs to a table format, which can, for example, be dumped as csv
 - Connection between Creature2DisplayInfo.tbl and m3 (See StructM3Header#model2Display and #display2model)
+- Debug: Vertex to CSV
 
 ### Changed
 - Naming of StructM3Header#unk_offset_200 and #unk_offset_200 -> #model2Display and #display2model

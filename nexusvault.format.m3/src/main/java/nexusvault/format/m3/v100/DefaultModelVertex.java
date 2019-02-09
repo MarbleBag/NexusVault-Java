@@ -2,7 +2,10 @@ package nexusvault.format.m3.v100;
 
 import nexusvault.format.m3.ModelVertex;
 
-class DefaultModelVertex implements ModelVertex {
+/**
+ * Internal implementation. May change without notice.
+ */
+final class DefaultModelVertex implements ModelVertex {
 
 	protected float[] xyz;
 	protected int[] f3_unk1;
@@ -28,6 +31,51 @@ class DefaultModelVertex implements ModelVertex {
 	@Override
 	public float getLocationZ() {
 		return xyz[2];
+	}
+
+	@Deprecated
+	public int getF3_Unk1_1() {
+		return f3_unk1[0];
+	}
+
+	@Deprecated
+	public int getF3_Unk1_2() {
+		return f3_unk1[1];
+	}
+
+	@Deprecated
+	public int getF3_Unk1_3() {
+		return f3_unk1[2];
+	}
+
+	@Deprecated
+	public int getF3_Unk2_1() {
+		return f3_unk2[0];
+	}
+
+	@Deprecated
+	public int getF3_Unk2_2() {
+		return f3_unk2[1];
+	}
+
+	@Deprecated
+	public int getF3_Unk2_3() {
+		return f3_unk2[2];
+	}
+
+	@Deprecated
+	public int getF3_Unk3_1() {
+		return f3_unk3[0];
+	}
+
+	@Deprecated
+	public int getF3_Unk3_2() {
+		return f3_unk3[1];
+	}
+
+	@Deprecated
+	public int getF3_Unk3_3() {
+		return f3_unk3[2];
 	}
 
 	@Override
@@ -70,6 +118,46 @@ class DefaultModelVertex implements ModelVertex {
 		return boneWeight[3];
 	}
 
+	@Deprecated
+	public int getF4_Unk3_1() {
+		return f4_unk3[0];
+	}
+
+	@Deprecated
+	public int getF4_Unk3_2() {
+		return f4_unk3[1];
+	}
+
+	@Deprecated
+	public int getF4_Unk3_3() {
+		return f4_unk3[2];
+	}
+
+	@Deprecated
+	public int getF4_Unk3_4() {
+		return f4_unk3[3];
+	}
+
+	@Deprecated
+	public int getF4_Unk4_1() {
+		return f4_unk4[0];
+	}
+
+	@Deprecated
+	public int getF4_Unk4_2() {
+		return f4_unk4[1];
+	}
+
+	@Deprecated
+	public int getF4_Unk4_3() {
+		return f4_unk4[2];
+	}
+
+	@Deprecated
+	public int getF4_Unk4_4() {
+		return f4_unk4[3];
+	}
+
 	@Override
 	public float getTextureCoordU1() {
 		return textureCoord[0];
@@ -88,6 +176,11 @@ class DefaultModelVertex implements ModelVertex {
 	@Override
 	public float getTextureCoordV2() {
 		return textureCoord[3];
+	}
+
+	@Deprecated
+	public int getF6_Unk1() {
+		return f6_unk1;
 	}
 
 	@Override

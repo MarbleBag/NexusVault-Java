@@ -64,10 +64,11 @@ public final class ModelDebugger {
 
 		{
 			final BasicStructFormater formater = new BasicStructFormater();
-			formater.setFieldFormater("vertexBlockData", new IgnoreFieldFormater());
+			formater.setFieldFormater("vertexBlockData", new VertexBlockFieldFormater());
 			formater.setFieldFormater("indexData", new IgnoreFieldFormater());
 			debugger.setStructFormater(StructGeometry.class, formater);
 		}
+
 		{
 			final BasicStructFormater formater = new BasicStructFormater();
 			formater.setFieldFormater("textureName", new NullTerminatedStringFieldFormater());
@@ -79,20 +80,14 @@ public final class ModelDebugger {
 
 	private final StructReader<ByteBuffer> structBuilder = StructReader.build(StructFactory.build(), DataReadDelegator.build(new ByteBufferReader()), true);
 
+	private final Class2ObjectLookup<StructFormater> sturctFormaters;
+
 	private Queue<Task> taskQueue;
 	private DataTracker modelData;
-
-	private final Class2ObjectLookup<StructFormater> sturctFormaters;
 
 	public ModelDebugger() {
 		sturctFormaters = new Class2ObjectLookup<>(null);
 		sturctFormaters.setLookUp(Object.class, new BasicStructFormater());
-	}
-
-	public Table debugModel(Model m3) {
-		final DataTracker modelData = extractDataFromModel(m3);
-		modelData.resetPosition();
-		return debugModel(modelData, StructM3Header.class, 1);
 	}
 
 	protected DataTracker getDataModel() {
@@ -124,6 +119,12 @@ public final class ModelDebugger {
 		// sturctFormaters.setLookUp(structClass, formater);
 		// }
 		return formater;
+	}
+
+	public Table debugModel(Model m3) {
+		final DataTracker modelData = extractDataFromModel(m3);
+		modelData.resetPosition();
+		return debugModel(modelData, StructM3Header.class, 1);
 	}
 
 	public Table debugModel(DataTracker modelData, Class<?> structClass, int structCount) {
