@@ -20,10 +20,11 @@ public final class PathTextureResource extends TextureResource {
 
 	@Override
 	Image writeImageTo(Path outputDirectory, String outputFileName) throws IOException {
-		final Path dst = outputDirectory.resolve(source.getFileName());
+		Path dst = outputDirectory.resolve(source.getFileName());
 		Files.copy(source, dst, StandardCopyOption.REPLACE_EXISTING);
 		final Image image = new Image(); // TODO
-		image.setUri(dst.getFileName().toString());
+		dst = dst.subpath(dst.getNameCount() - 2, dst.getNameCount());
+		image.setUri(dst.toString());
 		return image;
 	}
 }

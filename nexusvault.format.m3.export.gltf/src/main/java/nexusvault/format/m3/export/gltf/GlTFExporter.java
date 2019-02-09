@@ -315,6 +315,11 @@ public final class GlTFExporter {
 	}
 
 	private void addTextures() throws IOException {
+		// TODO what a mess
+		final String textureDirName = outputFileName + "_textures";
+		final Path textureDir = outputDirectory.resolve(textureDirName);
+		Files.createDirectories(textureDir);
+
 		int counter = 0;
 		for (final ModelTexture textures : model.getTextures()) {
 			final String texturePath = textures.getTexturePath();
@@ -327,7 +332,7 @@ public final class GlTFExporter {
 
 			for (final TextureResource texResource : bundle.getTextureResources()) {
 				// TODO any added file needs to be reported
-				final Image image = texResource.writeImageTo(outputDirectory, outputFileName);
+				final Image image = texResource.writeImageTo(textureDir, outputFileName);
 				if (image.getBufferView() == null) {
 					// this is has to be done because of a bug in de.javagl.jgltf.model.io.GltfModelWriter.GltfModelWriter(), which does not accept an image
 					// without a bufferview, even while it's not even using one.
