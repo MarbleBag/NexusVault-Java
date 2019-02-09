@@ -12,7 +12,10 @@ import nexusvault.format.m3.v100.struct.StructGeometry;
 import nexusvault.format.m3.v100.struct.StructGeometry.VertexField;
 import nexusvault.format.m3.v100.struct.StructMesh;
 
-class InMemoryModelGeometry implements ModelGeometry {
+/**
+ * Internal implementation. May change without notice.
+ */
+final class InMemoryModelGeometry implements ModelGeometry {
 
 	private final InMemoryModel model;
 	private final StructGeometry struct;
@@ -94,8 +97,8 @@ class InMemoryModelGeometry implements ModelGeometry {
 	}
 
 	protected ModelVertex getVertex(long vertexOffset, long idx) {
-		final long meshesOffset = struct.meshes.getOffset();
-		final long vertexStart = meshesOffset + (idx * struct.vertexBlockSizeInBytes);
+		final long vertexDataOffset = struct.vertexBlockData.getOffset();
+		final long vertexStart = vertexDataOffset + (idx * struct.vertexBlockSizeInBytes);
 		final DataTracker memory = model.getMemory();
 		if (memory.getPosition() != vertexStart) {
 			memory.setPosition(vertexStart);
