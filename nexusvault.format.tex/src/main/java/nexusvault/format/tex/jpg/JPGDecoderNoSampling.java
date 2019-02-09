@@ -107,22 +107,23 @@ public final class JPGDecoderNoSampling extends JPGDecoderBase {
 	@Override
 	final void writeStack(StackSet stack) {
 		final int stackX = stack.getId() % stacksPerRow;
-		final int stackY = stack.getId() / stacksPerColumn;
+		final int stackY = stack.getId() / stacksPerRow;
 		final int offsetX = stackX * Constants.BLOCK_WIDTH;
 		final int offsetY = stackY * Constants.BLOCK_HEIGHT * image.getImageWidth();
 		final int startPixelXY = offsetX + offsetY;
 		final int lastImagePixelXY = image.getImageHeight() * image.getImageWidth();
 
-		int pixelLineXY = startPixelXY;
+		int pixelYOffset = startPixelXY;
 		int blockXY = 0;
 		for (int y = 0; y < Constants.BLOCK_HEIGHT; ++y) {
-			if (pixelLineXY >= lastImagePixelXY) {
+			if (pixelYOffset >= lastImagePixelXY) {
 				break; // do not compute pixels outside of the image.
 			}
+			blockXY = y * Constants.BLOCK_WIDTH;
 
 			for (int x = 0; x < Constants.BLOCK_WIDTH; ++x) {
-				final int pixelXY = x + pixelLineXY;
-				if (pixelXY >= lastImagePixelXY) {
+				final int pixelXY = x + pixelYOffset;
+				if ((pixelXY >= lastImagePixelXY) || ((offsetX + x) >= image.getImageWidth())) {
 					break; // do not compute pixels outside of the image.
 				}
 
@@ -134,7 +135,7 @@ public final class JPGDecoderNoSampling extends JPGDecoderBase {
 				getPixelCompositor().composite(image.getImageData(), pixelXY * 4, pixelLayerA, pixelLayerB, pixelLayerC, pixelLayerD);
 				blockXY += 1;
 			}
-			pixelLineXY += image.getImageWidth();
+			pixelYOffset += image.getImageWidth();
 		}
 	}
 
