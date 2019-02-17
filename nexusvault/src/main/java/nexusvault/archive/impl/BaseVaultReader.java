@@ -15,9 +15,10 @@ import nexusvault.archive.ArchiveEntryNotFoundException;
 import nexusvault.archive.IdxDirectory;
 import nexusvault.archive.IdxFileLink;
 
+@Deprecated
 public final class BaseVaultReader extends AbstVaultReader {
 
-	private IndexFile fileIndex;
+	private Index2File fileIndex;
 	private ArchiveFile fileArchive;
 	private Path pathArchive;
 	private FileAccessCache archiveCache;
@@ -58,7 +59,7 @@ public final class BaseVaultReader extends AbstVaultReader {
 
 		try (SeekableByteChannel fileStream = Files.newByteChannel(idxPath, EnumSet.of(StandardOpenOption.READ))) {
 			final BinaryReader fileReader = new SeekableByteChannelBinaryReader(fileStream, ByteBuffer.allocate(32 * 1024).order(ByteOrder.LITTLE_ENDIAN));
-			this.fileIndex = new IndexFileReader().read(fileReader);
+			this.fileIndex = new IndexFileReader2().read(fileReader);
 		}
 
 		try (SeekableByteChannel fileStream = Files.newByteChannel(arcPath, EnumSet.of(StandardOpenOption.READ))) {
@@ -67,6 +68,21 @@ public final class BaseVaultReader extends AbstVaultReader {
 		}
 
 		this.archiveCache = new FileAccessCache(60000, this.pathArchive, 4 * 1024 * 1024, ByteOrder.LITTLE_ENDIAN);
+
+		// TODO
+		System.out.println("ARCHIVE: " + path);
+		System.out.println(this.fileIndex.header.unknown_210);
+		System.out.println(this.fileIndex.header.packHeaderCount);
+		System.out.println(this.fileIndex.header.unk_224);
+		System.out.println(this.fileIndex.aidx.unknown1);
+		System.out.println(this.fileIndex.rootDirectory.countSubTree());
+		System.out.println();
+		System.out.println(this.fileArchive.header.unknown_210);
+		System.out.println(this.fileArchive.header.headerCount);
+		System.out.println(this.fileArchive.header.unk_224);
+		System.out.println(this.fileArchive.aarc.entryCount);
+		System.out.println(this.fileArchive.entries.size());
+		System.out.println();
 	}
 
 	@Override
@@ -105,7 +121,7 @@ public final class BaseVaultReader extends AbstVaultReader {
 
 	@Override
 	BinaryReader getArchiveBinaryReader() throws IOException {
-		final BinaryReader reader = archiveCache.getChannel();
+		final BinaryReader reader = archiveCache.getReader();
 		return reader;
 	}
 

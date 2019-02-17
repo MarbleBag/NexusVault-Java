@@ -6,7 +6,7 @@ public interface IdxEntry {
 
 	IdxDirectory getParent();
 
-	String fullName();
+	String getFullName();
 
 	boolean isFile();
 
@@ -15,5 +15,9 @@ public interface IdxEntry {
 	IdxFileLink asFile();
 
 	IdxDirectory asDirectory();
+
+	IdxPath getPath();
+
+	NexusArchive getArchive();
 
 }

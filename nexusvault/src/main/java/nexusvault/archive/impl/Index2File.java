@@ -3,15 +3,22 @@ package nexusvault.archive.impl;
 import java.util.Arrays;
 
 import nexusvault.archive.IdxDirectory;
+import nexusvault.archive.struct.StructAIDX;
+import nexusvault.archive.struct.StructArchiveFile;
 import nexusvault.archive.struct.StructIndexFile;
+import nexusvault.archive.struct.StructPackHeader;
 import nexusvault.shared.exception.IntegerOverflowException;
 
-public final class IndexFile {
+public final class Index2File {
 
 	protected StructIndexFile header;
 	protected PackHeader[] packHeader;
 	protected AIDX aidx;
 	protected IdxDirectory rootDirectory;
+
+	public Index2File(StructArchiveFile indexHeader, StructPackHeader[] packs, StructAIDX aidx) {
+		// TODO Auto-generated constructor stub
+	}
 
 	public PackHeader getRootPackHeader() {
 		return packHeader[aidx.rootPackHeaderIdx];
@@ -49,7 +56,7 @@ public final class IndexFile {
 		if (getClass() != obj.getClass()) {
 			return false;
 		}
-		final IndexFile other = (IndexFile) obj;
+		final Index2File other = (Index2File) obj;
 		if (aidx == null) {
 			if (other.aidx != null) {
 				return false;

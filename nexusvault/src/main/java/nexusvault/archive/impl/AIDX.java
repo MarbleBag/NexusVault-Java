@@ -2,6 +2,7 @@ package nexusvault.archive.impl;
 
 import kreed.reflection.struct.StructUtil;
 
+@Deprecated
 public final class AIDX {
 	public static final int SIZE_IN_BYTES = StructUtil.sizeOf(AIDX.class);
 

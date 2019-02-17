@@ -1,5 +1,7 @@
 package nexusvault.archive;
 
+import java.nio.ByteBuffer;
+
 public interface IdxFileLink extends IdxEntry {
 
 	byte[] getShaHash();
@@ -13,5 +15,9 @@ public interface IdxFileLink extends IdxEntry {
 	String getFileEnding();
 
 	String getNameWithoutFileEnding();
+
+	ByteBuffer getData();
+
+	void setData(ByteBuffer data, int flags);
 
 }

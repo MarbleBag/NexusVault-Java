@@ -1,5 +1,6 @@
 package nexusvault.archive.impl;
 
+@Deprecated
 public final class PackHeader {
 
 	private final long offset;

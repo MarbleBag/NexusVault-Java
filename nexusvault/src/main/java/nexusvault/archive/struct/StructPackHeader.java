@@ -22,6 +22,14 @@ public final class StructPackHeader {
 		return "StructPackHeader [offset=" + offset + ", size=" + size + "]";
 	}
 
+	public long getOffset() {
+		return offset;
+	}
+
+	public long getSize() {
+		return size;
+	}
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;

@@ -2,7 +2,7 @@ package nexusvault.archive;
 
 public final class VaultUnpackException extends ArchiveException {
 
-	private static final long serialVersionUID = -6489699606714986371L;
+	private static final long serialVersionUID = -1L;
 
 	public VaultUnpackException() {
 		super();

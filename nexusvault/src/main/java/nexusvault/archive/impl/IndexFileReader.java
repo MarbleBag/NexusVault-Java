@@ -1,100 +1,222 @@
 package nexusvault.archive.impl;
 
+import java.io.IOException;
+import java.nio.ByteOrder;
+import java.nio.charset.Charset;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
+
 import kreed.io.util.BinaryReader;
 import kreed.io.util.Seek;
-import nexusvault.archive.struct.StructIndexFile;
+import kreed.reflection.struct.DataReadDelegator;
+import kreed.reflection.struct.StructFactory;
+import kreed.reflection.struct.StructReader;
+import nexusvault.archive.struct.StructAIDX;
+import nexusvault.archive.struct.StructArchiveFile;
+import nexusvault.archive.struct.StructIdxDirectory;
+import nexusvault.archive.struct.StructIdxEntry;
+import nexusvault.archive.struct.StructIdxFile;
+import nexusvault.archive.struct.StructPackHeader;
+import nexusvault.shared.exception.IntegerOverflowException;
 import nexusvault.shared.exception.SignatureMismatchException;
 import nexusvault.shared.exception.VersionMismatchException;
 
 public final class IndexFileReader {
 
-	private final static int SIGNATURE_INDEX = ('P' << 24) | ('A' << 16) | ('C' << 8) | 'K';
-	private final static int SIGNATURE_AIDX = ('A' << 24) | ('I' << 16) | ('D' << 8) | 'X';
+	public static interface IndexFile {
+		int getPackRootIdx();
 
-	public IndexFileReader() {
+		int getPackCount();
+
+		StructPackHeader getPack(int packIdx);
+
+		List<StructIdxEntry> getDirectoryData(int packIdx);
+	}
+
+	private abstract class BaseIndexFile implements IndexFile {
+		protected final StructReader<BinaryReader> structReader;
+
+		public BaseIndexFile() {
+			final DataReadDelegator<BinaryReader> readerDelegator = DataReadDelegator.build(new kreed.reflection.struct.reader.BinaryReader());
+			structReader = StructReader.build(StructFactory.build(), readerDelegator, true);
+		}
+
+		@Override
+		public List<StructIdxEntry> getDirectoryData(int packIdx) {
+			final BinaryReader reader = getBinaryReader();
+			final StructPackHeader pack = getPack(packIdx);
+
+			reader.seek(Seek.BEGIN, pack.getOffset());
+
+			final long numSubDirectories = reader.readUInt32();
+			final long numFiles = reader.readUInt32();
+			final String nameTwine = extractNames(reader, pack.getSize(), numSubDirectories, numFiles);
+
+			final long numberOfChilds = numSubDirectories + numFiles;
+			if ((numberOfChilds > Integer.MAX_VALUE) || (numberOfChilds < 0)) {
+				throw new IntegerOverflowException("number of childs");
+			}
+
+			final List<StructIdxEntry> entries = new ArrayList<>((int) numberOfChilds);
+			for (int i = 0; i < numSubDirectories; ++i) {
+				final StructIdxDirectory dir = structReader.read(new StructIdxDirectory(), reader);
+				final int nullTerminator = nameTwine.indexOf(0, (int) dir.nameOffset);
+				dir.name = nameTwine.substring((int) dir.nameOffset, nullTerminator);
+				entries.add(dir);
+			}
+
+			for (long i = 0; i < numFiles; ++i) {
+				final StructIdxFile fileLink = structReader.read(new StructIdxFile(), reader);
+				final int nullTerminator = nameTwine.indexOf(0, (int) fileLink.nameOffset);
+				fileLink.name = nameTwine.substring((int) fileLink.nameOffset, nullTerminator);
+				entries.add(fileLink);
+			}
+
+			return entries;
+		}
+
+		private String extractNames(BinaryReader reader, long blockSize, long numSubDirectories, long numFiles) {
+			final long dataPosition = reader.getPosition();
+			final long nameOffset = (numSubDirectories * StructIdxDirectory.SIZE_IN_BYTES) + (numFiles * StructIdxFile.SIZE_IN_BYTES);
+			final long nameLengthInByte = blockSize - (2 * Integer.BYTES) - nameOffset;
+			reader.seek(Seek.CURRENT, nameOffset);
+			final byte[] entryNameAsBytes = new byte[(int) nameLengthInByte];
+			reader.readInt8(entryNameAsBytes, 0, entryNameAsBytes.length);
+			final String nameTwine = new String(entryNameAsBytes, Charset.forName("UTF8"));
+			reader.seek(Seek.BEGIN, dataPosition);
+			return nameTwine;
+		}
+
+		@Override
+		abstract public StructPackHeader getPack(int packIdx);
+
+		@Override
+		abstract public int getPackRootIdx();
+
+		abstract protected BinaryReader getBinaryReader();
 
 	}
 
-	public IndexFile read(final BinaryReader reader) {
+	private final class CachedIndexFile extends BaseIndexFile {
+		private final FileAccessCache cache;
+
+		private final StructArchiveFile archiveHeader;
+		private final StructPackHeader[] packs;
+		private final StructAIDX aidx;
+
+		public CachedIndexFile(FileAccessCache cache) {
+			super();
+			this.cache = cache;
+			try {
+				final BinaryReader reader = cache.getReader();
+				this.archiveHeader = loadHeader(structReader, reader);
+				this.packs = loadPackHeader(structReader, reader, archiveHeader);
+				this.aidx = loadAIDX(structReader, reader, archiveHeader, packs);
+			} catch (final IOException e) {
+				throw new IllegalStateException(e); // TODO
+			}
+		}
+
+		@Override
+		public int getPackCount() {
+			return (int) archiveHeader.packCount;
+		}
+
+		@Override
+		public int getPackRootIdx() {
+			return aidx.rootPackHeaderIdx;
+		}
+
+		@Override
+		public List<StructIdxEntry> getDirectoryData(int packIdx) {
+			final List<StructIdxEntry> entries = super.getDirectoryData(packIdx);
+			cache.startExpiring();
+			return entries;
+		}
+
+		@Override
+		protected BinaryReader getBinaryReader() {
+			try {
+				return cache.getReader();
+			} catch (final IOException e) {
+				throw new IllegalStateException(e); // TODO
+			}
+		}
+
+		@Override
+		public StructPackHeader getPack(int packIdx) {
+			return packs[packIdx];
+		}
+
+	}
+
+	public IndexFile read(final Path indexPath) {
+		final FileAccessCache cache = new FileAccessCache(60000, indexPath, 4 * 1024 * 1024, ByteOrder.LITTLE_ENDIAN);
+		return new CachedIndexFile(cache);
+	}
+
+	public Index2File read(final BinaryReader reader) {
 		if ((reader == null) || !reader.isOpen()) {
 			throw new IllegalArgumentException();
 		}
 
-		final IndexFile indexFile = new IndexFile();
+		final DataReadDelegator<BinaryReader> readerDelegator = DataReadDelegator.build(new kreed.reflection.struct.reader.BinaryReader());
+		final StructReader<BinaryReader> structReader = StructReader.build(StructFactory.build(), readerDelegator, true);
 
-		loadHeader(indexFile, reader);
-		loadPackHeader(indexFile, reader);
-		loadAIDX(indexFile, reader);
+		final StructArchiveFile archiveHeader = loadHeader(structReader, reader);
+		final StructPackHeader[] packs = loadPackHeader(structReader, reader, archiveHeader);
+		final StructAIDX aidx = loadAIDX(structReader, reader, archiveHeader, packs);
 
-		buildFileTree(indexFile, reader);
-
-		return indexFile;
+		return new Index2File(archiveHeader, packs, aidx);
 	}
 
-	protected void loadHeader(IndexFile indexFile, BinaryReader reader) {
-		reader.seek(Seek.BEGIN, 0);
-
-		final StructIndexFile header = new StructIndexFile();
-		indexFile.header = header;
-
-		header.signature = reader.readInt32(); // o:4
-		header.version = reader.readInt32(); // o:8
-
-		if (header.signature != SIGNATURE_INDEX) {
-			throw new SignatureMismatchException("Index file", SIGNATURE_INDEX, header.signature);
+	private StructArchiveFile loadHeader(StructReader<BinaryReader> structReader, BinaryReader reader) {
+		final StructArchiveFile archiveHeader = structReader.read(StructArchiveFile.class, reader);
+		if (archiveHeader.signature != StructArchiveFile.SIGNATURE_INDEX) {
+			throw new SignatureMismatchException("Index file", StructArchiveFile.SIGNATURE_INDEX, archiveHeader.signature);
 		}
-
-		if (header.version != 1) {
-			throw new VersionMismatchException("Index file", 1, header.version);
+		if (archiveHeader.version != 1) {
+			throw new VersionMismatchException("Index file", 1, archiveHeader.version);
 		}
-
-		reader.seek(Seek.CURRENT, 512); // o:520
-		header.fileSize = reader.readInt64(); // 520 - 528
-		reader.seek(Seek.CURRENT, 8); // 528 - 536
-		header.offsetPackHeaders = reader.readInt64(); // 536 - 544
-		header.packHeaderCount = reader.readUInt32(); // 544 - 552
-		reader.seek(Seek.CURRENT, 4);
-		header.rootPackHeaderIndex = reader.readInt64(); // 552 - 560
-		reader.seek(Seek.CURRENT, 16); // 560 - 576
+		return archiveHeader;
 	}
 
-	protected void loadPackHeader(IndexFile indexFile, BinaryReader reader) {
-
-		if (indexFile.header.offsetPackHeaders < 0) {
-			throw new IllegalArgumentException("Index File: Pack header offset: index overflow");
+	private StructPackHeader[] loadPackHeader(StructReader<BinaryReader> structReader, BinaryReader reader, StructArchiveFile archiveHeader) {
+		if (archiveHeader.packOffset < 0) {
+			throw new IntegerOverflowException("Index file: pack offset");
 		}
 
-		if ((indexFile.header.packHeaderCount > Integer.MAX_VALUE) || (indexFile.header.packHeaderCount < 0)) {
+		if ((archiveHeader.packCount > Integer.MAX_VALUE) || (archiveHeader.packCount < 0)) {
+			throw new IntegerOverflowException("Index file: pack count");
+		}
+
+		reader.seek(Seek.BEGIN, archiveHeader.packOffset);
+		final StructPackHeader[] pack = new StructPackHeader[(int) archiveHeader.packCount];
+		for (int i = 0; i < pack.length; ++i) {
+			pack[i] = structReader.read(new StructPackHeader(), reader);
+		}
+		return pack;
+	}
+
+	private StructAIDX loadAIDX(StructReader<BinaryReader> structReader, BinaryReader reader, StructArchiveFile archiveHeader, StructPackHeader[] packs) {
+		if (archiveHeader.packRootIdx > archiveHeader.packCount) {
 			throw new IllegalArgumentException(
-					String.format("Index File : Number of pack headers (%d) exceed integer range", indexFile.header.packHeaderCount));
+					String.format("Index File : Pack root idx %d exceeds pack count %d", archiveHeader.packRootIdx, archiveHeader.packCount));
+		}
+		if ((archiveHeader.packRootIdx > Integer.MAX_VALUE) || (archiveHeader.packRootIdx < 0)) {
+			throw new IntegerOverflowException("Index file: pack root");
 		}
 
-		reader.seek(Seek.BEGIN, indexFile.header.offsetPackHeaders);
-		indexFile.packHeader = new PackHeader[(int) indexFile.header.packHeaderCount];
-		for (int i = 0; i < indexFile.packHeader.length; ++i) {
-			indexFile.packHeader[i] = new PackHeader(reader.readInt64(), reader.readInt64());
-		}
-	}
+		final StructPackHeader aidxpack = packs[(int) archiveHeader.packRootIdx];
+		reader.seek(Seek.BEGIN, aidxpack.getOffset());
 
-	protected void loadAIDX(IndexFile indexFile, BinaryReader reader) {
-		if (indexFile.header.rootPackHeaderIndex > Integer.MAX_VALUE) {
-			throw new IllegalArgumentException(
-					String.format("Index File : Number of pack headers (%d) exceed integer range", indexFile.header.rootPackHeaderIndex));
+		final StructAIDX aidx = structReader.read(new StructAIDX(), reader);
+		if (aidx.signature != StructAIDX.SIGNATURE_AIDX) {
+			throw new SignatureMismatchException("Index file: AIDX block", StructAIDX.SIGNATURE_AIDX, aidx.signature);
 		}
 
-		final PackHeader header = indexFile.packHeader[(int) indexFile.header.rootPackHeaderIndex];
-		reader.seek(Seek.BEGIN, header.getOffset());
-		final AIDX rootBlock = new AIDX(reader.readInt32(), reader.readInt32(), reader.readInt32(), reader.readInt32());
-		if (rootBlock.signature != SIGNATURE_AIDX) {
-			throw new SignatureMismatchException("Index file: AIDX block", SIGNATURE_INDEX, rootBlock.signature);
-		}
-		indexFile.aidx = rootBlock;
-	}
-
-	protected void buildFileTree(IndexFile indexFile, BinaryReader reader) {
-		final BaseRootIdxDirectory rootDirectory = new BaseRootIdxDirectory(indexFile.aidx.rootPackHeaderIdx);
-		indexFile.rootDirectory = rootDirectory;
-		rootDirectory.buildFileTree(indexFile, reader);
+		return aidx;
 	}
 
 }

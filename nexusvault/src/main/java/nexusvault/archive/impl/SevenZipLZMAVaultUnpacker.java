@@ -9,6 +9,7 @@ import kreed.io.util.BinaryReader;
 import nexusvault.archive.VaultUnpackException;
 import nexusvault.shared.exception.IntegerOverflowException;
 
+@Deprecated
 final class SevenZipLZMAVaultUnpacker implements VaultUnpacker {
 
 	@Override

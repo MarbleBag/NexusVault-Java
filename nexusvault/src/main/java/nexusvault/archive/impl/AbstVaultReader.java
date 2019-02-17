@@ -8,10 +8,10 @@ import kreed.io.util.BinaryReader;
 import kreed.io.util.Seek;
 import nexusvault.archive.ArchiveEntryNotFoundException;
 import nexusvault.archive.IdxFileLink;
-import nexusvault.archive.VaultReader;
+import nexusvault.archive.ArchiveReader;
 import nexusvault.shared.exception.IntegerOverflowException;
 
-abstract class AbstVaultReader implements VaultReader {
+abstract class AbstVaultReader implements ArchiveReader {
 
 	private final VaultUnpacker UNPACK_ZIP = new ZipInflaterVaultUnpacker();
 	private final VaultUnpacker UNPACK_LZMA = new SevenZipLZMAVaultUnpacker();

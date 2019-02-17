@@ -10,13 +10,38 @@ import java.nio.file.StandardOpenOption;
 import java.util.EnumSet;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import kreed.io.util.BinaryReader;
 import kreed.io.util.SeekableByteChannelBinaryReader;
 
 final class FileAccessCache {
+
+	static class DefaultThreadFactory implements ThreadFactory {
+		private static final AtomicInteger poolNumber = new AtomicInteger(1);
+		private final ThreadGroup group;
+		private final AtomicInteger threadNumber = new AtomicInteger(1);
+		private final String namePrefix;
+
+		DefaultThreadFactory() {
+			final SecurityManager s = System.getSecurityManager();
+			group = (s != null) ? s.getThreadGroup() : Thread.currentThread().getThreadGroup();
+			namePrefix = "pool-" + poolNumber.getAndIncrement() + "-thread-";
+		}
+
+		@Override
+		public Thread newThread(Runnable r) {
+			final Thread t = new Thread(group, r, namePrefix + threadNumber.getAndIncrement(), 0);
+			t.setDaemon(true);
+			if (t.getPriority() != Thread.NORM_PRIORITY) {
+				t.setPriority(Thread.NORM_PRIORITY);
+			}
+			return t;
+		}
+	}
 
 	private final long cacheTime;
 	private final Path filePath;
@@ -35,11 +60,16 @@ final class FileAccessCache {
 	private BinaryReader reader;
 
 	public FileAccessCache(long cacheTime, Path filePath, int bufferSize, ByteOrder byteOrder) {
+
+		if (bufferSize < Long.BYTES) {
+			throw new IllegalArgumentException("Buffersize too small");
+		}
+
 		this.cacheTime = cacheTime;
 		this.filePath = filePath;
 		this.bufferSize = bufferSize;
 		this.byteOrder = byteOrder;
-		this.executor = new ThreadPoolExecutor(0, 1, 15L, TimeUnit.SECONDS, new SynchronousQueue<Runnable>());
+		this.executor = new ThreadPoolExecutor(0, 1, 15L, TimeUnit.SECONDS, new SynchronousQueue<Runnable>(), new DefaultThreadFactory());
 		this.taskShutdown = true;
 	}
 
@@ -47,7 +77,7 @@ final class FileAccessCache {
 		executor.shutdownNow();
 	}
 
-	public BinaryReader getChannel() throws IOException {
+	public BinaryReader getReader() throws IOException {
 		synchronized (lock) {
 			this.lastUsed = System.currentTimeMillis();
 			this.expiring = false;

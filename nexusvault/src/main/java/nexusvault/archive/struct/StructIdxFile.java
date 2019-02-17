@@ -5,13 +5,13 @@ import kreed.reflection.struct.Order;
 import kreed.reflection.struct.StructField;
 import kreed.reflection.struct.StructUtil;
 
-public final class StructIdxFile {
+public final class StructIdxFile extends StructIdxEntry {
 
 	public static final int SIZE_IN_BYTES = StructUtil.sizeOf(StructIdxFile.class);
 
 	@Order(1)
 	@StructField(DataType.UBIT_32)
-	public long fileNameOffset; // 0x000
+	public long nameOffset; // 0x000
 
 	@Order(2)
 	@StructField(DataType.BIT_32)
@@ -36,4 +36,6 @@ public final class StructIdxFile {
 	@Order(7)
 	@StructField(DataType.BIT_32)
 	public int unk_000; // 0x034
+
+	public String name;
 }

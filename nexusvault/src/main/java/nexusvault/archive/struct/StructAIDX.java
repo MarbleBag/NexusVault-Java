@@ -5,21 +5,30 @@ import kreed.reflection.struct.StructField;
 import kreed.reflection.struct.StructUtil;
 
 public final class StructAIDX {
+	public static final int SIGNATURE_AIDX = ('A' << 24) | ('I' << 16) | ('D' << 8) | 'X';
 	public static final int SIZE_IN_BYTES = StructUtil.sizeOf(StructAIDX.class);
 
 	@StructField(DataType.BIT_32)
-	public  int signature;
-	
-	@StructField(DataType.BIT_32)
-	public  int version;
-	
-	@StructField(DataType.BIT_32)
-	public  int unknown1;
-	
-	@StructField(DataType.BIT_32)
-	public  int rootPackHeaderIdx;
+	public int signature;
 
+	@StructField(DataType.BIT_32)
+	public int version;
 
+	@StructField(DataType.BIT_32)
+	public int unknown1;
+
+	@StructField(DataType.BIT_32)
+	public int rootPackHeaderIdx;
+
+	public StructAIDX() {
+	}
+
+	public StructAIDX(int signature, int version, int unknown1, int headerIdx) {
+		this.signature = signature;
+		this.version = version;
+		this.unknown1 = unknown1;
+		this.rootPackHeaderIdx = headerIdx;
+	}
 
 	@Override
 	public String toString() {

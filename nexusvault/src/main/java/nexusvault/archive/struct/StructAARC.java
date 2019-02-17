@@ -5,6 +5,8 @@ import kreed.reflection.struct.StructField;
 import kreed.reflection.struct.StructUtil;
 
 public final class StructAARC {
+
+	public static final int SIGNATURE_AARC = ('A' << 24) | ('A' << 16) | ('R' << 8) | 'C';
 	public static final int SIZE_IN_BYTES = StructUtil.sizeOf(StructAARC.class);
 
 	@StructField(DataType.BIT_32)

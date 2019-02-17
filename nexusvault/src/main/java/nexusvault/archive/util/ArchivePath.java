@@ -54,7 +54,7 @@ public final class ArchivePath implements Iterable<String> {
 	 * @return a path representing the path's parent
 	 */
 	public ArchivePath getParent() {
-		if (path.isEmpty()) {
+		if (isRoot()) {
 			return null;
 		}
 		final List<String> subList = path.subList(0, path.size() - 1);
@@ -167,6 +167,20 @@ public final class ArchivePath implements Iterable<String> {
 		final ArchivePath path = new ArchivePath(this.path);
 		path.path.add(element);
 		return path;
+	}
+
+	public ArchivePath sibling(String element) {
+		if (isRoot()) {
+			final ArchivePath path = new ArchivePath();
+			path.resolve(element);
+			return path;
+		} else {
+			return getParent().resolve(element);
+		}
+	}
+
+	public boolean isRoot() {
+		return path.isEmpty();
 	}
 
 	public void setTo(ArchivePath otherPath) {

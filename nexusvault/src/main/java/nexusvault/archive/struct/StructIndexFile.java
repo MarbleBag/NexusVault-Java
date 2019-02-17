@@ -5,6 +5,7 @@ import kreed.reflection.struct.Order;
 import kreed.reflection.struct.StructField;
 import kreed.reflection.struct.StructUtil;
 
+@Deprecated
 public final class StructIndexFile {
 
 	public final int SIZE_IN_BYTES = StructUtil.sizeOf(StructIndexFile.class);
@@ -46,7 +47,7 @@ public final class StructIndexFile {
 	public long rootPackHeaderIndex; // 0x228
 
 	@Order(10)
-	@StructField(value = DataType.BIT_8, length = 16)
-	private byte[] unknown_230; // 0x230
+	@StructField(value = DataType.BIT_64, length = 2)
+	private long[] blockGuardStop; // 0x230 //used for blockguards. First value needs to be 0, second value is equal to the next block.
 
 }

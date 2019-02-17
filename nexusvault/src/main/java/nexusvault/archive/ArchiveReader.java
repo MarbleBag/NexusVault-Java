@@ -6,12 +6,12 @@ import java.nio.file.Path;
 
 import nexusvault.archive.impl.BaseVaultReader;
 
-public interface VaultReader {
+public interface ArchiveReader {
 
 	/**
-	 * Creates a default {@link VaultReader}
+	 * Creates a default {@link ArchiveReader}
 	 */
-	public static VaultReader createVaultReader() {
+	public static ArchiveReader createVaultReader() {
 		return new BaseVaultReader();
 	}
 
