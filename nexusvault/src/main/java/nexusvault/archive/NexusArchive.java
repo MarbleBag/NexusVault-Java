@@ -42,6 +42,7 @@ public interface NexusArchive {
 	 * @return
 	 * @throws NexusArchiveDisposedException
 	 */
+	@Deprecated
 	IdxFileLink setData(IdxPath path, ByteBuffer data, int flags);
 
 	/**

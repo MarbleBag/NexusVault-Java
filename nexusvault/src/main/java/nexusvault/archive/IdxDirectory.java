@@ -25,9 +25,12 @@ public interface IdxDirectory extends IdxEntry {
 
 	IdxFileLink getFileLink(String fileLinkName) throws IdxEntryNotFound, IdxEntryNotAFile;
 
+	@Deprecated
 	IdxDirectory createDirectory(String directoryName);
 
+	@Deprecated
 	IdxFileLink createFileLink(String fileLinkName, ByteBuffer data, int flags);
 
+	@Deprecated
 	void removeEntry(String entryName) throws IdxEntryNotFound;
 }
