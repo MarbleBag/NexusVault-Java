@@ -18,7 +18,4 @@ public interface IdxFileLink extends IdxEntry {
 
 	ByteBuffer getData();
 
-	@Deprecated
-	void setData(ByteBuffer data, int flags);
-
 }

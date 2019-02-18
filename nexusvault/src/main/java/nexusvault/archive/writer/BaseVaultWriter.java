@@ -61,7 +61,7 @@ public class BaseVaultWriter {
 
 		public IdxDirectoryBuilder createDirectories(IdxPath path) {
 			IdxDirectoryBuilder dir = this;
-			for (int i = 0; i < path.depth(); ++i) {
+			for (int i = 0; i < path.length(); ++i) {
 				final String directoryName = path.getNameOf(i);
 				if (dir.hasEntry(directoryName)) {
 					final IdxEntryBuilder entry = (IdxEntryBuilder) dir.getEntry(directoryName);

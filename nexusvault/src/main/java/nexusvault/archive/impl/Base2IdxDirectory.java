@@ -10,9 +10,9 @@ import java.util.stream.Collectors;
 
 import nexusvault.archive.IdxDirectory;
 import nexusvault.archive.IdxEntry;
-import nexusvault.archive.IdxEntryNotADirectory;
-import nexusvault.archive.IdxEntryNotAFile;
-import nexusvault.archive.IdxEntryNotFound;
+import nexusvault.archive.IdxEntryNotADirectoryException;
+import nexusvault.archive.IdxEntryNotAFileException;
+import nexusvault.archive.IdxEntryNotFoundException;
 import nexusvault.archive.IdxFileLink;
 import nexusvault.archive.IdxPath;
 import nexusvault.archive.NexusArchive;
@@ -114,9 +114,9 @@ class Base2IdxDirectory extends Base2IdxEntry implements IdxDirectory {
 	}
 
 	@Override
-	public Base2IdxEntry getEntry(String path) throws IdxEntryNotFound {
+	public Base2IdxEntry getEntry(String path) throws IdxEntryNotFoundException {
 		if (childs == null) {
-			throw new IdxEntryNotFound(path);
+			throw new IdxEntryNotFoundException(path);
 		}
 
 		final int sepIdx = path.indexOf(File.separator);
@@ -126,7 +126,7 @@ class Base2IdxDirectory extends Base2IdxEntry implements IdxDirectory {
 					return (Base2IdxEntry) child;
 				}
 			}
-			throw new IdxEntryNotFound(path);
+			throw new IdxEntryNotFoundException(path);
 		}
 
 		final String dir = path.substring(0, sepIdx);
@@ -138,13 +138,13 @@ class Base2IdxDirectory extends Base2IdxEntry implements IdxDirectory {
 				}
 			}
 		}
-		throw new IdxEntryNotFound(path);
+		throw new IdxEntryNotFoundException(path);
 	}
 
-	public Base2IdxFileLink getFile(String path) throws IdxEntryNotFound, IdxEntryNotAFile {
+	public Base2IdxFileLink getFile(String path) throws IdxEntryNotFoundException, IdxEntryNotAFileException {
 		final IdxEntry entry = getEntry(path);
 		if (!(entry instanceof IdxFileLink)) {
-			throw new IdxEntryNotAFile(path);
+			throw new IdxEntryNotAFileException(path);
 		}
 		return (Base2IdxFileLink) entry;
 	}
@@ -222,13 +222,13 @@ class Base2IdxDirectory extends Base2IdxEntry implements IdxDirectory {
 	}
 
 	@Override
-	public IdxDirectory getDirectory(String directoryName) throws IdxEntryNotFound, IdxEntryNotADirectory {
+	public IdxDirectory getDirectory(String directoryName) throws IdxEntryNotFoundException, IdxEntryNotADirectoryException {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public IdxFileLink getFileLink(String fileLinkName) throws IdxEntryNotFound, IdxEntryNotAFile {
+	public IdxFileLink getFileLink(String fileLinkName) throws IdxEntryNotFoundException, IdxEntryNotAFileException {
 		// TODO Auto-generated method stub
 		return null;
 	}

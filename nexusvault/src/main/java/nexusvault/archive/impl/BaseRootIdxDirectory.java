@@ -25,4 +25,17 @@ final class BaseRootIdxDirectory extends BaseIdxDirectory {
 		return archive;
 	}
 
+	protected void setArchive(BaseNexusArchive archive) {
+		this.archive = archive;
+	}
+
+	@Override
+	public String toString() {
+		final StringBuilder builder = new StringBuilder("IdxRootDirectory [");
+		builder.append("headerIdx=").append(getDirectoryPackIndex());
+		builder.append(", #childs=").append(getChilds().size());
+		builder.append("]");
+		return builder.toString();
+	}
+
 }

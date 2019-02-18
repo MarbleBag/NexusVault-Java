@@ -1,11 +1,9 @@
 package nexusvault.archive.impl;
 
-import java.io.File;
-
 import nexusvault.archive.IdxDirectory;
 import nexusvault.archive.IdxEntry;
-import nexusvault.archive.IdxEntryNotADirectory;
-import nexusvault.archive.IdxEntryNotAFile;
+import nexusvault.archive.IdxEntryNotADirectoryException;
+import nexusvault.archive.IdxEntryNotAFileException;
 import nexusvault.archive.IdxFileLink;
 import nexusvault.archive.IdxPath;
 
@@ -18,8 +16,8 @@ abstract class BaseIdxEntry implements IdxEntry {
 		if (name == null) {
 			throw new IllegalArgumentException("'name' must not be null.");
 		}
-		if (name.contains(File.separator)) {
-			throw new IllegalArgumentException("Name can not contain the file seperator '" + File.separator + "'.");
+		if (name.contains(IdxPath.SEPARATOR)) {
+			throw new IllegalArgumentException("Name can not contain the file seperator '" + IdxPath.SEPARATOR + "'.");
 		}
 
 		this.parent = parent;
@@ -42,7 +40,7 @@ abstract class BaseIdxEntry implements IdxEntry {
 		if (parentName.isEmpty()) {
 			return getName();
 		} else {
-			return parentName + File.separator + name;
+			return parentName + IdxPath.SEPARATOR + getName();
 		}
 	}
 
@@ -57,20 +55,20 @@ abstract class BaseIdxEntry implements IdxEntry {
 	}
 
 	@Override
-	public final BaseIdxFileLink asFile() throws IdxEntryNotAFile {
+	public final BaseIdxFileLink asFile() throws IdxEntryNotAFileException {
 		if (isFile()) {
 			return (BaseIdxFileLink) this;
 		} else {
-			throw new IdxEntryNotAFile(getFullName());
+			throw new IdxEntryNotAFileException(getFullName());
 		}
 	}
 
 	@Override
-	public final BaseIdxDirectory asDirectory() throws IdxEntryNotADirectory {
+	public final BaseIdxDirectory asDirectory() throws IdxEntryNotADirectoryException {
 		if (isDir()) {
 			return (BaseIdxDirectory) this;
 		} else {
-			throw new IdxEntryNotADirectory(getFullName());
+			throw new IdxEntryNotADirectoryException(getFullName());
 		}
 	}
 

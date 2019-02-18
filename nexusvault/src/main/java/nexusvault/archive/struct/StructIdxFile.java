@@ -35,7 +35,7 @@ public final class StructIdxFile extends StructIdxEntry {
 
 	@Order(7)
 	@StructField(DataType.BIT_32)
-	public int unk_000; // 0x034
+	public int unk_034; // 0x034
 
 	public String name;
 }

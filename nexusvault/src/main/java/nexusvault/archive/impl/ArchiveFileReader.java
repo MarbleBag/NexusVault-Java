@@ -51,38 +51,37 @@ public final class ArchiveFileReader {
 		reader.seek(Seek.CURRENT, 512); // o:520
 		header.fileSize = reader.readInt64(); // 520 - 528
 		reader.seek(Seek.CURRENT, 8); // 528 - 536
-		header.offsetPackHeaders = reader.readInt64(); // 536 - 544
-		header.headerCount = reader.readUInt32(); // 544 - 552 ,as 64bit this value becomes unbelievable huge.
+		header.packOffset = reader.readInt64(); // 536 - 544
+		header.packCount = reader.readUInt32(); // 544 - 552 ,as 64bit this value becomes unbelievable huge.
 		reader.seek(Seek.CURRENT, 4);
-		header.rootPackHeaderIndex = reader.readInt64(); // 552 - 560
+		header.packRootIdx = reader.readInt64(); // 552 - 560
 		reader.seek(Seek.CURRENT, 16); // 560 - 576
 	}
 
 	protected void loadPackHeader(ArchiveFile archiveFile, BinaryReader reader) {
 
-		if (archiveFile.header.offsetPackHeaders < 0) {
+		if (archiveFile.header.packOffset < 0) {
 			throw new IllegalArgumentException("Archive File: Pack header offset: index overflow");
 		}
 
-		if (archiveFile.header.headerCount > Integer.MAX_VALUE) {
-			throw new IllegalArgumentException(
-					String.format("Archive File : Number of pack headers (%d) exceed integer range", archiveFile.header.headerCount));
+		if (archiveFile.header.packCount > Integer.MAX_VALUE) {
+			throw new IllegalArgumentException(String.format("Archive File : Number of pack headers (%d) exceed integer range", archiveFile.header.packCount));
 		}
 
-		reader.seek(Seek.BEGIN, archiveFile.header.offsetPackHeaders);
-		archiveFile.packHeader = new PackHeader[(int) archiveFile.header.headerCount];
+		reader.seek(Seek.BEGIN, archiveFile.header.packOffset);
+		archiveFile.packHeader = new PackHeader[(int) archiveFile.header.packCount];
 		for (int i = 0; i < archiveFile.packHeader.length; ++i) {
 			archiveFile.packHeader[i] = new PackHeader(reader.readInt64(), reader.readInt64());
 		}
 	}
 
 	protected void loadAARC(ArchiveFile archiveFile, BinaryReader reader) {
-		if (archiveFile.header.rootPackHeaderIndex > Integer.MAX_VALUE) {
+		if (archiveFile.header.packRootIdx > Integer.MAX_VALUE) {
 			throw new IllegalArgumentException(
-					String.format("Archive File : Number of pack headers (%d) exceed integer range", archiveFile.header.rootPackHeaderIndex));
+					String.format("Archive File : Number of pack headers (%d) exceed integer range", archiveFile.header.packRootIdx));
 		}
 
-		final PackHeader header = archiveFile.packHeader[(int) archiveFile.header.rootPackHeaderIndex];
+		final PackHeader header = archiveFile.packHeader[(int) archiveFile.header.packRootIdx];
 		reader.seek(Seek.BEGIN, header.getOffset());
 		final AARC rootBlock = new AARC(reader.readInt32(), reader.readInt32(), reader.readInt32(), reader.readInt32());
 		if (rootBlock.signature != SIGNATURE_AARC) {

@@ -61,7 +61,7 @@ public class IdxDirectoryTraverser {
 			}
 
 			if (!skipDirs) {
-				for (final IdxDirectory child : dir.getSubDirectories()) {
+				for (final IdxDirectory child : dir.getDirectories()) {
 					unvisited.addLast(child);
 				}
 			}

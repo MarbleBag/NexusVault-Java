@@ -1,6 +1,5 @@
 package nexusvault.archive;
 
-import java.nio.ByteBuffer;
 import java.util.List;
 
 public interface IdxDirectory extends IdxEntry {
@@ -19,18 +18,10 @@ public interface IdxDirectory extends IdxEntry {
 
 	boolean hasEntry(String entryName);
 
-	IdxEntry getEntry(String entryName) throws IdxEntryNotFound;
+	IdxEntry getEntry(String entryName) throws IdxEntryNotFoundException;
 
-	IdxDirectory getDirectory(String directoryName) throws IdxEntryNotFound, IdxEntryNotADirectory;
+	IdxDirectory getDirectory(String directoryName) throws IdxEntryNotFoundException, IdxEntryNotADirectoryException;
 
-	IdxFileLink getFileLink(String fileLinkName) throws IdxEntryNotFound, IdxEntryNotAFile;
+	IdxFileLink getFileLink(String fileLinkName) throws IdxEntryNotFoundException, IdxEntryNotAFileException;
 
-	@Deprecated
-	IdxDirectory createDirectory(String directoryName);
-
-	@Deprecated
-	IdxFileLink createFileLink(String fileLinkName, ByteBuffer data, int flags);
-
-	@Deprecated
-	void removeEntry(String entryName) throws IdxEntryNotFound;
 }

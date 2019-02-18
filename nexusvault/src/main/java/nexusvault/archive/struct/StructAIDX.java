@@ -1,6 +1,7 @@
 package nexusvault.archive.struct;
 
 import kreed.reflection.struct.DataType;
+import kreed.reflection.struct.Order;
 import kreed.reflection.struct.StructField;
 import kreed.reflection.struct.StructUtil;
 
@@ -8,15 +9,19 @@ public final class StructAIDX {
 	public static final int SIGNATURE_AIDX = ('A' << 24) | ('I' << 16) | ('D' << 8) | 'X';
 	public static final int SIZE_IN_BYTES = StructUtil.sizeOf(StructAIDX.class);
 
+	@Order(1)
 	@StructField(DataType.BIT_32)
 	public int signature;
 
+	@Order(2)
 	@StructField(DataType.BIT_32)
 	public int version;
 
+	@Order(3)
 	@StructField(DataType.BIT_32)
 	public int unknown1;
 
+	@Order(4)
 	@StructField(DataType.BIT_32)
 	public int rootPackHeaderIdx;
 

@@ -77,6 +77,10 @@ final class FileAccessCache {
 		executor.shutdownNow();
 	}
 
+	public boolean isShutDown() {
+		return executor.isShutdown();
+	}
+
 	public BinaryReader getReader() throws IOException {
 		synchronized (lock) {
 			this.lastUsed = System.currentTimeMillis();
@@ -90,6 +94,10 @@ final class FileAccessCache {
 			}
 		}
 		return reader;
+	}
+
+	public Path getSource() {
+		return filePath;
 	}
 
 	private boolean tryToCloseChannel() {

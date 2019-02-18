@@ -8,9 +8,10 @@ import java.util.List;
 
 import nexusvault.archive.IdxDirectory;
 import nexusvault.archive.IdxEntry;
-import nexusvault.archive.IdxEntryNotADirectory;
-import nexusvault.archive.IdxEntryNotFound;
+import nexusvault.archive.IdxEntryNotADirectoryException;
+import nexusvault.archive.IdxEntryNotFoundException;
 
+@Deprecated
 public final class ArchivePath implements Iterable<String> {
 
 	private final LinkedList<String> path = new LinkedList<>();
@@ -99,7 +100,7 @@ public final class ArchivePath implements Iterable<String> {
 		return true;
 	}
 
-	public IdxEntry resolve(IdxDirectory root) throws IdxEntryNotFound, IdxEntryNotADirectory {
+	public IdxEntry resolve(IdxDirectory root) throws IdxEntryNotFoundException, IdxEntryNotADirectoryException {
 		IdxDirectory currentDir = root;
 		final Iterator<String> it = path.iterator();
 
@@ -110,7 +111,7 @@ public final class ArchivePath implements Iterable<String> {
 				if (entry instanceof IdxDirectory) {
 					currentDir = (IdxDirectory) entry;
 				} else {
-					throw new IdxEntryNotADirectory(String.format("'%s' of '%s' is not a directory in the archive.", step, Arrays.toString(path.toArray())));
+					throw new IdxEntryNotADirectoryException(String.format("'%s' of '%s' is not a directory in the archive.", step, Arrays.toString(path.toArray())));
 				}
 			} else {
 				return entry;

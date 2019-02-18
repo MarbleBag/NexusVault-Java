@@ -1,6 +1,5 @@
 package nexusvault.archive.impl;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -8,9 +7,10 @@ import java.util.List;
 
 import nexusvault.archive.IdxDirectory;
 import nexusvault.archive.IdxEntry;
-import nexusvault.archive.IdxEntryNotADirectory;
-import nexusvault.archive.IdxEntryNotFound;
+import nexusvault.archive.IdxEntryNotADirectoryException;
+import nexusvault.archive.IdxEntryNotFoundException;
 import nexusvault.archive.IdxPath;
+import nexusvault.archive.InvalidIdxPathException;
 
 public final class BaseIdxPath implements IdxPath {
 
@@ -36,13 +36,13 @@ public final class BaseIdxPath implements IdxPath {
 	}
 
 	@Override
-	public IdxEntry resolve(IdxEntry root) throws IdxEntryNotFound {
+	public IdxEntry resolve(IdxEntry root) throws IdxEntryNotFoundException {
 		if (isRoot()) {
 			return root;
 		}
 
 		if (root.isFile()) {
-			throw new IdxEntryNotADirectory("For a non-empty path the root element needs to be a directory");
+			throw new IdxEntryNotADirectoryException("For a non-empty path the root element needs to be a directory");
 		}
 
 		IdxDirectory cDir = root.asDirectory();
@@ -53,7 +53,7 @@ public final class BaseIdxPath implements IdxPath {
 			final IdxEntry nextEntry = cDir.getEntry(nextEntryName);
 			if (it.hasNext()) { // path goes deeper
 				if (nextEntry.isFile()) {
-					throw new IdxEntryNotADirectory(
+					throw new IdxEntryNotADirectoryException(
 							String.format("'%s' of '%s' is not a directory in the archive.", nextEntryName, Arrays.toString(path.toArray())));
 				} else {
 					cDir = nextEntry.asDirectory();
@@ -102,16 +102,19 @@ public final class BaseIdxPath implements IdxPath {
 	}
 
 	@Override
-	public IdxPath pathToSibling(String siblingName) {
+	public IdxPath pathToSibling(String siblingName) throws InvalidIdxPathException {
 		if (hasParent()) {
 			return getParent().pathToChild(siblingName);
 		} else {
-			return new BaseIdxPath(siblingName);
+			throw new InvalidIdxPathException("Path has no parent");
 		}
 	}
 
 	@Override
 	public IdxPath getRoot() {
+		if (isRoot()) {
+			return this;
+		}
 		return new BaseIdxPath();
 	}
 
@@ -135,12 +138,16 @@ public final class BaseIdxPath implements IdxPath {
 	}
 
 	@Override
-	public IdxPath subpath(int start, int end) {
-		return new BaseIdxPath(path.subList(start, end));
+	public IdxPath subpath(int startIdx, int endIdx) {
+		if ((startIdx == 0) && (endIdx == 0)) {
+			return getRoot();
+		}
+
+		return new BaseIdxPath(path.subList(startIdx, endIdx));
 	}
 
 	@Override
-	public int depth() {
+	public int length() {
 		return path.size();
 	}
 
@@ -156,7 +163,17 @@ public final class BaseIdxPath implements IdxPath {
 
 	@Override
 	public String getFullName() {
-		return String.join(File.separator, path);
+		final StringBuilder builder = new StringBuilder();
+		// builder.append(SEPARATOR);
+		final Iterator<String> it = path.iterator();
+		while (it.hasNext()) {
+			final String step = it.next();
+			builder.append(step);
+			if (it.hasNext()) {
+				builder.append(SEPARATOR);
+			}
+		}
+		return builder.toString();
 	}
 
 	@Override
@@ -210,36 +227,29 @@ public final class BaseIdxPath implements IdxPath {
 
 	@Override
 	public String toString() {
-		final StringBuilder builder = new StringBuilder();
-		builder.append(File.separator);
-
-		final Iterator<String> it = path.iterator();
-		while (it.hasNext()) {
-			final String step = it.next();
-			builder.append(step);
-			if (it.hasNext()) {
-				builder.append(File.separator);
-			}
-		}
-
-		return builder.toString();
+		return getFullName();
 	}
 
 	@Override
 	public IdxPath resolve(String element) {
 		if (element == null) {
-			throw new IllegalArgumentException();
+			throw new IllegalArgumentException("'element' must not be null");
 		}
+
 		if (element.isEmpty()) {
 			return this;
 		}
 
-		if (element.equals(File.separator)) {
+		if (element.equals(SEPARATOR)) {
 			return getRoot();
 		}
 
 		if (element.equals("..")) {
 			return getParent();
+		}
+
+		if (element.contains(SEPARATOR)) {
+			throw new IllegalArgumentException("Element contains one or more separator(s) and other characters");
 		}
 
 		final BaseIdxPath path = new BaseIdxPath(this.path);

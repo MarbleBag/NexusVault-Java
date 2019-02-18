@@ -1,6 +1,5 @@
 package nexusvault.archive.impl;
 
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Deque;
@@ -11,9 +10,9 @@ import java.util.stream.Collectors;
 
 import nexusvault.archive.IdxDirectory;
 import nexusvault.archive.IdxEntry;
-import nexusvault.archive.IdxEntryNotADirectory;
-import nexusvault.archive.IdxEntryNotAFile;
-import nexusvault.archive.IdxEntryNotFound;
+import nexusvault.archive.IdxEntryNotADirectoryException;
+import nexusvault.archive.IdxEntryNotAFileException;
+import nexusvault.archive.IdxEntryNotFoundException;
 import nexusvault.archive.IdxFileLink;
 
 class BaseIdxDirectory extends BaseIdxEntry implements IdxDirectory {
@@ -100,36 +99,22 @@ class BaseIdxDirectory extends BaseIdxEntry implements IdxDirectory {
 	}
 
 	@Override
-	public BaseIdxEntry getEntry(String entryName) throws IdxEntryNotFound {
+	public BaseIdxEntry getEntry(String entryName) throws IdxEntryNotFoundException {
 		final Optional<BaseIdxEntry> entry = getChildsInternal().stream().filter(f -> f.getName().equals(entryName)).findFirst();
 		if (!entry.isPresent()) {
-			throw new IdxEntryNotFound(entryName);
+			throw new IdxEntryNotFoundException(entryName);
 		}
 		return entry.get();
 	}
 
 	@Override
-	public BaseIdxDirectory getDirectory(String directoryName) throws IdxEntryNotFound, IdxEntryNotADirectory {
+	public BaseIdxDirectory getDirectory(String directoryName) throws IdxEntryNotFoundException, IdxEntryNotADirectoryException {
 		return getEntry(directoryName).asDirectory();
 	}
 
 	@Override
-	public BaseIdxFileLink getFileLink(String fileLinkName) throws IdxEntryNotFound, IdxEntryNotAFile {
+	public BaseIdxFileLink getFileLink(String fileLinkName) throws IdxEntryNotFoundException, IdxEntryNotAFileException {
 		return getEntry(fileLinkName).asFile();
-	}
-
-	@Override
-	public BaseIdxDirectory createDirectory(String directoryName) {
-		final BaseIdxDirectory subDirectory = getArchive().createDirectory(this, directoryName);
-		getChildsInternal().add(subDirectory);
-		return subDirectory;
-	}
-
-	@Override
-	public BaseIdxFileLink createFileLink(String fileLinkName, ByteBuffer data, int flags) {
-		final BaseIdxFileLink fileLink = getArchive().createFileLink(this, fileLinkName, data, flags);
-		getChildsInternal().add(fileLink);
-		return fileLink;
 	}
 
 	private void initializeChilds() {
@@ -138,10 +123,13 @@ class BaseIdxDirectory extends BaseIdxEntry implements IdxDirectory {
 	}
 
 	@Override
-	public void removeEntry(String entryName) throws IdxEntryNotFound {
-		final BaseIdxEntry entry = getEntry(entryName);
-		// TODO Auto-generated method stub
-
+	public String toString() {
+		final StringBuilder builder = new StringBuilder("IdxDirectory [");
+		builder.append("headerIdx=").append(getDirectoryPackIndex());
+		builder.append(", name=").append(getFullName());
+		builder.append(", #childs=").append(getChilds().size());
+		builder.append("]");
+		return builder.toString();
 	}
 
 }

@@ -74,8 +74,22 @@ final class BaseIdxFileLink extends BaseIdxEntry implements IdxFileLink {
 	}
 
 	@Override
-	public void setData(ByteBuffer data, int flags) {
-		getArchive().setData(this);
+	public String toString() {
+		final StringBuilder builder = new StringBuilder();
+		builder.append("IdxFileLink [flags=");
+		builder.append(flags);
+		builder.append(", writeTime=");
+		builder.append(writeTime);
+		builder.append(", uncompressedSize=");
+		builder.append(uncompressedSize);
+		builder.append(", compressedSize=");
+		builder.append(compressedSize);
+		builder.append(", shaHash=");
+		builder.append(ByteUtil.byteToHex(shaHash));
+		builder.append(", unk1=");
+		builder.append(unk1);
+		builder.append("]");
+		return builder.toString();
 	}
 
 }
