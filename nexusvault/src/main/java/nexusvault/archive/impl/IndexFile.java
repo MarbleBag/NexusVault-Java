@@ -1,5 +1,6 @@
 package nexusvault.archive.impl;
 
+import java.io.IOException;
 import java.util.List;
 
 import nexusvault.archive.struct.StructIdxDirectory;
@@ -30,9 +31,9 @@ public interface IndexFile {
 
 	int getPackCount();
 
-	StructPackHeader getPack(int packIdx);
+	StructPackHeader getPack(int packIdx) throws IOException;
 
-	IndexFile.IndexDirectoryData getDirectoryData(int packIdx);
+	IndexFile.IndexDirectoryData getDirectoryData(int packIdx) throws IOException;
 
 	boolean isDisposed();
 

@@ -1,14 +1,13 @@
 package nexusvault.archive.impl;
 
+import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 
 import kreed.io.util.BinaryReader;
 import kreed.io.util.Seek;
-import kreed.reflection.struct.DataReadDelegator;
-import kreed.reflection.struct.StructFactory;
-import kreed.reflection.struct.StructReader;
+import kreed.reflection.struct.StructUtil;
 import nexusvault.archive.struct.StructAIDX;
 import nexusvault.archive.struct.StructArchiveFile;
 import nexusvault.archive.struct.StructIdxDirectory;
@@ -19,21 +18,20 @@ import nexusvault.shared.exception.SignatureMismatchException;
 import nexusvault.shared.exception.VersionMismatchException;
 
 abstract class AbstIndexFile implements IndexFile {
-	protected final StructReader<BinaryReader> structReader;
+
 	protected StructArchiveFile archiveHeader;
 	protected StructPackHeader[] packs;
 	protected StructAIDX aidx;
 
 	public AbstIndexFile() {
-		final DataReadDelegator<BinaryReader> readerDelegator = DataReadDelegator.build(new kreed.reflection.struct.reader.BinaryReader());
-		structReader = StructReader.build(StructFactory.build(), readerDelegator, true);
+
 	}
 
-	protected void initialize() {
+	protected void initialize() throws IOException {
 		final BinaryReader reader = getBinaryReader();
-		this.archiveHeader = loadHeader(structReader, reader);
-		this.packs = loadPackHeader(structReader, reader, archiveHeader);
-		this.aidx = loadAIDX(structReader, reader, archiveHeader, packs);
+		this.archiveHeader = loadHeader(reader);
+		this.packs = loadPackHeader(reader, archiveHeader);
+		this.aidx = loadAIDX(reader, archiveHeader, packs);
 	}
 
 	@Override
@@ -43,7 +41,7 @@ abstract class AbstIndexFile implements IndexFile {
 
 	@Override
 	public final int getPackRootIdx() {
-		return aidx.rootPackHeaderIdx;
+		return aidx.headerIdx;
 	}
 
 	@Override
@@ -52,7 +50,7 @@ abstract class AbstIndexFile implements IndexFile {
 	}
 
 	@Override
-	public IndexDirectoryData getDirectoryData(int packIdx) {
+	public IndexDirectoryData getDirectoryData(int packIdx) throws IOException {
 		final BinaryReader reader = getBinaryReader();
 		final StructPackHeader pack = getPack(packIdx);
 
@@ -71,15 +69,26 @@ abstract class AbstIndexFile implements IndexFile {
 
 		final List<StructIdxDirectory> directories = new ArrayList<>((int) numSubDirectories);
 		for (int i = 0; i < numSubDirectories; ++i) {
-			final StructIdxDirectory dir = structReader.read(new StructIdxDirectory(), reader);
-			final int nullTerminator = nameTwine.indexOf(0, (int) dir.nameOffset);
-			dir.name = nameTwine.substring((int) dir.nameOffset, nullTerminator);
+			final StructIdxDirectory dir = new StructIdxDirectory((int) reader.readUInt32(), (int) reader.readUInt32()); // structReader.read(new
+																															// StructIdxDirectory(), reader);
+			final int nullTerminator = nameTwine.indexOf(0, dir.nameOffset);
+			dir.name = nameTwine.substring(dir.nameOffset, nullTerminator);
 			directories.add(dir);
 		}
 
 		final List<StructIdxFile> fileLinks = new ArrayList<>((int) numFiles);
 		for (long i = 0; i < numFiles; ++i) {
-			final StructIdxFile fileLink = structReader.read(new StructIdxFile(), reader);
+			final long nameOffset = reader.readUInt32();
+			final int flags = reader.readInt32();
+			final long writeTime = reader.readInt64();
+			final long uncompressedSize = reader.readInt64();
+			final long compressedSize = reader.readInt64();
+			final byte[] hash = new byte[20];
+			reader.readInt8(hash, 0, hash.length);
+			final int unk_034 = reader.readInt32();
+
+			final StructIdxFile fileLink = new StructIdxFile(nameOffset, flags, writeTime, uncompressedSize, compressedSize, hash, unk_034);
+
 			final int nullTerminator = nameTwine.indexOf(0, (int) fileLink.nameOffset);
 			fileLink.name = nameTwine.substring((int) fileLink.nameOffset, nullTerminator);
 			fileLinks.add(fileLink);
@@ -100,10 +109,10 @@ abstract class AbstIndexFile implements IndexFile {
 		return nameTwine;
 	}
 
-	private StructArchiveFile loadHeader(StructReader<BinaryReader> structReader, BinaryReader reader) {
-		final StructArchiveFile archiveHeader = structReader.read(StructArchiveFile.class, reader);
-		if (archiveHeader.signature != StructArchiveFile.SIGNATURE_INDEX) {
-			throw new SignatureMismatchException("Index file", StructArchiveFile.SIGNATURE_INDEX, archiveHeader.signature);
+	private StructArchiveFile loadHeader(BinaryReader reader) {
+		final StructArchiveFile archiveHeader = StructUtil.readStruct(StructArchiveFile.class, reader, true);
+		if (archiveHeader.signature != StructArchiveFile.FILE_SIGNATURE) {
+			throw new SignatureMismatchException("Index file", StructArchiveFile.FILE_SIGNATURE, archiveHeader.signature);
 		}
 		if (archiveHeader.version != 1) {
 			throw new VersionMismatchException("Index file", 1, archiveHeader.version);
@@ -111,7 +120,7 @@ abstract class AbstIndexFile implements IndexFile {
 		return archiveHeader;
 	}
 
-	private StructPackHeader[] loadPackHeader(StructReader<BinaryReader> structReader, BinaryReader reader, StructArchiveFile archiveHeader) {
+	private StructPackHeader[] loadPackHeader(BinaryReader reader, StructArchiveFile archiveHeader) {
 		if (archiveHeader.packOffset < 0) {
 			throw new IntegerOverflowException("Index file: pack offset");
 		}
@@ -123,12 +132,13 @@ abstract class AbstIndexFile implements IndexFile {
 		reader.seek(Seek.BEGIN, archiveHeader.packOffset);
 		final StructPackHeader[] pack = new StructPackHeader[(int) archiveHeader.packCount];
 		for (int i = 0; i < pack.length; ++i) {
-			pack[i] = structReader.read(new StructPackHeader(), reader);
+			pack[i] = new StructPackHeader(reader.readInt64(), reader.readInt64());
 		}
+
 		return pack;
 	}
 
-	private StructAIDX loadAIDX(StructReader<BinaryReader> structReader, BinaryReader reader, StructArchiveFile archiveHeader, StructPackHeader[] packs) {
+	private StructAIDX loadAIDX(BinaryReader reader, StructArchiveFile archiveHeader, StructPackHeader[] packs) {
 		if (archiveHeader.packRootIdx > archiveHeader.packCount) {
 			throw new IllegalArgumentException(
 					String.format("Index File : Pack root idx %d exceeds pack count %d", archiveHeader.packRootIdx, archiveHeader.packCount));
@@ -140,7 +150,7 @@ abstract class AbstIndexFile implements IndexFile {
 		final StructPackHeader aidxpack = packs[(int) archiveHeader.packRootIdx];
 		reader.seek(Seek.BEGIN, aidxpack.getOffset());
 
-		final StructAIDX aidx = structReader.read(new StructAIDX(), reader);
+		final StructAIDX aidx = new StructAIDX(reader.readInt32(), reader.readInt32(), reader.readInt32(), reader.readInt32());
 		if (aidx.signature != StructAIDX.SIGNATURE_AIDX) {
 			throw new SignatureMismatchException("Index file: AIDX block", StructAIDX.SIGNATURE_AIDX, aidx.signature);
 		}
@@ -148,6 +158,6 @@ abstract class AbstIndexFile implements IndexFile {
 		return aidx;
 	}
 
-	abstract protected BinaryReader getBinaryReader();
+	abstract protected BinaryReader getBinaryReader() throws IOException;
 
 }

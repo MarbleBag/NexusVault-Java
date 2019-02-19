@@ -1,5 +1,6 @@
 package nexusvault.archive.impl;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 
 import nexusvault.archive.IdxFileLink;
@@ -69,7 +70,7 @@ final class BaseIdxFileLink extends BaseIdxEntry implements IdxFileLink {
 	}
 
 	@Override
-	public ByteBuffer getData() {
+	public ByteBuffer getData() throws IOException {
 		return getArchive().getData(this);
 	}
 

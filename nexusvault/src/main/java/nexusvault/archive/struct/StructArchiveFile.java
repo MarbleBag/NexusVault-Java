@@ -7,7 +7,7 @@ import kreed.reflection.struct.StructUtil;
 
 public final class StructArchiveFile {
 
-	public final static int SIGNATURE_INDEX = ('P' << 24) | ('A' << 16) | ('C' << 8) | 'K';
+	public final static int FILE_SIGNATURE = ('P' << 24) | ('A' << 16) | ('C' << 8) | 'K';
 
 	public final int SIZE_IN_BYTES = StructUtil.sizeOf(StructArchiveFile.class);
 

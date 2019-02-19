@@ -83,7 +83,7 @@ abstract class BaseIdxEntry implements IdxEntry {
 	}
 
 	@Override
-	public int hashCode() {
+	public final int hashCode() {
 		final int prime = 31;
 		int result = 1;
 		result = (prime * result) + ((name == null) ? 0 : name.hashCode());
@@ -92,7 +92,7 @@ abstract class BaseIdxEntry implements IdxEntry {
 	}
 
 	@Override
-	public boolean equals(Object obj) {
+	public final boolean equals(Object obj) {
 		return this == obj;
 	}
 

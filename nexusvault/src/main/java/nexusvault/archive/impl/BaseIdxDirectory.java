@@ -15,39 +15,31 @@ import nexusvault.archive.IdxEntryNotAFileException;
 import nexusvault.archive.IdxEntryNotFoundException;
 import nexusvault.archive.IdxFileLink;
 
-class BaseIdxDirectory extends BaseIdxEntry implements IdxDirectory {
+abstract class BaseIdxDirectory extends BaseIdxEntry implements IdxDirectory {
 
 	private final long headerIndex;
-	protected List<BaseIdxEntry> childs;
 
-	protected BaseIdxDirectory(BaseIdxDirectory parent, String directoryName, long headerIndex) {
-		super(parent, directoryName);
+	protected BaseIdxDirectory(BaseIdxDirectory parent, String name, long headerIndex) {
+		super(parent, name);
 		this.headerIndex = headerIndex;
 	}
 
-	private List<BaseIdxEntry> getChildsInternal() {
-		if (childs == null) {
-			initializeChilds();
-		}
-		return childs;
-	}
-
-	protected long getDirectoryPackIndex() {
+	protected final long getDirectoryPackIndex() {
 		return headerIndex;
 	}
 
 	@Override
-	public List<IdxEntry> getChilds() {
+	public final List<IdxEntry> getChilds() {
 		return Collections.unmodifiableList(getChildsInternal());
 	}
 
 	@Override
-	public int getChildCount() {
+	public final int getChildCount() {
 		return getChildsInternal().size();
 	}
 
 	@Override
-	public List<IdxEntry> getChildsDeep() {
+	public final List<IdxEntry> getChildsDeep() {
 		final List<IdxEntry> results = new LinkedList<>();
 		final Deque<IdxDirectory> fringe = new LinkedList<>();
 		fringe.add(this);
@@ -66,7 +58,7 @@ class BaseIdxDirectory extends BaseIdxEntry implements IdxDirectory {
 	}
 
 	@Override
-	public int countSubTree() {
+	public final int countSubTree() {
 		final Deque<IdxDirectory> fringe = new LinkedList<>();
 		fringe.add(this);
 		int result = 1;
@@ -84,22 +76,22 @@ class BaseIdxDirectory extends BaseIdxEntry implements IdxDirectory {
 	}
 
 	@Override
-	public List<IdxDirectory> getDirectories() {
+	public final List<IdxDirectory> getDirectories() {
 		return getChildsInternal().stream().filter(f -> f instanceof IdxDirectory).map(f -> (IdxDirectory) f).collect(Collectors.toList());
 	}
 
 	@Override
-	public List<IdxFileLink> getFiles() {
+	public final List<IdxFileLink> getFiles() {
 		return getChildsInternal().stream().filter(f -> f instanceof IdxFileLink).map(f -> (IdxFileLink) f).collect(Collectors.toList());
 	}
 
 	@Override
-	public boolean hasEntry(String entryName) {
+	public final boolean hasEntry(String entryName) {
 		return getChildsInternal().stream().anyMatch(f -> f.getName().equals(entryName));
 	}
 
 	@Override
-	public BaseIdxEntry getEntry(String entryName) throws IdxEntryNotFoundException {
+	public final BaseIdxEntry getEntry(String entryName) throws IdxEntryNotFoundException {
 		final Optional<BaseIdxEntry> entry = getChildsInternal().stream().filter(f -> f.getName().equals(entryName)).findFirst();
 		if (!entry.isPresent()) {
 			throw new IdxEntryNotFoundException(entryName);
@@ -108,18 +100,13 @@ class BaseIdxDirectory extends BaseIdxEntry implements IdxDirectory {
 	}
 
 	@Override
-	public BaseIdxDirectory getDirectory(String directoryName) throws IdxEntryNotFoundException, IdxEntryNotADirectoryException {
+	public final IdxDirectory getDirectory(String directoryName) throws IdxEntryNotFoundException, IdxEntryNotADirectoryException {
 		return getEntry(directoryName).asDirectory();
 	}
 
 	@Override
-	public BaseIdxFileLink getFileLink(String fileLinkName) throws IdxEntryNotFoundException, IdxEntryNotAFileException {
+	public final BaseIdxFileLink getFileLink(String fileLinkName) throws IdxEntryNotFoundException, IdxEntryNotAFileException {
 		return getEntry(fileLinkName).asFile();
-	}
-
-	private void initializeChilds() {
-		final List<BaseIdxEntry> childs = getArchive().loadDirectory(this);
-		this.childs = new ArrayList<>(childs);
 	}
 
 	@Override
@@ -130,6 +117,51 @@ class BaseIdxDirectory extends BaseIdxEntry implements IdxDirectory {
 		builder.append(", #childs=").append(getChilds().size());
 		builder.append("]");
 		return builder.toString();
+	}
+
+	protected abstract List<BaseIdxEntry> getChildsInternal();
+
+}
+
+class BaseLoadedIdxDirectory extends BaseIdxDirectory {
+
+	protected List<BaseIdxEntry> childs;
+
+	protected BaseLoadedIdxDirectory(BaseIdxDirectory parent, String directoryName, long headerIndex) {
+		super(parent, directoryName, headerIndex);
+		childs = Collections.emptyList();
+	}
+
+	@Override
+	protected List<BaseIdxEntry> getChildsInternal() {
+		return childs;
+	}
+
+	protected void setChildsInternal(List<BaseIdxEntry> childs) {
+		this.childs = childs;
+	}
+
+}
+
+class BaseLazyIdxDirectory extends BaseIdxDirectory {
+
+	protected List<BaseIdxEntry> childs;
+
+	protected BaseLazyIdxDirectory(BaseIdxDirectory parent, String directoryName, long headerIndex) {
+		super(parent, directoryName, headerIndex);
+	}
+
+	@Override
+	protected List<BaseIdxEntry> getChildsInternal() {
+		if (childs == null) {
+			initializeChilds();
+		}
+		return childs;
+	}
+
+	private void initializeChilds() {
+		final List<BaseIdxEntry> childs = getArchive().loadDirectory(this);
+		this.childs = new ArrayList<>(childs);
 	}
 
 }

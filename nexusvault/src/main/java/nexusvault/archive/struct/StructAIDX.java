@@ -23,7 +23,7 @@ public final class StructAIDX {
 
 	@Order(4)
 	@StructField(DataType.BIT_32)
-	public int rootPackHeaderIdx;
+	public int headerIdx;
 
 	public StructAIDX() {
 	}
@@ -32,19 +32,19 @@ public final class StructAIDX {
 		this.signature = signature;
 		this.version = version;
 		this.unknown1 = unknown1;
-		this.rootPackHeaderIdx = headerIdx;
+		this.headerIdx = headerIdx;
 	}
 
 	@Override
 	public String toString() {
-		return "StructAIDX [signature=" + signature + ", version=" + version + ", unknown1=" + unknown1 + ", rootPackHeaderIdx=" + rootPackHeaderIdx + "]";
+		return "StructAIDX [signature=" + signature + ", version=" + version + ", unknown1=" + unknown1 + ", headerIdx=" + headerIdx + "]";
 	}
 
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = (prime * result) + rootPackHeaderIdx;
+		result = (prime * result) + headerIdx;
 		result = (prime * result) + signature;
 		result = (prime * result) + unknown1;
 		result = (prime * result) + version;
@@ -63,7 +63,7 @@ public final class StructAIDX {
 			return false;
 		}
 		final StructAIDX other = (StructAIDX) obj;
-		if (rootPackHeaderIdx != other.rootPackHeaderIdx) {
+		if (headerIdx != other.headerIdx) {
 			return false;
 		}
 		if (signature != other.signature) {

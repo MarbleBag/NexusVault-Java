@@ -17,6 +17,15 @@ public final class StructPackHeader {
 	@StructField(DataType.UBIT_64)
 	public long size;
 
+	public StructPackHeader() {
+
+	}
+
+	public StructPackHeader(long offset, long size) {
+		this.offset = offset;
+		this.size = size;
+	}
+
 	@Override
 	public String toString() {
 		return "StructPackHeader [offset=" + offset + ", size=" + size + "]";

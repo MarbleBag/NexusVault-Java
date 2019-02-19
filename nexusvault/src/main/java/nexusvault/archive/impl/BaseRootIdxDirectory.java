@@ -1,12 +1,19 @@
 package nexusvault.archive.impl;
 
+import nexusvault.archive.IdxDirectory;
 import nexusvault.archive.IdxPath;
 
-final class BaseRootIdxDirectory extends BaseIdxDirectory {
+interface BaseRootIdxDirectory extends IdxDirectory {
+
+	void setArchive(BaseNexusArchive archive);
+
+}
+
+final class BaseLazyRootIdxDirectory extends BaseLazyIdxDirectory implements BaseRootIdxDirectory {
 
 	private BaseNexusArchive archive;
 
-	public BaseRootIdxDirectory(int headerIndex) {
+	public BaseLazyRootIdxDirectory(int headerIndex) {
 		super(null, "", headerIndex);
 	}
 
@@ -25,7 +32,8 @@ final class BaseRootIdxDirectory extends BaseIdxDirectory {
 		return archive;
 	}
 
-	protected void setArchive(BaseNexusArchive archive) {
+	@Override
+	public void setArchive(BaseNexusArchive archive) {
 		this.archive = archive;
 	}
 

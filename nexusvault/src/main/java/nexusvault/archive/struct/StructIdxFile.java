@@ -5,7 +5,7 @@ import kreed.reflection.struct.Order;
 import kreed.reflection.struct.StructField;
 import kreed.reflection.struct.StructUtil;
 
-public final class StructIdxFile extends StructIdxEntry {
+public final class StructIdxFile {
 
 	public static final int SIZE_IN_BYTES = StructUtil.sizeOf(StructIdxFile.class);
 
@@ -38,4 +38,19 @@ public final class StructIdxFile extends StructIdxEntry {
 	public int unk_034; // 0x034
 
 	public String name;
+
+	public StructIdxFile() {
+
+	}
+
+	public StructIdxFile(long nameOffset, int flags, long writeTime, long uncompressedSize, long compressedSize, byte[] hash, int unk_034) {
+		this.nameOffset = nameOffset;
+		this.flags = flags;
+		this.writeTime = writeTime;
+		this.uncompressedSize = uncompressedSize;
+		this.compressedSize = compressedSize;
+		this.hash = hash;
+		this.unk_034 = unk_034;
+	}
+
 }

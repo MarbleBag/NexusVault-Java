@@ -5,14 +5,12 @@ import java.util.zip.DataFormatException;
 import java.util.zip.Inflater;
 
 import kreed.io.util.BinaryReader;
-import nexusvault.archive.VaultUnpackException;
+import nexusvault.archive.ArchiveDecodeException;
 import nexusvault.shared.exception.IntegerOverflowException;
 
-@Deprecated
-final class ZipInflaterVaultUnpacker implements VaultUnpacker {
+final class ZipCodec implements ArchiveDecoder, ArchiveEncoder {
 
-	@Override
-	public ByteBuffer unpack(BinaryReader reader, long compressedSize, long uncompressedSize) throws VaultUnpackException {
+	public ByteBuffer decode(BinaryReader reader, long compressedSize, long uncompressedSize) throws ArchiveDecodeException {
 		try {
 			if ((compressedSize < 0) || (compressedSize > Integer.MAX_VALUE)) {
 				throw new IntegerOverflowException();
@@ -34,13 +32,13 @@ final class ZipInflaterVaultUnpacker implements VaultUnpacker {
 			inflater.end();
 
 			if (output.length != resultLength) {
-				throw new VaultUnpackException("ZLIB: Uncompressed Size does not match expecations. Got " + resultLength + " expected " + output.length);
+				throw new ArchiveDecodeException("ZLIB: Uncompressed Size does not match expecations. Got " + resultLength + " expected " + output.length);
 			}
 
 			return ByteBuffer.wrap(output);
 
 		} catch (final DataFormatException e) {
-			throw new VaultUnpackException(e);
+			throw new ArchiveDecodeException(e);
 		}
 	}
 

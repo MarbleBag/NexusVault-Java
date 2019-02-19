@@ -3,7 +3,6 @@ package nexusvault.archive.impl;
 import java.io.IOException;
 
 import kreed.io.util.BinaryReader;
-import nexusvault.archive.IdxException;
 
 final class CachedIndexFile extends AbstIndexFile {
 	private final FileAccessCache cache;
@@ -17,19 +16,15 @@ final class CachedIndexFile extends AbstIndexFile {
 	}
 
 	@Override
-	public IndexDirectoryData getDirectoryData(int packIdx) {
+	public IndexDirectoryData getDirectoryData(int packIdx) throws IOException {
 		final IndexDirectoryData data = super.getDirectoryData(packIdx);
 		cache.startExpiring();
 		return data;
 	}
 
 	@Override
-	protected BinaryReader getBinaryReader() {
-		try {
-			return cache.getReader();
-		} catch (final IOException e) {
-			throw new IdxException("Unable to read index-file", e);
-		}
+	protected BinaryReader getBinaryReader() throws IOException {
+		return cache.getReader();
 	}
 
 	@Override

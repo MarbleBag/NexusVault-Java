@@ -21,6 +21,16 @@ public final class StructAARC {
 	@StructField(DataType.BIT_32)
 	public int headerIdx;
 
+	public StructAARC() {
+	}
+
+	public StructAARC(int signature, int version, int entryCount, int headerIdx) {
+		this.signature = signature;
+		this.version = version;
+		this.entryCount = entryCount;
+		this.headerIdx = headerIdx;
+	}
+
 	@Override
 	public String toString() {
 		return "StructAARC [signature=" + signature + ", version=" + version + ", entryCount=" + entryCount + ", headeridx=" + headerIdx + "]";
