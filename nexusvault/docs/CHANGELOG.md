@@ -3,6 +3,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com)
 
 ## [Unreleased] 
+## [3.0.0]
+### Added
+- An archive contains informations about its source
+
+### Changed
+- ArchiveReader was renamed to NexusArchive
+- The methods to retrieve data from an archive is now located on IdxFileLink
+- Index file will now be lazily processed. This will speed up the loading of an archive and the direct access of specific data
+
 
 ## [2.0.0]
 ### Changed
