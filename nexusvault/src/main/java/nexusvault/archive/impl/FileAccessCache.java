@@ -1,8 +1,6 @@
 package nexusvault.archive.impl;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -15,10 +13,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import kreed.io.util.BinaryReader;
-import kreed.io.util.SeekableByteChannelBinaryReader;
-
-final class FileAccessCache {
+public final class FileAccessCache {
 
 	static class DefaultThreadFactory implements ThreadFactory {
 		private static final AtomicInteger poolNumber = new AtomicInteger(1);
@@ -45,8 +40,6 @@ final class FileAccessCache {
 
 	private final long cacheTime;
 	private final Path filePath;
-	private final int bufferSize;
-	private final ByteOrder byteOrder;
 
 	private final ExecutorService executor;
 
@@ -57,18 +50,12 @@ final class FileAccessCache {
 	private final Object lock = new Object();
 
 	private SeekableByteChannel stream;
-	private BinaryReader reader;
+	private final EnumSet<StandardOpenOption> fileAccessOption;
 
-	public FileAccessCache(long cacheTime, Path filePath, int bufferSize, ByteOrder byteOrder) {
-
-		if (bufferSize < Long.BYTES) {
-			throw new IllegalArgumentException("Buffersize too small");
-		}
-
+	public FileAccessCache(long cacheTime, Path filePath, EnumSet<StandardOpenOption> fileAccessOption) {
 		this.cacheTime = cacheTime;
 		this.filePath = filePath;
-		this.bufferSize = bufferSize;
-		this.byteOrder = byteOrder;
+		this.fileAccessOption = fileAccessOption;
 		this.executor = new ThreadPoolExecutor(0, 1, 15L, TimeUnit.SECONDS, new SynchronousQueue<Runnable>(), new DefaultThreadFactory());
 		this.taskShutdown = true;
 	}
@@ -81,19 +68,15 @@ final class FileAccessCache {
 		return executor.isShutdown();
 	}
 
-	public BinaryReader getReader() throws IOException {
+	public SeekableByteChannel getFileAccess() throws IOException {
 		synchronized (lock) {
 			this.lastUsed = System.currentTimeMillis();
 			this.expiring = false;
-			if ((reader == null) || !reader.isOpen()) {
-				if ((stream == null) || !stream.isOpen()) {
-					stream = Files.newByteChannel(filePath, EnumSet.of(StandardOpenOption.READ));
-				}
-				final ByteBuffer fileBuffer = ByteBuffer.allocateDirect(bufferSize).order(byteOrder);
-				this.reader = new SeekableByteChannelBinaryReader(stream, fileBuffer);
+			if ((stream == null) || !stream.isOpen()) {
+				stream = Files.newByteChannel(filePath, fileAccessOption);
 			}
 		}
-		return reader;
+		return stream;
 	}
 
 	public Path getSource() {
@@ -109,7 +92,7 @@ final class FileAccessCache {
 				return false;
 			}
 			try {
-				reader.close();
+				stream.close();
 			} catch (final RuntimeException e) {
 				e.printStackTrace();
 			} catch (final Exception e) {

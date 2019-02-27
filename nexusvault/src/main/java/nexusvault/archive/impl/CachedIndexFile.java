@@ -5,9 +5,10 @@ import java.io.IOException;
 import kreed.io.util.BinaryReader;
 
 final class CachedIndexFile extends AbstIndexFile {
-	private final FileAccessCache cache;
 
-	public CachedIndexFile(FileAccessCache cache) {
+	private final BufferedFileAccessCache cache;
+
+	public CachedIndexFile(BufferedFileAccessCache cache) {
 		super();
 		if (cache == null) {
 			throw new IllegalArgumentException("'cache' must not be null");
@@ -24,7 +25,7 @@ final class CachedIndexFile extends AbstIndexFile {
 
 	@Override
 	protected BinaryReader getBinaryReader() throws IOException {
-		return cache.getReader();
+		return cache.getFileReader();
 	}
 
 	@Override

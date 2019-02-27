@@ -6,9 +6,10 @@ import kreed.io.util.BinaryReader;
 import nexusvault.archive.ArchiveEntryNotFoundException;
 
 final class CachedArchiveFile extends AbstArchiveFile {
-	private final FileAccessCache cache;
 
-	public CachedArchiveFile(FileAccessCache cache) {
+	private final BufferedFileAccessCache cache;
+
+	public CachedArchiveFile(BufferedFileAccessCache cache) {
 		super();
 		if (cache == null) {
 			throw new IllegalArgumentException("'cache' must not be null");
@@ -28,7 +29,7 @@ final class CachedArchiveFile extends AbstArchiveFile {
 
 	@Override
 	protected BinaryReader getBinaryReader() throws IOException {
-		return cache.getReader();
+		return cache.getFileReader();
 	}
 
 	@Override
