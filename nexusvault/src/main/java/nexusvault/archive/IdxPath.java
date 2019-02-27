@@ -1,6 +1,7 @@
 package nexusvault.archive;
 
 import java.util.Arrays;
+import java.util.regex.Pattern;
 
 import nexusvault.archive.impl.BaseIdxPath;
 
@@ -10,7 +11,7 @@ import nexusvault.archive.impl.BaseIdxPath;
  * Its elements are stored separately and only certain functions make use of a {@link #SEPARATOR separator} to separate elements for a more human readable
  * representation of a path.
  */
-public interface IdxPath extends Cloneable {
+public interface IdxPath extends Cloneable, Comparable<IdxPath> {
 
 	/**
 	 * The separator <tt>\</tt> which is equal to the separator the implementer of the archive file used.
@@ -26,7 +27,7 @@ public interface IdxPath extends Cloneable {
 	}
 
 	public static IdxPath createPathFrom(String elements) {
-		return createPathFrom(elements, SEPARATOR);
+		return createPathFrom(elements, Pattern.quote(SEPARATOR));
 	}
 
 	public static IdxPath createPathFrom(String elements, String elementDelimiter) {

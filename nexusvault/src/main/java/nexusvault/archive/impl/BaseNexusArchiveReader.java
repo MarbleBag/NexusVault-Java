@@ -15,12 +15,13 @@ import nexusvault.archive.ArchiveException;
 import nexusvault.archive.IdxDirectory;
 import nexusvault.archive.IdxException;
 import nexusvault.archive.IdxFileLink;
-import nexusvault.archive.NexusArchive;
+import nexusvault.archive.NexusArchiveDisposedException;
+import nexusvault.archive.NexusArchiveReader;
 import nexusvault.archive.struct.StructIdxDirectory;
 import nexusvault.archive.struct.StructIdxFile;
 import nexusvault.shared.exception.IntegerOverflowException;
 
-public final class BaseNexusArchive implements NexusArchive {
+public class BaseNexusArchiveReader implements NexusArchiveReader {
 
 	private static final class BasePathNexusArchiveSource implements NexusArchiveSource { // TODO
 		private final Path indexFile;
@@ -45,8 +46,38 @@ public final class BaseNexusArchive implements NexusArchive {
 	private static final LZMACodec CODEC_LZMA = new LZMACodec();
 	private static final ZipCodec CODEC_ZIP = new ZipCodec();
 
-	public static BaseNexusArchive loadArchive(Path archiveOrIndex) throws IOException {
+	public static BaseNexusArchiveReader buildArchive() {
+		return new BaseNexusArchiveReader();
+	}
 
+	public static BaseNexusArchiveReader loadArchive(Path archiveOrIndex) throws IOException {
+		return new BaseNexusArchiveReader(archiveOrIndex);
+	}
+
+	private IndexFile indexFile;
+	private ArchiveFile archiveFile;
+	private NexusArchiveSource source;
+
+	private BaseRootIdxDirectory rootDirectory;
+
+	boolean isDisposed = true;
+
+	protected BaseNexusArchiveReader(Path archiveOrIndex) throws IOException {
+		load(archiveOrIndex);
+	}
+
+	protected BaseNexusArchiveReader() {
+
+	}
+
+	@Override
+	public void reload() throws IOException {
+		final NexusArchiveSource source = getSource();
+		load(source.getIndexFile(), source.getArchiveFile());
+	}
+
+	@Override
+	public void load(Path archiveOrIndex) throws IOException {
 		String fileName = archiveOrIndex.getFileName().toString();
 		Path idxPath = null;
 		Path arcPath = null;
@@ -63,72 +94,72 @@ public final class BaseNexusArchive implements NexusArchive {
 			throw new IllegalArgumentException(String.format("Path %s neither points to an index- nor an archive-file", archiveOrIndex));
 		}
 
+		load(idxPath, arcPath);
+	}
+
+	private void load(Path idxPath, Path arcPath) throws IOException {
+		if (!Files.exists(idxPath)) {
+			throw new IllegalArgumentException(String.format("Index-file at %s not found", idxPath));
+		}
 		if (!Files.exists(arcPath)) {
 			throw new IllegalArgumentException(String.format("Archive-file at %s not found", arcPath));
 		}
 
-		if (!Files.exists(idxPath)) {
-			throw new IllegalArgumentException(String.format("Index-file at %s not found", idxPath));
-		}
+		dispose();
 
-		return new BaseNexusArchive(idxPath, arcPath);
-	}
-
-	private final IndexFile indexFile;
-	private final ArchiveFile archiveFile;
-	private final NexusArchiveSource source;
-
-	private BaseRootIdxDirectory rootDirectory;
-
-	boolean isDisposed;
-
-	private BaseNexusArchive(Path idxPath, Path arcPath) throws IOException {
 		final IndexFileReader indexFileReader = new IndexFileReader();
 		this.indexFile = indexFileReader.read(idxPath);
 
 		final ArchiveFileReader archiveFileReader = new ArchiveFileReader();
 		this.archiveFile = archiveFileReader.read(arcPath);
 
-		source = new BasePathNexusArchiveSource(idxPath, arcPath);
+		this.source = new BasePathNexusArchiveSource(idxPath, arcPath);
 
 		initializeArchive();
+		isDisposed = false;
 	}
 
 	private void initializeArchive() {
-		rootDirectory = new BaseLazyRootIdxDirectory(this.indexFile.getPackRootIdx());
-		rootDirectory.setArchive(this);
+		this.rootDirectory = new BaseLazyRootIdxDirectory(this.indexFile.getPackRootIdx());
+		this.rootDirectory.setArchive(this);
 	}
 
 	@Override
 	public IdxDirectory getRootDirectory() {
-		return rootDirectory;
+		return this.rootDirectory;
 	}
 
 	@Override
 	public NexusArchiveSource getSource() {
-		return source;
+		return this.source;
 	}
 
 	@Override
 	public void dispose() {
-		if (isDisposed) {
+		if (this.isDisposed) {
 			return;
 		}
 
-		isDisposed = true;
+		this.isDisposed = true;
 		this.indexFile.dispose();
 		this.archiveFile.dispose();
 
-		rootDirectory.setArchive(null);
-		rootDirectory = null;
+		this.indexFile = null;
+		this.archiveFile = null;
+
+		this.rootDirectory = null;
 	}
 
 	@Override
 	public boolean isDisposed() {
-		return isDisposed;
+		return this.isDisposed;
 	}
 
 	protected List<BaseIdxEntry> loadDirectory(BaseIdxDirectory baseIdxDirectory) {
+		if (isDisposed()) {
+			throw new NexusArchiveDisposedException();
+		}
+
 		IndexFile.IndexDirectoryData folderData;
 
 		try {
@@ -155,7 +186,10 @@ public final class BaseNexusArchive implements NexusArchive {
 		return childs;
 	}
 
-	final protected ByteBuffer getData(IdxFileLink file) throws IOException, ArchiveEntryNotFoundException { // TODO REWORK & DELETE
+	protected ByteBuffer getData(IdxFileLink file) throws IOException, ArchiveEntryNotFoundException {
+		if (isDisposed()) {
+			throw new NexusArchiveDisposedException();
+		}
 
 		final BinaryReader reader = this.archiveFile.getArchiveData(file.getShaHash());
 

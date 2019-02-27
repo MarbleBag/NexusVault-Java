@@ -5,13 +5,13 @@ import nexusvault.archive.IdxPath;
 
 interface BaseRootIdxDirectory extends IdxDirectory {
 
-	void setArchive(BaseNexusArchive archive);
+	void setArchive(BaseNexusArchiveReader archive);
 
 }
 
 final class BaseLazyRootIdxDirectory extends BaseLazyIdxDirectory implements BaseRootIdxDirectory {
 
-	private BaseNexusArchive archive;
+	private BaseNexusArchiveReader archive;
 
 	public BaseLazyRootIdxDirectory(int headerIndex) {
 		super(null, "", headerIndex);
@@ -28,12 +28,12 @@ final class BaseLazyRootIdxDirectory extends BaseLazyIdxDirectory implements Bas
 	}
 
 	@Override
-	public BaseNexusArchive getArchive() {
+	public BaseNexusArchiveReader getArchive() {
 		return archive;
 	}
 
 	@Override
-	public void setArchive(BaseNexusArchive archive) {
+	public void setArchive(BaseNexusArchiveReader archive) {
 		this.archive = archive;
 	}
 

@@ -12,12 +12,12 @@ public interface IdxEntry {
 
 	boolean isDir();
 
-	IdxFileLink asFile();
+	IdxFileLink asFile() throws IdxEntryNotAFileException;
 
-	IdxDirectory asDirectory();
+	IdxDirectory asDirectory() throws IdxEntryNotADirectoryException;
 
 	IdxPath getPath();
 
-	NexusArchive getArchive();
+	NexusArchiveReader getArchive();
 
 }
