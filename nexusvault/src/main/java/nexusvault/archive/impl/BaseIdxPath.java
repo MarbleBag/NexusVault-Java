@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.ListIterator;
 
 import nexusvault.archive.IdxDirectory;
 import nexusvault.archive.IdxEntry;
@@ -199,8 +200,16 @@ public final class BaseIdxPath implements IdxPath {
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = (prime * result) + ((path == null) ? 0 : path.hashCode());
+		result = (prime * result) + hashCodePath();
 		return result;
+	}
+
+	private int hashCodePath() {
+		int hashCode = 1;
+		for (final String p : path) {
+			hashCode = (31 * hashCode) + p.toLowerCase().hashCode();
+		}
+		return hashCode;
 	}
 
 	@Override
@@ -215,14 +224,26 @@ public final class BaseIdxPath implements IdxPath {
 			return false;
 		}
 		final BaseIdxPath other = (BaseIdxPath) obj;
-		if (path == null) {
-			if (other.path != null) {
-				return false;
-			}
-		} else if (!path.equals(other.path)) {
+		if (!isPathEqual(other.path)) {
 			return false;
 		}
 		return true;
+	}
+
+	private boolean isPathEqual(List<String> otherPath) {
+		if (path == otherPath) {
+			return true;
+		}
+		final ListIterator<String> e1 = path.listIterator();
+		final ListIterator<String> e2 = otherPath.listIterator();
+		while (e1.hasNext() && e2.hasNext()) {
+			final String o1 = e1.next();
+			final String o2 = e2.next();
+			if (!o1.equalsIgnoreCase(o2)) {
+				return false;
+			}
+		}
+		return !(e1.hasNext() || e2.hasNext());
 	}
 
 	@Override
@@ -255,6 +276,29 @@ public final class BaseIdxPath implements IdxPath {
 		final BaseIdxPath path = new BaseIdxPath(this.path);
 		path.path.add(element);
 		return path;
+	}
+
+	@Override
+	public int compareTo(IdxPath o) {
+		final Iterator<String> e1 = this.iterateElements().iterator();
+		final Iterator<String> e2 = o.iterateElements().iterator();
+
+		while (e1.hasNext() && e2.hasNext()) {
+			final String o1 = e1.next();
+			final String o2 = e2.next();
+			final int order = o1.compareToIgnoreCase(o2);
+			if (order != 0) {
+				return order;
+			}
+		}
+
+		if (!(e1.hasNext() || e2.hasNext())) {
+			return 0;
+		} else if (e1.hasNext()) {
+			return 1;
+		} else {
+			return -1;
+		}
 	}
 
 }
