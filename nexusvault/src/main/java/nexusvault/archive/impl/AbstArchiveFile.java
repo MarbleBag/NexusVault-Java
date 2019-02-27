@@ -39,6 +39,7 @@ abstract class AbstArchiveFile implements ArchiveFile {
 		return aarc.headerIdx;
 	}
 
+	@Override
 	public final StructPackHeader getPack(int packIdx) {
 		return packs[packIdx];
 	}
@@ -47,6 +48,7 @@ abstract class AbstArchiveFile implements ArchiveFile {
 		return packs[(int) getEntry(hash).headerIdx];
 	}
 
+	@Override
 	public StructArchiveEntry getEntry(byte[] hash) throws ArchiveEntryNotFoundException {
 		if (hash == null) {
 			throw new IllegalArgumentException("'entry' must not be null");
@@ -134,7 +136,7 @@ abstract class AbstArchiveFile implements ArchiveFile {
 
 		final Map<String, StructArchiveEntry> mapping = new HashMap<>();
 		for (final StructArchiveEntry entry : entries) {
-			final String hash = ByteUtil.byteToHex(entry.shaHash);
+			final String hash = ByteUtil.byteToHex(entry.hash);
 			if (mapping.containsKey(hash)) {
 				throw new ArchiveHashCollisionException();
 			}
