@@ -30,7 +30,7 @@ abstract class BaseIdxEntry implements IdxEntry {
 	}
 
 	@Override
-	public final IdxDirectory getParent() {
+	public final BaseIdxDirectory getParent() {
 		return parent;
 	}
 
@@ -74,12 +74,12 @@ abstract class BaseIdxEntry implements IdxEntry {
 
 	@Override
 	public IdxPath getPath() {
-		return parent.getPath().resolve(getName());
+		return getParent().getPath().resolve(getName());
 	}
 
 	@Override
-	public BaseNexusArchive getArchive() {
-		return parent.getArchive();
+	public BaseNexusArchiveReader getArchive() {
+		return getParent().getArchive();
 	}
 
 	@Override

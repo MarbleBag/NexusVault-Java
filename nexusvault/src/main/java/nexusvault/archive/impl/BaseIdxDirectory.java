@@ -87,12 +87,12 @@ abstract class BaseIdxDirectory extends BaseIdxEntry implements IdxDirectory {
 
 	@Override
 	public final boolean hasEntry(String entryName) {
-		return getChildsInternal().stream().anyMatch(f -> f.getName().equals(entryName));
+		return getChildsInternal().stream().anyMatch(f -> f.getName().equalsIgnoreCase(entryName));
 	}
 
 	@Override
 	public final BaseIdxEntry getEntry(String entryName) throws IdxEntryNotFoundException {
-		final Optional<BaseIdxEntry> entry = getChildsInternal().stream().filter(f -> f.getName().equals(entryName)).findFirst();
+		final Optional<BaseIdxEntry> entry = getChildsInternal().stream().filter(f -> f.getName().equalsIgnoreCase(entryName)).findFirst();
 		if (!entry.isPresent()) {
 			throw new IdxEntryNotFoundException(entryName);
 		}
