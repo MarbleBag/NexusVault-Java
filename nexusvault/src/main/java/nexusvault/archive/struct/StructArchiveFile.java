@@ -7,9 +7,16 @@ import kreed.reflection.struct.StructUtil;
 
 public final class StructArchiveFile {
 
+	public static void main(String[] arg) {
+		System.out.println(StructUtil.analyzeStruct(StructArchiveFile.class, true));
+		if (StructUtil.sizeOf(StructArchiveFile.class) != 0x230) {
+			throw new IllegalStateException();
+		}
+	}
+
 	public final static int FILE_SIGNATURE = ('P' << 24) | ('A' << 16) | ('C' << 8) | 'K';
 
-	public final int SIZE_IN_BYTES = StructUtil.sizeOf(StructArchiveFile.class);
+	public final static int SIZE_IN_BYTES = StructUtil.sizeOf(StructArchiveFile.class);
 
 	@Order(1)
 	@StructField(DataType.BIT_32)

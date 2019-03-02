@@ -5,36 +5,43 @@ import java.util.Arrays;
 import kreed.reflection.struct.DataType;
 import kreed.reflection.struct.Order;
 import kreed.reflection.struct.StructField;
+import kreed.reflection.struct.StructUtil;
 
 public final class StructArchiveEntry {
 
+	public static final int SIZE_IN_BYTES = StructUtil.sizeOf(StructArchiveEntry.class);
+
 	@Order(1)
-	@StructField(DataType.BIT_32)
+	@StructField(DataType.UBIT_32)
 	public long headerIdx;
 
-	@Order(1)
+	@Order(2)
 	@StructField(value = DataType.BIT_8, length = 20)
-	public byte[] shaHash;
+	public byte[] hash;
 
-	@Order(1)
-	@StructField(DataType.BIT_32)
+	@Order(3)
+	@StructField(DataType.UBIT_64)
 	public long size;
 
 	public StructArchiveEntry() {
 
 	}
 
-	public StructArchiveEntry(long blockIndex, byte[] shaHash, long byteOfContent) {
+	public StructArchiveEntry(long blockIndex, byte[] hash, long size) {
 		super();
+		if (hash.length != 20) {
+			throw new IllegalArgumentException("'hash' length does not match");
+		}
+
 		this.headerIdx = blockIndex;
-		this.size = byteOfContent;
-		this.shaHash = new byte[shaHash.length];
-		System.arraycopy(shaHash, 0, this.shaHash, 0, shaHash.length);
+		this.size = size;
+		this.hash = new byte[hash.length];
+		System.arraycopy(hash, 0, this.hash, 0, hash.length);
 	}
 
 	@Override
 	public String toString() {
-		return "StructArchiveEntry [blockIndex=" + headerIdx + ", shaHash=" + Arrays.toString(shaHash) + ", size=" + size + "]";
+		return "StructArchiveEntry [blockIndex=" + headerIdx + ", shaHash=" + Arrays.toString(hash) + ", size=" + size + "]";
 	}
 
 	@Override
@@ -42,7 +49,7 @@ public final class StructArchiveEntry {
 		final int prime = 31;
 		int result = 1;
 		result = (prime * result) + (int) (headerIdx ^ (headerIdx >>> 32));
-		result = (prime * result) + Arrays.hashCode(shaHash);
+		result = (prime * result) + Arrays.hashCode(hash);
 		result = (prime * result) + (int) (size ^ (size >>> 32));
 		return result;
 	}
@@ -62,7 +69,7 @@ public final class StructArchiveEntry {
 		if (headerIdx != other.headerIdx) {
 			return false;
 		}
-		if (!Arrays.equals(shaHash, other.shaHash)) {
+		if (!Arrays.equals(hash, other.hash)) {
 			return false;
 		}
 		if (size != other.size) {
