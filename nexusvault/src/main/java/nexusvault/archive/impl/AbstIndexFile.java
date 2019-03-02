@@ -17,6 +17,7 @@ import nexusvault.shared.exception.IntegerOverflowException;
 import nexusvault.shared.exception.SignatureMismatchException;
 import nexusvault.shared.exception.VersionMismatchException;
 
+@Deprecated
 abstract class AbstIndexFile implements IndexFile {
 
 	protected StructArchiveFile archiveHeader;
@@ -34,17 +35,14 @@ abstract class AbstIndexFile implements IndexFile {
 		this.aidx = loadAIDX(reader, archiveHeader, packs);
 	}
 
-	@Override
 	public final int getPackCount() {
 		return (int) archiveHeader.packCount;
 	}
 
-	@Override
 	public final int getPackRootIdx() {
 		return aidx.headerIdx;
 	}
 
-	@Override
 	public final StructPackHeader getPack(int packIdx) {
 		return packs[packIdx];
 	}

@@ -1,10 +1,12 @@
 package nexusvault.archive.impl;
 
 import java.io.IOException;
+import java.nio.file.Path;
 
 import kreed.io.util.BinaryReader;
 import nexusvault.archive.ArchiveEntryNotFoundException;
 
+@Deprecated
 final class CachedArchiveFile extends AbstArchiveFile {
 
 	private final BufferedFileAccessCache cache;
@@ -46,6 +48,42 @@ final class CachedArchiveFile extends AbstArchiveFile {
 		builder.append(cache.getSource());
 		builder.append("]");
 		return builder.toString();
+	}
+
+	@Override
+	public void setTarget(Path path) throws IOException {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public boolean hasArchiveData(byte[] hash) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public int getNumberOfEntries() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public void prepareWriteMode() throws IOException {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void setNumberOfExpectedEntries(int count) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void setArchiveData(byte[] hash, BinaryReader data) throws IOException {
+		// TODO Auto-generated method stub
+
 	}
 
 }

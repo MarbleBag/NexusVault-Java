@@ -6,6 +6,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.EnumSet;
 
+@Deprecated
 public final class ArchiveFileReader {
 
 	public ArchiveFile read(final Path indexPath) throws IOException {

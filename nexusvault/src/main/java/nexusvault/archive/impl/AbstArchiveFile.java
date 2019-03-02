@@ -22,6 +22,7 @@ import nexusvault.shared.exception.IntegerOverflowException;
 import nexusvault.shared.exception.SignatureMismatchException;
 import nexusvault.shared.exception.VersionMismatchException;
 
+@Deprecated
 abstract class AbstArchiveFile implements ArchiveFile {
 
 	protected StructArchiveFile archiveHeader;
@@ -29,17 +30,14 @@ abstract class AbstArchiveFile implements ArchiveFile {
 	protected StructAARC aarc;
 	protected Map<String, StructArchiveEntry> entries;
 
-	@Override
 	public final int getPackCount() {
 		return (int) archiveHeader.packCount;
 	}
 
-	@Override
 	public final int getPackRootIdx() {
 		return aarc.headerIdx;
 	}
 
-	@Override
 	public final StructPackHeader getPack(int packIdx) {
 		return packs[packIdx];
 	}
@@ -48,7 +46,6 @@ abstract class AbstArchiveFile implements ArchiveFile {
 		return packs[(int) getEntry(hash).headerIdx];
 	}
 
-	@Override
 	public StructArchiveEntry getEntry(byte[] hash) throws ArchiveEntryNotFoundException {
 		if (hash == null) {
 			throw new IllegalArgumentException("'entry' must not be null");
