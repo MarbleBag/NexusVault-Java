@@ -8,12 +8,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com)
 - An archive contains informations about its source
 
 ### Changed
-- ArchiveReader was renamed to NexusArchive
+- ArchiveReader was renamed to NexusArchiveReader
 - The methods to retrieve data from an archive is now located on IdxFileLink
 - Index file will now be lazily processed. This will speed up the loading of an archive and the direct access of specific data
+- The structure of an index and archive file is now combined in StructArchiveFile
+- The structure of AARC and AIDX is now bundled in StructRootPackInfo
 
 
-## [2.0.0]
+## [2.0.0] - 2019-02-06
 ### Changed
 - Package naming: nexusvault.pack -> nexusvault.archive
 - Moved public classes & interfaces to nexusvault.archive

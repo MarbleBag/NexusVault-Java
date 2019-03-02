@@ -13,7 +13,7 @@ import kreed.io.util.BinaryWriter;
 import kreed.io.util.SeekableByteChannelBinaryReader;
 import kreed.io.util.SeekableByteChannelBinaryWriter;
 
-public final class BufferedFileAccessCache {
+final class BufferedFileAccessCache {
 
 	private final FileAccessCache cache;
 	private final int bufferSize;
