@@ -16,8 +16,12 @@ public class SignatureMismatchException extends RuntimeException {
 		super(String.format("%s : Expected '%s', but was '%s'", name, toString(expected), toString(actual)));
 	}
 
-	private static String toString(int expected) {
-		return "" + ((char) (expected >> 24) & 0xFF) + ((char) (expected >> 16) & 0xFF) + ((char) (expected >> 8) & 0xFF) + ((char) (expected >> 0) & 0xFF);
+	public static String toString(int signature) {
+		final char a = (char) ((signature >> 0x18) & 0xFF);
+		final char b = (char) ((signature >> 0x10) & 0xFF);
+		final char c = (char) ((signature >> 0x08) & 0xFF);
+		final char d = (char) ((signature >> 0x00) & 0xFF);
+		return "" + a + b + c + d;
 	}
 
 	public SignatureMismatchException(String message, Throwable cause) {
