@@ -148,7 +148,7 @@ final class ArchiveMemoryModel {
 	public MemoryBlock findBlockAt(long position) {
 		final MemoryBlock block = tryFindBlockAt(position);
 		if (block == null) {
-			throw new IllegalStateException(); // TODO
+			throw new IllegalStateException(String.format("Memory error. Unable to find memory block for offset %d", position)); // TODO
 		}
 		return block;
 	}
@@ -203,12 +203,14 @@ final class ArchiveMemoryModel {
 		block.free = false;
 		usedBlocks.add(block);
 		pendingUpdate.add(block);
+		unusedBlocks.remove(block);
 	}
 
 	private void markBlockAsUnused(MemoryBlock block) {
 		block.free = true;
 		unusedBlocks.add(block);
 		pendingUpdate.add(block);
+		usedBlocks.remove(block);
 	}
 
 	public MemoryBlock allocateNewMemory(long requestedSize) {

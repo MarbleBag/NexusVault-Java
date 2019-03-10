@@ -12,11 +12,13 @@ public interface ArchiveFile {
 		return new BaseArchiveFile();
 	}
 
-	void setTarget(Path path) throws IOException;
+	void openTarget(Path path) throws IOException;
 
-	void dispose();
+	void closeTarget() throws IOException;
 
-	boolean isDisposed();
+	Path getTarget();
+
+	boolean isOpen();
 
 	boolean hasArchiveData(byte[] hash);
 
@@ -24,10 +26,12 @@ public interface ArchiveFile {
 
 	BinaryReader getArchiveData(byte[] hash) throws ArchiveEntryNotFoundException, IOException;
 
-	void prepareWriteMode() throws IOException;
+	void enableWriteMode() throws IOException;
 
-	void setNumberOfExpectedEntries(int count);
+	void setEstimatedNumberForWriteEntries(int count) throws IOException;
 
 	void setArchiveData(byte[] hash, BinaryReader data) throws IOException;
+
+	void flushWrite() throws IOException;
 
 }
