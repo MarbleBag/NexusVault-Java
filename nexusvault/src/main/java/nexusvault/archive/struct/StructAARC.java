@@ -1,6 +1,6 @@
 package nexusvault.archive.struct;
 
-public final class StructAARC extends StructRootPackInfo {
+public final class StructAARC extends StructRootBlock {
 
 	public static final int SIGNATURE_AARC = ('A' << 24) | ('A' << 16) | ('R' << 8) | 'C';
 

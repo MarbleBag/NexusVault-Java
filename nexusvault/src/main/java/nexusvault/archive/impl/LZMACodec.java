@@ -10,7 +10,7 @@ import nexusvault.archive.ArchiveDecodeException;
 import nexusvault.archive.ArchiveEncodeException;
 import nexusvault.shared.exception.IntegerOverflowException;
 
-final class LZMACodec implements ArchiveDecoder, ArchiveEncoder {
+final class LZMACodec  {
 
 	public ByteBuffer decode(BinaryReader data, long compressedSize, long uncompressedSize) throws ArchiveDecodeException {
 		if ((compressedSize < 0) || (compressedSize > Integer.MAX_VALUE)) {

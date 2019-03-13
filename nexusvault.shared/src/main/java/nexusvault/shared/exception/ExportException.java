@@ -1,6 +1,6 @@
 package nexusvault.shared.exception;
 
-public class ExportException extends RuntimeException {
+public class ExportException extends NexusVaultException {
 
 	private static final long serialVersionUID = -2168136828280107286L;
 

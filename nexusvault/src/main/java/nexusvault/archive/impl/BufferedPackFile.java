@@ -12,7 +12,7 @@ import java.util.Map.Entry;
 import nexusvault.archive.struct.StructPackHeader;
 import nexusvault.archive.struct.StructRootBlock;
 
-class BufferedPackFile implements PackFile {
+final class BufferedPackFile implements PackFile {
 
 	private PackFile packFile;
 

@@ -1,8 +1,8 @@
 package nexusvault.archive;
 
-public class IdxException extends RuntimeException {
+public class IdxException extends ArchiveException {
 
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = -8853975753798978854L;
 
 	public IdxException() {
 		super();

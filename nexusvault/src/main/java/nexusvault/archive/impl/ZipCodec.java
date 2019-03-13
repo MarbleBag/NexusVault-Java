@@ -8,7 +8,7 @@ import kreed.io.util.BinaryReader;
 import nexusvault.archive.ArchiveDecodeException;
 import nexusvault.shared.exception.IntegerOverflowException;
 
-final class ZipCodec implements ArchiveDecoder, ArchiveEncoder {
+final class ZipCodec  {
 
 	public ByteBuffer decode(BinaryReader reader, long compressedSize, long uncompressedSize) throws ArchiveDecodeException {
 		try {

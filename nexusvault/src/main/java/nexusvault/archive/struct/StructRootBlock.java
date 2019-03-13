@@ -4,12 +4,12 @@ import kreed.reflection.struct.DataType;
 import kreed.reflection.struct.StructField;
 import kreed.reflection.struct.StructUtil;
 
-public class StructRootPackInfo {
+public class StructRootBlock {
 
 	public static final int SIGNATURE_AIDX = ('A' << 24) | ('I' << 16) | ('D' << 8) | 'X';
 	public static final int SIGNATURE_AARC = ('A' << 24) | ('A' << 16) | ('R' << 8) | 'C';
 
-	public static final int SIZE_IN_BYTES = StructUtil.sizeOf(StructRootPackInfo.class);
+	public static final int SIZE_IN_BYTES = StructUtil.sizeOf(StructRootBlock.class);
 
 	@StructField(DataType.BIT_32)
 	public int signature;
@@ -23,11 +23,11 @@ public class StructRootPackInfo {
 	@StructField(DataType.BIT_32)
 	public int headerIdx;
 
-	public StructRootPackInfo() {
+	public StructRootBlock() {
 
 	}
 
-	public StructRootPackInfo(int signature, int version, int entryCount, int headerIdx) {
+	public StructRootBlock(int signature, int version, int entryCount, int headerIdx) {
 		this.signature = signature;
 		this.version = version;
 		this.entryCount = entryCount;
@@ -61,7 +61,7 @@ public class StructRootPackInfo {
 		if (getClass() != obj.getClass()) {
 			return false;
 		}
-		final StructRootPackInfo other = (StructRootPackInfo) obj;
+		final StructRootBlock other = (StructRootBlock) obj;
 		if (entryCount != other.entryCount) {
 			return false;
 		}
