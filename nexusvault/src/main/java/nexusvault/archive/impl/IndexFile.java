@@ -46,25 +46,25 @@ public interface IndexFile {
 
 	}
 
-	public static final int UNUSED_PACK_IDX = -1;
+	public static final int UNUSED_INDEX = -1;
 
 	public static IndexFile createIndexFile() {
 		return new BaseIndexFile();
 	}
 
-	void openTarget(Path path) throws IOException;
+	void openFile(Path path) throws IOException;
 
-	void closeTarget() throws IOException;
+	void closeFile() throws IOException;
 
-	Path getTarget();
+	Path getFile();
 
-	boolean isOpen();
+	boolean isFileOpen();
 
-	int getPackCount();
+	int getDirectoryCount();
 
 	int getRootDirectoryIndex();
 
-	IndexDirectoryData getDirectoryData(long packIdx) throws IOException;
+	IndexDirectoryData getDirectoryData(long index) throws IOException;
 
 	void enableWriteMode() throws IOException;
 
@@ -74,22 +74,22 @@ public interface IndexFile {
 	 * Writes new data to the index file.
 	 *
 	 * @param data
-	 * @return pack index that is now associated to the given directory data
+	 * @return index that is now associated to the given directory data
 	 * @throws IOException
 	 * @see {@link #getDirectoryData(long)}
 	 */
 	long writeDirectoryData(IndexDirectoryData data) throws IOException;
 
 	/**
-	 * Overwrites the data at <tt>packIdx</tt> position, or writes new data if <tt>packIdx</tt> is equal to {@link #UNUSED_PACK_IDX}
+	 * Overwrites the data at <tt>packIdx</tt> position, or writes new data if <tt>packIdx</tt> is equal to {@link #UNUSED_INDEX}
 	 *
-	 * @param packIdx
-	 *            that should be overwriten, in case <tt>packidx</tt> is equal to {@link #UNUSED_PACK_IDX}, a new entry will be written
+	 * @param index
+	 *            that should be overwriten, in case <tt>index</tt> is equal to {@link #UNUSED_INDEX}, a new entry will be written
 	 * @param data
-	 * @return pack index that is now associated to the given directory data
+	 * @return index that is now associated to the given directory data
 	 * @throws IOException
 	 */
-	long writeDirectoryData(long packIdx, IndexDirectoryData data) throws IOException;
+	long writeDirectoryData(long index, IndexDirectoryData data) throws IOException;
 
 	void flushWrite() throws IOException;
 

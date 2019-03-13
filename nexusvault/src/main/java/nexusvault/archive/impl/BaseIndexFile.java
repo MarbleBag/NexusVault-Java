@@ -22,17 +22,12 @@ import nexusvault.shared.exception.SignatureMismatchException;
 
 final class BaseIndexFile extends AbstractArchiveFile implements IndexFile {
 
-	private TreeMap<Integer, StructPackHeader> pendingPacks;
-	private int estimatedNumberOfPacks;
-
 	public BaseIndexFile() {
 		super();
 	}
 
 	@Override
 	protected void afterFileRead(boolean isFileNew) throws IOException {
-		pendingPacks = new TreeMap<>();
-
 		if (isFileNew) {
 			enableWriteMode();
 
@@ -45,65 +40,28 @@ final class BaseIndexFile extends AbstractArchiveFile implements IndexFile {
 			setPackRootIdx(aidxIndex);
 
 		} else {
-			final StructRootBlock aidx = getAIDXElement();
-			if (aidx.signature != StructAIDX.SIGNATURE_AIDX) {
+			final StructRootBlock aidx = getRootElement();
+			if (aidx == null)
+				throw new IllegalStateException(); // TODO
+			if (aidx.signature != StructAIDX.SIGNATURE_AIDX)
 				throw new SignatureMismatchException("Index file", StructAIDX.SIGNATURE_AIDX, aidx.signature);
-			}
 		}
 	}
 
 	@Override
 	protected void beforeFileClose() throws IOException {
-		flushWrite();
-	}
-
-	private void storePendingPack(long packIdx, StructPackHeader pack) {
-		if (!hasPendingPack(packIdx) && (packIdx != pendingPacks.size())) {
-			throw new IndexOutOfBoundsException(String.format("Pack index out of bounds [%d,%d]", packFile.getPackArraySize(), getDirectoryCount()));
-		}
-		pendingPacks.put(Integer.valueOf((int) packIdx), pack);
-	}
-
-	private long storePendingPack(StructPackHeader pack) {
-		final long packIdx = packFile.getPackArraySize() + pendingPacks.size();
-		pendingPacks.put(Integer.valueOf((int) packIdx), pack);
-		return packIdx;
-	}
-
-	private StructPackHeader getPendingPack(long packIdx) {
-		return pendingPacks.get(Integer.valueOf((int) packIdx));
-	}
-
-	private boolean hasPendingPack(long packIdx) {
-		return pendingPacks.containsKey(Integer.valueOf((int) packIdx));
-	}
-
-	private StructRootBlock getAIDXElement() {
-		final StructRootBlock root = packFile.getRootElement();
-		if (root == null) {
-			throw new IllegalStateException(); // TODO
-		}
-		return root;
+		
 	}
 
 	@Override
 	public int getRootDirectoryIndex() {
-		return getAIDXElement().headerIdx;
+		return getRootElement().headerIdx;
 	}
 
 	@Override
 	public IndexDirectoryData getDirectoryData(long packIdx) throws IOException {
-		StructPackHeader pack;
-		if (packFile.isPackAvailable(packIdx)) {
-			pack = packFile.getPack(packIdx);
-		} else if (hasPendingPack(packIdx)) {
-			pack = getPendingPack(packIdx);
-		} else {
-			throw new IllegalStateException(); // TODO
-		}
-
-		try (BinaryReader reader = packFile.getFileReader()) {
-
+		StructPackHeader pack = getPack(packIdx);
+		try (BinaryReader reader = getFileReader()) {
 			if (pack.offset == 0) {
 				return null;
 			}
@@ -180,31 +138,19 @@ final class BaseIndexFile extends AbstractArchiveFile implements IndexFile {
 
 	@Override
 	public long writeDirectoryData(long packIdx, IndexDirectoryData data) throws IOException {
-		if (packFile.isPackAvailable(packIdx)) { // pack available
-			StructPackHeader pack = packFile.getPack(packIdx);
+		if (isPackAvailable(packIdx)) { // pack available
+			StructPackHeader pack = getPack(packIdx);
 			if (pack.offset == 0) { // directory new -> create directory, overwrite pack
 				pack = writeNewIndexDirectory(data);
-				packFile.overwritePack(pack, packIdx);
+				overwritePack(pack, packIdx);
 			} else { // directory old -> overwrite directory & pack
-				try (BinaryWriter writer = packFile.getFileWriter()) {
-					throw new UnsupportedOperationException("Not implemented yet"); // TODO
-				}
-			}
-			return packIdx;
-		} else if (hasPendingPack(packIdx)) { // pack pending
-			StructPackHeader pack = getPendingPack(packIdx);
-			if (pack.offset == 0) { // directory new -> create directory, overwrite pack
-				pack = writeNewIndexDirectory(data);
-				storePendingPack(packIdx, pack);
-			} else { // directory old -> overwrite directory & pack
-				try (BinaryWriter writer = packFile.getFileWriter()) {
-					throw new UnsupportedOperationException("Not implemented yet"); // TODO
-				}
+				pack = overwriteIndexDirectory(pack, data);
+				overwritePack(pack, packIdx);
 			}
 			return packIdx;
 		} else if (packIdx == -1) { // pack unavailable
 			final StructPackHeader pack = writeNewIndexDirectory(data);
-			packIdx = storePendingPack(pack);
+			packIdx = writeNewPack(pack);
 			return packIdx;
 		} else {
 			throw new IllegalArgumentException(""); // TODO
@@ -213,24 +159,7 @@ final class BaseIndexFile extends AbstractArchiveFile implements IndexFile {
 
 	@Override
 	public void flushWrite() throws IOException {
-		final int size = Math.max(estimatedNumberOfPacks, pendingPacks.size());
-
-		if (packFile.getPackArrayCapacity() < size) {
-			packFile.setPackArrayCapacityTo(size);
-		}
-
-		for (final Entry<Integer, StructPackHeader> pendingPack : pendingPacks.entrySet()) {
-			final long expectedPackIndex = pendingPack.getKey().longValue();
-			if (packFile.isPackAvailable(expectedPackIndex)) {
-				packFile.overwritePack(pendingPack.getValue(), expectedPackIndex);
-			} else {
-				final long actualPackIndex = packFile.writeNewPack(pendingPack.getValue());
-				if (expectedPackIndex != actualPackIndex) {
-					throw new IllegalStateException(); // TODO something did go wrong
-				}
-			}
-		}
-		pendingPacks.clear();
+		super.flushWrite();
 	}
 
 	private long computeDirectoryDataSize(IndexDirectoryData data) {
@@ -250,26 +179,44 @@ final class BaseIndexFile extends AbstractArchiveFile implements IndexFile {
 		return expectedSize;
 	}
 
-	private StructPackHeader writeNewIndexDirectory(IndexDirectoryData data) throws IOException {
-		try (BinaryWriter writer = packFile.getFileWriter()) {
-			return writeNewIndexDirectory(writer, data);
-		}
-	}
-
-	private StructPackHeader writeNewIndexDirectory(BinaryWriter writer, IndexDirectoryData data) throws IOException {
+	private StructPackHeader overwriteIndexDirectory(StructPackHeader pack, IndexDirectoryData data) throws IOException {
 		final long expectedSize = computeDirectoryDataSize(data);
-		final MemoryBlock block = packFile.getMemoryModel().allocateMemory(expectedSize);
-		final StructPackHeader pack = writeNewIndexDirectory(writer, block, data);
 
-		if (pack.size > block.size()) {
+		StructPackHeader newPack;
+		MemoryBlock memoryBlock = findMemoryBlock(pack.offset);
+		if (!(expectedSize < pack.size || expectedSize < memoryBlock.size())) {
+			freeMemoryBlock(memoryBlock);
+			memoryBlock = allocateMemory(expectedSize);
+		}
+
+		try (BinaryWriter writer = getFileWriter()) {
+			newPack = writeIndexDirectory(writer, memoryBlock.position(), data);
+		}
+
+		if (newPack.size > pack.size) {
 			throw new IllegalStateException(); // TODO oh no
 		}
 
-		return pack;
+		return newPack;
 	}
 
-	private StructPackHeader writeNewIndexDirectory(BinaryWriter writer, MemoryBlock block, IndexDirectoryData data) {
-		writer.seek(Seek.BEGIN, block.position());
+	private StructPackHeader writeNewIndexDirectory(IndexDirectoryData data) throws IOException {
+		final long expectedSize = computeDirectoryDataSize(data);
+		final MemoryBlock block = allocateMemory(expectedSize);
+
+		try (BinaryWriter writer = getFileWriter()) {
+			final StructPackHeader pack = writeIndexDirectory(writer, block.position(), data);
+
+			if (pack.size > block.size()) {
+				throw new IllegalStateException(); // TODO oh no
+			}
+
+			return pack;
+		}
+	}
+
+	private StructPackHeader writeIndexDirectory(BinaryWriter writer, long offset, IndexDirectoryData data) {
+		writer.seek(Seek.BEGIN, offset);
 
 		final long position = writer.getPosition();
 		writer.writeInt32(data.getDirectories().size());
@@ -325,15 +272,14 @@ final class BaseIndexFile extends AbstractArchiveFile implements IndexFile {
 
 	@Override
 	public int getDirectoryCount() {
-		return packFile.getPackArraySize() + pendingPacks.size();
+		return getPackArraySize();
 	}
 
 	@Override
-	public void setEstimatedNumberForWriteEntries(int count) throws IOException {
-		if (count <= 0) {
-			throw new IllegalArgumentException("'count' must be greater than 0");
-		}
-		this.estimatedNumberOfPacks = count;
+	public void setEstimatedNumberForWriteEntries(int count) throws IOException { 
+		if (count < 0)
+			throw new IllegalArgumentException("'count' must be greater than or equal 0");		
+		this.packFile.setPackArrayMinimalCapacity(count+2);
 	}
 
 }
