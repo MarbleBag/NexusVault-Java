@@ -11,7 +11,7 @@ import nexusvault.archive.IdxEntry;
 import nexusvault.archive.IdxEntryNotADirectoryException;
 import nexusvault.archive.IdxEntryNotFoundException;
 import nexusvault.archive.IdxPath;
-import nexusvault.archive.InvalidIdxPathException;
+import nexusvault.archive.IdxPathInvalidException;
 
 public final class BaseIdxPath implements IdxPath {
 
@@ -38,6 +38,10 @@ public final class BaseIdxPath implements IdxPath {
 
 	@Override
 	public IdxEntry resolve(IdxEntry root) throws IdxEntryNotFoundException {
+		if (root == null) {
+			throw new IllegalArgumentException("'root' must not be null");
+		}
+
 		if (isRoot()) {
 			return root;
 		}
@@ -69,7 +73,11 @@ public final class BaseIdxPath implements IdxPath {
 
 	@Override
 	public boolean isResolvable(IdxEntry root) {
-		if (isRoot()) {
+		if (root == null) {
+			throw new IllegalArgumentException("'root' must not be null");
+		}
+
+		if (isRoot()) { // path which only contains the root is always resolvable
 			return true;
 		}
 
@@ -103,11 +111,11 @@ public final class BaseIdxPath implements IdxPath {
 	}
 
 	@Override
-	public IdxPath pathToSibling(String siblingName) throws InvalidIdxPathException {
+	public IdxPath pathToSibling(String siblingName) throws IdxPathInvalidException {
 		if (hasParent()) {
 			return getParent().pathToChild(siblingName);
 		} else {
-			throw new InvalidIdxPathException("Path has no parent");
+			throw new IdxPathInvalidException("Path has no parent");
 		}
 	}
 
@@ -154,7 +162,7 @@ public final class BaseIdxPath implements IdxPath {
 
 	@Override
 	public Iterable<String> iterateElements() {
-		return new Iterable<String>() {
+		return new Iterable<>() {
 			@Override
 			public Iterator<String> iterator() {
 				return path.iterator();
@@ -180,7 +188,7 @@ public final class BaseIdxPath implements IdxPath {
 	@Override
 	public String getLastName() {
 		if (isRoot()) {
-			return null;
+			return "";
 		} else {
 			return path.get(path.size() - 1);
 		}
@@ -220,22 +228,32 @@ public final class BaseIdxPath implements IdxPath {
 		if (obj == null) {
 			return false;
 		}
-		if (getClass() != obj.getClass()) {
-			return false;
+		if (!(obj instanceof IdxPath)) {
+			return isPathEqual(((IdxPath) obj).iterateElements().iterator());
 		}
-		final BaseIdxPath other = (BaseIdxPath) obj;
-		if (!isPathEqual(other.path)) {
-			return false;
-		}
-		return true;
+		return false;
 	}
 
-	private boolean isPathEqual(List<String> otherPath) {
-		if (path == otherPath) {
+	@Override
+	public boolean equals(IdxPath path) {
+		if (this == path) {
 			return true;
 		}
+		if (path == null) {
+			return false;
+		}
+		return isPathEqual(path.iterateElements().iterator());
+	}
+
+	private boolean isPathEqual(BaseIdxPath other) {
+		if (path == other.path) {
+			return true;
+		}
+		return isPathEqual(other.path.listIterator());
+	}
+
+	private boolean isPathEqual(Iterator<String> e2) {
 		final ListIterator<String> e1 = path.listIterator();
-		final ListIterator<String> e2 = otherPath.listIterator();
 		while (e1.hasNext() && e2.hasNext()) {
 			final String o1 = e1.next();
 			final String o2 = e2.next();
@@ -279,9 +297,20 @@ public final class BaseIdxPath implements IdxPath {
 	}
 
 	@Override
-	public int compareTo(IdxPath o) {
-		final Iterator<String> e1 = this.iterateElements().iterator();
-		final Iterator<String> e2 = o.iterateElements().iterator();
+	public int compareTo(IdxPath otherPath) {
+		if (otherPath == null) {
+			throw new IllegalArgumentException("'otherPath' must not be null");
+		}
+
+		if (length() < otherPath.length()) {
+			return -1;
+		}
+		if (length() > otherPath.length()) {
+			return 1;
+		}
+
+		final Iterator<String> e1 = iterateElements().iterator();
+		final Iterator<String> e2 = otherPath.iterateElements().iterator();
 
 		while (e1.hasNext() && e2.hasNext()) {
 			final String o1 = e1.next();
@@ -292,13 +321,7 @@ public final class BaseIdxPath implements IdxPath {
 			}
 		}
 
-		if (!(e1.hasNext() || e2.hasNext())) {
-			return 0;
-		} else if (e1.hasNext()) {
-			return 1;
-		} else {
-			return -1;
-		}
+		return 0;
 	}
 
 }
