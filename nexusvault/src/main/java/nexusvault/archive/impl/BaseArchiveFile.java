@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import kreed.io.util.BinaryReader;
@@ -14,6 +13,7 @@ import kreed.io.util.Seek;
 import nexusvault.archive.ArchiveEntryNotFoundException;
 import nexusvault.archive.ArchiveHashCollisionException;
 import nexusvault.archive.impl.ArchiveMemoryModel.MemoryBlock;
+import nexusvault.archive.impl.PackFile.PackIdxSwap;
 import nexusvault.archive.struct.StructAARC;
 import nexusvault.archive.struct.StructArchiveEntry;
 import nexusvault.archive.struct.StructPackHeader;
@@ -25,7 +25,7 @@ final class BaseArchiveFile extends AbstractArchiveFile implements ArchiveFile {
 
 	private Map<String, Integer> entryLookUp;
 	private final Map<String, Integer> queuedEntryLookUp;
-	private List<StructArchiveEntry> entries;
+	private ArrayList<StructArchiveEntry> entries;
 
 	private int archiveArrayMinimalSize;
 	private int archiveArrayCapacity;
@@ -116,14 +116,38 @@ final class BaseArchiveFile extends AbstractArchiveFile implements ArchiveFile {
 	}
 
 	@Override
-	public void deleteArchiveData(byte[] hash) {
+	public void deleteArchiveData(byte[] hash) throws IOException {
 		final String key = ByteUtil.byteToHex(hash);
 		final Integer index = queuedEntryLookUp.containsKey(key) ? queuedEntryLookUp.get(key) : entryLookUp.get(key);
 		if (index == null) {
 			throw new ArchiveEntryNotFoundException(String.format("No entry found for hash %s", key));
 		}
 
-		throw new UnsupportedOperationException("Not implemented yet");
+		final StructArchiveEntry archiveEntry = entries.get(index);
+		final StructPackHeader packHeader = getPack(archiveEntry);
+
+		final MemoryBlock memoryBlock = findMemoryBlock(packHeader.offset);
+		freeMemoryBlock(memoryBlock);
+
+		final PackIdxSwap headerIdxSwap = packFile.deletePack(archiveEntry.headerIdx);
+		if (headerIdxSwap != null) { // pack idx changed, this means one archiveEntry has now an invalid packIdx. Find the entry and update its packIdx.
+			// start with the last element, the change is high, that the last archive entry also uses the last pack
+			for (int i = entries.size() - 1; 0 <= i; i--) {
+				final StructArchiveEntry aentry = entries.get(i);
+				if (aentry.headerIdx == headerIdxSwap.oldPackIdx) {
+					aentry.headerIdx = headerIdxSwap.newPackIdx;
+					overwriteArchiveEntry(aentry);
+					break;
+				}
+			}
+		}
+
+		// if the deleted entry is the last entry, just remove it, otherwise replace deleted entry with last entry
+		if ((entries.size() - 1) != index) {
+			final StructArchiveEntry lastArchiveEntry = entries.get(entries.size() - 1);
+			replaceArchiveEntry(archiveEntry.hash, lastArchiveEntry);
+		}
+		entries.remove(entries.size() - 1);
 	}
 
 	private StructPackHeader getPack(StructArchiveEntry entry) throws ArchiveEntryNotFoundException {

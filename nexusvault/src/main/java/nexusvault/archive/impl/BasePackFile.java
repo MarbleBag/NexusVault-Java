@@ -264,14 +264,15 @@ class BasePackFile implements PackFile {
 		checkIsFileOpen();
 		checkIsPackArrayInitialized();
 
+		if (packs.size() != header.packCount) {
+			throw new IllegalStateException(); // TODO
+		}
+
 		if (header.packCount == packArrayCapacity) {
 			increasePackArrayCapacity(packArrayCapacity + growSize);
 		}
 
 		final long offset = header.packOffset + (header.packCount * StructPackHeader.SIZE_IN_BYTES);
-		if (offset >= (header.packOffset + (packArrayCapacity * StructPackHeader.SIZE_IN_BYTES))) {
-			throw new IllegalStateException(); // TODO
-		}
 
 		try (BinaryWriter writer = getFileWriter()) {
 			writer.seek(Seek.BEGIN, offset);
@@ -283,11 +284,45 @@ class BasePackFile implements PackFile {
 		header.packCount += 1;
 		packs.add(pack);
 
-		if (packs.size() != header.packCount) {
-			throw new IllegalStateException(); // TODO
+		return idx;
+	}
+
+	public void swapPack(long packIdx1, long packIdx2) throws IOException {
+		if (!isPackAvailable(packIdx1)) {
+			throw new IndexOutOfBoundsException(String.format("PackIdx1 %d is not in use. Unable to delete.", packIdx1));
 		}
 
-		return idx;
+		if (!isPackAvailable(packIdx2)) {
+			throw new IndexOutOfBoundsException(String.format("PackIdx2 %d is not in use. Unable to delete.", packIdx2));
+		}
+
+		if (packIdx1 == packIdx2) {
+			return;
+		}
+
+		final StructPackHeader pack1 = packs.get((int) packIdx1);
+		final StructPackHeader pack2 = packs.get((int) packIdx2);
+		overwritePack(pack1, packIdx2);
+		overwritePack(pack2, packIdx1);
+	}
+
+	@Override
+	public PackIdxSwap deletePack(long packIdx) throws IOException {
+		if (!isPackAvailable(packIdx)) {
+			throw new IndexOutOfBoundsException(String.format("PackIdx %d is not in use. Unable to delete.", packIdx));
+		}
+
+		header.packCount -= 1;
+
+		if ((packs.size() - 1) == packIdx) {
+			packs.remove(packs.size() - 1);
+			return null;
+		} else {
+			final long lastPackIdx = packs.size() - 1;
+			overwritePack(getPack(lastPackIdx), packIdx);
+			packs.remove((int) lastPackIdx);
+			return new PackIdxSwap(lastPackIdx, packIdx);
+		}
 	}
 
 	/**

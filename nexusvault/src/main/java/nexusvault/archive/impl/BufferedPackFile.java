@@ -81,6 +81,20 @@ final class BufferedPackFile implements PackFile {
 	}
 
 	@Override
+	public PackIdxSwap deletePack(long packIdx) throws IOException {
+		if (isPendingPack(packIdx) && ((pendingPacks.size() - 1) == packIdx)) {
+			pendingPacks.pollLastEntry();
+			return null;
+		} else if (pendingPacks.isEmpty()) {
+			return packFile.deletePack(packIdx);
+		}
+
+		final Entry<Integer, StructPackHeader> lastEntry = pendingPacks.pollLastEntry();
+		overwritePack(lastEntry.getValue(), packIdx);
+		return new PackIdxSwap(lastEntry.getKey(), packIdx);
+	}
+
+	@Override
 	public StructPackHeader getPack(long packIdx) {
 		if (isPendingPack(packIdx)) {
 			return getPendingPack(packIdx);

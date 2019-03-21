@@ -10,6 +10,17 @@ import nexusvault.archive.struct.StructRootBlock;
 
 interface PackFile {
 
+	public static final class PackIdxSwap {
+		public final long oldPackIdx;
+		public final long newPackIdx;
+
+		public PackIdxSwap(long oldPackIdx, long newPackIdx) {
+			super();
+			this.oldPackIdx = oldPackIdx;
+			this.newPackIdx = newPackIdx;
+		}
+	}
+
 	void openFile(Path path) throws IOException;
 
 	void closeFile() throws IOException;
@@ -113,6 +124,8 @@ interface PackFile {
 	StructRootBlock getRootElement();
 
 	StructPackHeader writeRootElement(StructRootBlock element) throws IOException;
+
+	PackIdxSwap deletePack(long packIdx) throws IOException;
 
 	void setPackRootIdx(long rootIdx);
 

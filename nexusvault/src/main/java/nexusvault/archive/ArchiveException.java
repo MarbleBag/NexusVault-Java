@@ -1,8 +1,10 @@
 package nexusvault.archive;
 
-public class ArchiveException extends RuntimeException {
+import nexusvault.shared.exception.NexusVaultException;
 
-	private static final long serialVersionUID = 3012161402564991003L;
+public class ArchiveException extends NexusVaultException {
+
+	private static final long serialVersionUID = 1964425428196788467L;
 
 	public ArchiveException() {
 		super();
