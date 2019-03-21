@@ -9,6 +9,9 @@ public final class StructIdxFile {
 
 	public static final int SIZE_IN_BYTES = StructUtil.sizeOf(StructIdxFile.class);
 
+	/**
+	 * A {@code nameOffset} of <tt>-1</tt> indicates, that no offset is set
+	 */
 	@Order(1)
 	@StructField(DataType.UBIT_32)
 	public long nameOffset; // 0x000
@@ -33,10 +36,16 @@ public final class StructIdxFile {
 	@StructField(value = DataType.BIT_8, length = 20)
 	public byte[] hash; // 0x020
 
+	/**
+	 * Unknown field. Sometimes used, sometimes not.
+	 */
 	@Order(7)
 	@StructField(DataType.BIT_32)
 	public int unk_034; // 0x034
 
+	/**
+	 * Name of the file. Not part of the struct.
+	 */
 	public String name;
 
 	public StructIdxFile() {
