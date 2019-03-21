@@ -1,6 +1,7 @@
 package nexusvault.archive.impl;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -13,6 +14,7 @@ import java.util.List;
 import java.util.Queue;
 
 import kreed.io.util.BinaryReader;
+import kreed.io.util.ByteBufferBinaryReader;
 import kreed.io.util.Seek;
 import nexusvault.archive.IdxEntryNotADirectoryException;
 import nexusvault.archive.IdxEntryNotAFileException;
@@ -30,7 +32,7 @@ public class BaseNexusArchiveWriter implements NexusArchiveWriter {
 
 	private IndexFile indexFile;
 	private ArchiveFile archiveFile;
-	private boolean isDisposed;
+	private boolean isLoaded;
 	private TreeDirectory root;
 
 	@Override
@@ -43,13 +45,13 @@ public class BaseNexusArchiveWriter implements NexusArchiveWriter {
 	private void load(Path idxPath, Path arcPath) throws IOException {
 		dispose();
 
-		this.indexFile = IndexFile.createIndexFile();
-		this.indexFile.openFile(idxPath);
+		indexFile = IndexFile.createIndexFile();
+		indexFile.openFile(idxPath);
 
-		this.archiveFile = ArchiveFile.createArchiveFile();
-		this.archiveFile.openFile(arcPath);
+		archiveFile = ArchiveFile.createArchiveFile();
+		archiveFile.openFile(arcPath);
 
-		isDisposed = false;
+		isLoaded = true;
 
 		initializeArchive();
 	}
@@ -65,7 +67,7 @@ public class BaseNexusArchiveWriter implements NexusArchiveWriter {
 
 		while (!queue.isEmpty()) {
 			final TreeDirectory dir = queue.poll();
-			final IndexDirectoryData directoryData = indexFile.getDirectoryData(dir.getPackIdx());
+			final IndexDirectoryData directoryData = indexFile.getDirectoryData(dir.getDirectoryIndex());
 			directoryData.getDirectories().stream().map(d -> new TreeDirectory(dir, d)).forEach(dir.directories::add);
 			directoryData.getFileLinks().stream().map(f -> new TreeFile(dir, f)).forEach(dir.files::add);
 			queue.addAll(dir.getDirectories());
@@ -76,7 +78,7 @@ public class BaseNexusArchiveWriter implements NexusArchiveWriter {
 
 	@Override
 	public void dispose() {
-		if (!isDisposed) {
+		if (!isLoaded) {
 			return;
 		}
 
@@ -90,7 +92,7 @@ public class BaseNexusArchiveWriter implements NexusArchiveWriter {
 		if (indexFile != null) {
 			try {
 				indexFile.closeFile();
-			} catch (final IOException e) { //ignore
+			} catch (final IOException e) { // ignore
 			} finally {
 				indexFile = null;
 			}
@@ -98,7 +100,7 @@ public class BaseNexusArchiveWriter implements NexusArchiveWriter {
 		if (archiveFile != null) {
 			try {
 				archiveFile.closeFile();
-			} catch (final IOException e) { //ignore
+			} catch (final IOException e) { // ignore
 			} finally {
 				archiveFile = null;
 			}
@@ -107,154 +109,176 @@ public class BaseNexusArchiveWriter implements NexusArchiveWriter {
 		root = null;
 		// TODO
 
-		isDisposed = true;
+		isLoaded = false;
 	}
 
 	@Override
 	public void flush() throws IOException {
-		final Queue<TreeDirectory> queue = new LinkedList<>();
-
-		if (root.hasChildWithPendingUpdate()) {
-			queue.add(root);
-		}
-
-		while (!queue.isEmpty()) { // TODO implementation is not optimal/working for different update flags
-			final TreeDirectory directory = queue.poll();
-
-			if (directory.hasPendingUpdate()) {
-				if (directory.hasAnyFlags(TreeEntry.FLAG_NEW)) { // this is also true for rename and create/delete of sub dirs
-					if (directory.getPackIdx() == -1) {
-						directory.setPackIdx(indexFile.reserveNextPackIndex());
-					}
-
-					final List<StructIdxDirectory> structDirectories = new ArrayList<>(directory.getDirectoryCount());
-					for (final TreeDirectory subdir : directory.getDirectories()) {
-						if (subdir.getPackIdx() == -1) {
-							subdir.setPackIdx(indexFile.reserveNextPackIndex());
-						}
-						final StructIdxDirectory struct = new StructIdxDirectory(-1, subdir.getPackIdx());
-						struct.name = subdir.getName();
-						structDirectories.add(struct);
-					}
-
-					final List<StructIdxFile> structFiles = new ArrayList<>(directory.getFileCount());
-					// TODO
-
-					final IndexDirectoryData directoryData = new IndexDirectoryData(structDirectories, structFiles);
-					indexFile.writeDirectoryData(directory.getPackIdx(), directoryData);
-				}
-			}
-
-			if (directory.hasPendingUpdate()) {
-				updateDirectory(directory);
-			}
-
-			directory.getDirectories().stream().filter(TreeDirectory::hasChildWithPendingUpdate).forEach(queue::add);
-
-			for (final TreeDirectory child : directory.getDirectories()) {
-				if (child.hasPendingUpdate()) {
-					updateDirectory(directory, child);
-				}
-			}
-
-			for (final TreeFile child : directory.getFiles()) {
-				if (child.hasPendingUpdate()) {
-					updateFile(directory, child);
-				}
-			}
-
-			directory.clearFlags();
-		}
+		processDirectory(root);
 	}
 
-	private void updateDirectory(final TreeDirectory directory) {
-		if (directory.hasFlags(TreeEntry.FLAG_NEW)) {
-			writeNewDirectory(directory);
+	// TODO (re)writes EVERYTHING in its current state
+	private void processDirectory(TreeDirectory directory) throws IOException {
+		for (final TreeDirectory subdir : directory.getDirectories()) {
+			if (subdir.isWaitingForChildWriteUpdate() || subdir.isWaitingForDirectoryUpdate()) {
+				processDirectory(subdir);
+			}
+
+			if (subdir.getDirectoryIndex() == -1) {
+				throw new IllegalStateException();
+			}
+		}
+
+		if (isDirectoryNew(directory) || isDirectoryChildNew(directory) || hasMoreThanNFilesChanged(directory, 1)) {
+
+			indexFile.enableWriteMode();
+			archiveFile.enableWriteMode();
+
+			final List<StructIdxDirectory> directories = new ArrayList<>();
+			final List<StructIdxFile> files = new ArrayList<>();
+
+			for (final TreeDirectory subdir : directory.getDirectories()) {
+				final StructIdxDirectory sdir = new StructIdxDirectory(-1, subdir.getDirectoryIndex());
+				sdir.name = subdir.getName();
+				directories.add(sdir);
+			}
+
+			for (final TreeFile file : directory.getFiles()) {
+				StructIdxFile sfile = file.getFileInfo();
+
+				if (file.hasFlags(TreeEntry.FLAG_NEW)) {
+					sfile = writeToArchive(null, file.getFileData());
+					sfile.name = file.getName();
+				} else if (file.hasFlags(TreeEntry.FLAG_NEW_DATA)) {
+					if (sfile == null) {
+						throw new IllegalStateException(); // TODO
+					}
+					sfile = writeToArchive(sfile.hash, file.getFileData());
+					sfile.name = file.getName();
+				} else {
+					if (sfile == null) {
+						throw new IllegalStateException(); // TODO
+					}
+				}
+
+				file.setFileInfo(sfile);
+				files.add(sfile);
+				file.clearFlags();
+			}
+
+			final IndexDirectoryData directoryData = new IndexDirectoryData(directories, files);
+
+			if (directory.getDirectoryIndex() == -1) {
+				final long directoryIndex = indexFile.writeDirectoryData(directoryData);
+				directory.setDirectoryIndex(directoryIndex);
+			} else {
+				indexFile.writeDirectoryData(directory.getDirectoryIndex(), directoryData);
+			}
+
 		} else {
-			throw new UnsupportedOperationException("Not implemented yet"); // TODO
+			int index = 0;
+			for (final TreeFile file : directory.getFiles()) {
+				if (file.hasFlags(TreeEntry.FLAG_NEW_DATA)) {
+					StructIdxFile sfile = file.getFileInfo();
+					sfile = writeToArchive(sfile.hash, file.getFileData());
+					indexFile.overwriteFileAttribute(directory.getDirectoryIndex(), index, sfile.hash, sfile);
+				}
+				index++;
+			}
 		}
 	}
 
-	private void writeNewDirectory(TreeDirectory directory) {
-		throw new UnsupportedOperationException("Not implemented yet"); // TODO
-	}
-
-	private void updateDirectory(TreeDirectory directory, TreeDirectory child) {
-		throw new UnsupportedOperationException("Not implemented yet"); // TODO
-	}
-
-	private void updateFile(TreeDirectory directory, TreeFile child) throws IOException {
-		if (child.hasFlags(TreeEntry.FLAG_FILE_DATA)) {
-			writeFile(directory, child);
-			child.unsetFlags(TreeEntry.FLAG_FILE_DATA);
+	private boolean hasMoreThanNFilesChanged(TreeDirectory directory, int i) {
+		for (final TreeFile file : directory.getFiles()) {
+			if (file.hasFlags(TreeEntry.FLAG_NEW_DATA)) {
+				i -= 1;
+			}
 		}
-
-		if (child.hasPendingUpdate()) {
-			throw new UnsupportedOperationException("Not implemented yet"); // TODO
-		}
+		return i < 0;
 	}
 
-	private void writeFile(TreeDirectory directory, TreeFile file) throws IOException {
-		final IntegrateableElement element = file.getElement();
-		final StructIdxFile newFileAttributes = writeToArchive(element);
-		newFileAttributes.name = file.getName();
-		this.indexFile.setFileAttributes(directory.getPackIdx(), newFileAttributes);
+	private boolean isDirectoryChildNew(TreeDirectory directory) {
+		return directory.hasFlags(TreeEntry.FLAG_NEW); // TODO
 	}
 
-	private StructIdxFile writeToArchive(IntegrateableElement element) throws IOException {
-		final BinaryReader originalData = element.getData();
+	private boolean isDirectoryNew(TreeDirectory directory) {
+		return directory.hasFlags(TreeEntry.FLAG_NEW);
+	}
+
+	private StructIdxFile writeToArchive(byte[] oldHash, IntegrateableElement element) throws IOException {
+		final BinaryReader uncompressedData = element.getData();
 		final IntegrateableElementConfig config = element.getConfig();
-		final BinaryReader compressedData = compress(originalData, config.getCompressionType());
+		final BinaryReader compressedData = compress(uncompressedData, config.getCompressionType());
 
-		final long uncompressedSize = originalData.size();
+		final long uncompressedSize = uncompressedData.size();
 		final long compressedSize = compressedData.size();
-		final byte[] hash = calculateHash(compressedData);
-		if ((hash == null) || (hash.length != 20)) {
-			throw new IllegalStateException(); // TODO
+		final byte[] hash = computeHash(compressedData);
+
+		if (oldHash == null) {
+			archiveFile.writeArchiveData(hash, compressedData);
+		} else {
+			archiveFile.replaceArchiveData(oldHash, hash, compressedData);
 		}
-
-		compressedData.seek(Seek.BEGIN, 0);
-
-		this.archiveFile.writeArchiveData(hash, compressedData);
 
 		return new StructIdxFile(-1, config.getCompressionType().getFlag(), System.currentTimeMillis(), uncompressedSize, compressedSize, hash, 0);
 	}
 
 	private BinaryReader compress(BinaryReader originalData, CompressionType compressionType) {
-		throw new UnsupportedOperationException("Not implemented yet"); // TODO
+		originalData.seek(Seek.BEGIN, 0);
+		switch (compressionType) {
+			case NONE:
+				return originalData;
+			case LZMA: {
+				final ByteBuffer compressed = CODEC_LZMA.encode(originalData);
+				return new ByteBufferBinaryReader(compressed);
+			}
+			case ZIP: {
+				final ByteBuffer compressed = CODEC_ZIP.encode(originalData);
+				return new ByteBufferBinaryReader(compressed);
+			}
+			default:
+				throw new UnsupportedOperationException("Not implemented yet"); // TODO
+		}
 	}
 
-	private byte[] calculateHash(BinaryReader compressedData) {
+	private byte[] computeHash(BinaryReader compressedData) {
+		compressedData.seek(Seek.BEGIN, 0);
 		try {
 			final MessageDigest md = MessageDigest.getInstance("SHA-1");
 			while (!compressedData.isEndOfData()) {
 				md.update(compressedData.readInt8());
 			}
-			return md.digest();
+
+			final byte[] hash = md.digest();
+			compressedData.seek(Seek.BEGIN, 0);
+			if ((hash == null) || (hash.length != 20)) {
+				throw new IllegalStateException(); // TODO
+			}
+			return hash;
 		} catch (final NoSuchAlgorithmException e) {
-			throw new UnsupportedOperationException("Not implemented yet"); // TODO
+			throw new IllegalStateException(e);
 		}
 	}
 
 	@Override
 	public boolean isDisposed() {
-		return this.isDisposed;
+		return isLoaded;
 	}
 
 	@Override
-	public void write(Collection<IntegrateableElement> elements) throws IOException {
+	public void write(Collection<? extends IntegrateableElement> elements) throws IOException {
 		verifyData(elements);
-		writeDataToFileTree(elements);
+		completeFileTree(elements);
 	}
 
-	private void verifyData(Collection<IntegrateableElement> elements) {
+	private void verifyData(Collection<? extends IntegrateableElement> elements) {
 		// TODO Auto-generated method stub
 	}
 
-	private void writeDataToFileTree(Collection<IntegrateableElement> elements) {
+	private void completeFileTree(Collection<? extends IntegrateableElement> elements) {
 		for (final IntegrateableElement element : elements) {
 			final TreeFile file = findOrCreateFile(element.getDestination());
-			file.setElement(element);
+			file.setFileData(element);
 		}
 	}
 
@@ -272,7 +296,7 @@ public class BaseNexusArchiveWriter implements NexusArchiveWriter {
 				if (entry == null) {
 					final TreeFile newFile = new TreeFile(dir, entryName);
 					newFile.setFlags(TreeEntry.FLAG_NEW);
-					newFile.notifyParentAboutPendingUpdate();
+					newFile.notifyParentAboutPendingWriteUpdate();
 					dir.addFile(newFile);
 					return newFile;
 				} else if (entry instanceof TreeFile) {
@@ -286,7 +310,7 @@ public class BaseNexusArchiveWriter implements NexusArchiveWriter {
 				if (entry == null) {
 					final TreeDirectory newDir = new TreeDirectory(dir, entryName, -1);
 					newDir.setFlags(TreeEntry.FLAG_NEW);
-					newDir.notifyParentAboutPendingUpdate();
+					newDir.notifyParentAboutPendingWriteUpdate();
 					dir.addDirectory(newDir);
 					dir = newDir;
 				} else if (entry instanceof TreeDirectory) {
@@ -310,33 +334,25 @@ public class BaseNexusArchiveWriter implements NexusArchiveWriter {
 
 	private static abstract class TreeEntry {
 
-		public static enum Flag {
+		public static enum PendingUpdateFlag {
 			NEW,
-			FILE_DATA,
-			CHILD_PENDING_UPDATE
+			RENAMED,
+			REMOVED,
+			ADDED,
+			CHILD_CHANGED,
+			CHILD_WAITS_FOR_UPDATE,
 		}
 
-		protected static final int FLAG_ = 0;
-
-		/**
-		 * Internal flag to indicate that one or multiple childs are waiting to be updated. <br>
-		 * This is used as a shortcut, so it's not necessary to iterate over the whole tree.
-		 */
-		protected static final int FLAG_CHILD_PENDING_UPDATE = 1;
-
-		public static final int FLAG_FILE_DATA = 2;
-
-		/**
-		 * Indicates that the directory or file is newly created
-		 */
-		public static final int FLAG_NEW = 4;
-
-		public static final int FLAG_NEW_CHILD = 8;
+		public static final int FLAG_NEW = 1;
+		public static final int FLAG_ADDED = 2;
+		public static final int FLAG_NEW_DATA = 4;
+		public static final int FLAG_CHILD_CHANGED = 8;
+		public static final int FLAG_CHILD_WAITS_FOR_UPDATE = 16;
 
 		private final TreeDirectory parent;
 		private final String name;
 
-		private int flags;
+		private int flags = 0;
 
 		public TreeEntry(TreeDirectory parent, String name) {
 			this.parent = parent;
@@ -351,18 +367,18 @@ public class BaseNexusArchiveWriter implements NexusArchiveWriter {
 			return name;
 		}
 
-		protected void notifyParentAboutPendingUpdate() {
+		protected final void notifyParentAboutPendingWriteUpdate() {
 			final TreeDirectory parent = getParent();
 			if (parent != null) {
-				if (!parent.hasChildWithPendingUpdate()) {
-					parent.setChildHasPendingUpdate();
-					parent.notifyParentAboutPendingUpdate();
+				if (!parent.isWaitingForChildWriteUpdate()) {
+					parent.setWaitingForChildWriteUpdate();
+					parent.notifyParentAboutPendingWriteUpdate();
 				}
 			}
 		}
 
-		public final boolean hasPendingUpdate() {
-			return hasAnyFlagsBeside(FLAG_CHILD_PENDING_UPDATE);
+		protected final boolean isWaitingForDirectoryUpdate() {
+			return hasAnyFlagsBeside(FLAG_CHILD_WAITS_FOR_UPDATE);
 		}
 
 		protected final void setFlags(int flags) {
@@ -389,7 +405,7 @@ public class BaseNexusArchiveWriter implements NexusArchiveWriter {
 			flags = 0;
 		}
 
-		protected final boolean hasAnyFlag() {
+		protected final boolean hasAnyFlags() {
 			return flags != 0;
 		}
 
@@ -397,48 +413,50 @@ public class BaseNexusArchiveWriter implements NexusArchiveWriter {
 
 	private static final class TreeDirectory extends TreeEntry {
 
-		private final int packIdx;
+		private int directoryIndex;
 		private final List<TreeDirectory> directories;
 		private final List<TreeFile> files;
 
 		public TreeDirectory(TreeDirectory parent, String name, int packIdx) {
 			super(parent, name);
-			this.packIdx = packIdx;
-			this.directories = new ArrayList<>();
-			this.files = new ArrayList<>();
+			directoryIndex = packIdx;
+			directories = new ArrayList<>();
+			files = new ArrayList<>();
 		}
 
-		public void setPackIdx(long reserveNextPackIndex) {
-			// TODO Auto-generated method stub
-
+		protected void setDirectoryIndex(long packIdx) {
+			directoryIndex = (int) packIdx;
 		}
 
 		public TreeDirectory(TreeDirectory parent, StructIdxDirectory directory) {
-			this(parent, directory.name, directory.directoryHeaderIdx);
+			this(parent, directory.name, directory.directoryIndex);
 		}
 
-		public int getPackIdx() {
-			return packIdx;
+		/**
+		 * @return the directory index, or <tt>-1</tt> if no directory index is set
+		 */
+		public int getDirectoryIndex() {
+			return directoryIndex;
 		}
 
-		protected boolean hasChildWithPendingUpdate() {
-			return hasFlags(FLAG_CHILD_PENDING_UPDATE);
+		protected boolean isWaitingForChildWriteUpdate() {
+			return hasFlags(FLAG_CHILD_WAITS_FOR_UPDATE);
 		}
 
-		public void setChildHasPendingUpdate() {
-			setFlags(FLAG_CHILD_PENDING_UPDATE);
+		public void setWaitingForChildWriteUpdate() {
+			setFlags(FLAG_CHILD_WAITS_FOR_UPDATE);
 		}
 
 		protected void addDirectory(TreeDirectory subdir) {
 			directories.add(subdir);
-			setFlags(FLAG_NEW_CHILD);
-			notifyParentAboutPendingUpdate();
+			subdir.setFlags(FLAG_ADDED);
+			subdir.notifyParentAboutPendingWriteUpdate();
 		}
 
 		protected void addFile(TreeFile file) {
 			files.add(file);
-			setFlags(FLAG_NEW_CHILD);
-			notifyParentAboutPendingUpdate();
+			file.setFlags(FLAG_ADDED);
+			file.notifyParentAboutPendingWriteUpdate();
 		}
 
 		public int getDirectoryCount() {
@@ -491,7 +509,7 @@ public class BaseNexusArchiveWriter implements NexusArchiveWriter {
 	}
 
 	private static final class TreeFile extends TreeEntry {
-		private final StructIdxFile file;
+		private StructIdxFile file;
 		private IntegrateableElement element;
 
 		public TreeFile(TreeDirectory parent, StructIdxFile file) {
@@ -501,16 +519,25 @@ public class BaseNexusArchiveWriter implements NexusArchiveWriter {
 
 		public TreeFile(TreeDirectory parent, String name) {
 			super(parent, name);
-			this.file = null;
+			file = null;
 		}
 
-		public void setElement(IntegrateableElement element) {
+		protected void setFileInfo(StructIdxFile info) {
+			file = info;
+		}
+
+		public StructIdxFile getFileInfo() {
+			return file;
+		}
+
+		public void setFileData(IntegrateableElement element) {
 			this.element = element;
-			setFlags(FLAG_FILE_DATA);
-			notifyParentAboutPendingUpdate();
+			setFlags(FLAG_NEW_DATA);
+			notifyParentAboutPendingWriteUpdate();
+			getParent().setFlags(FLAG_CHILD_CHANGED);
 		}
 
-		public IntegrateableElement getElement() {
+		public IntegrateableElement getFileData() {
 			return element;
 		}
 	}
