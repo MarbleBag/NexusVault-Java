@@ -30,11 +30,11 @@ abstract class AbstractArchiveFile {
 	}
 
 	public Path getFile() {
-		return this.packFile.getFile();
+		return packFile.getFile();
 	}
 
 	public boolean isFileOpen() {
-		return this.packFile.isFileOpen();
+		return packFile.isFileOpen();
 	}
 
 	protected void flushWrite() throws IOException {

@@ -49,7 +49,6 @@ class BasePackFile implements PackFile {
 	private boolean initialized = false;
 	private int packArrayCapacity = 0;
 
-	private boolean autoGrow = true;
 	private int growSize = 100;
 
 	public BasePackFile() {
@@ -141,8 +140,6 @@ class BasePackFile implements PackFile {
 		}
 	}
 
-
-
 	@Override
 	public boolean isWriteModeEnabled() {
 		return writeReady;
@@ -230,26 +227,16 @@ class BasePackFile implements PackFile {
 		return (0 <= packIdx) && (packIdx < getPackArraySize());
 	}
 
-	@Override
 	public boolean isPackWritable(long packIdx) {
 		return (0 <= packIdx) && (packIdx < getPackArrayCapacity());
 	}
 
 	@Override
-	public void overwritePack(StructPackHeader pack, long packIdx) throws IOException {
-		try (BinaryWriter writer = getFileWriter()) {
-			overwritePack(writer, pack, packIdx);
+	public void overwritePack(StructPackHeader pack, long packIdx) throws IndexOutOfBoundsException, IOException {
+		if (pack == null) {
+			throw new IllegalArgumentException("'pack' must not be null");
 		}
-	}
 
-	@Override
-	public long writeNewPack(StructPackHeader pack) throws IOException {
-		try (BinaryWriter writer = getFileWriter()) {
-			return writeNewPack(writer, pack);
-		}
-	}
-
-	private void overwritePack(BinaryWriter writer, StructPackHeader pack, long packIdx) throws IOException {
 		checkIsFileOpen();
 		checkIsPackArrayInitialized();
 
@@ -259,22 +246,26 @@ class BasePackFile implements PackFile {
 
 		final long offset = header.packOffset + (packIdx * StructPackHeader.SIZE_IN_BYTES);
 
-		writer.seek(Seek.BEGIN, offset);
-		writer.writeInt64(pack.offset);
-		writer.writeInt64(pack.size);
-		packs.set((int)packIdx, pack);
+		try (BinaryWriter writer = getFileWriter()) {
+			writer.seek(Seek.BEGIN, offset);
+			writer.writeInt64(pack.offset);
+			writer.writeInt64(pack.size);
+		}
+
+		packs.set((int) packIdx, pack);
 	}
 
-	private long writeNewPack(BinaryWriter writer, StructPackHeader pack) throws IOException {
+	@Override
+	public long writeNewPack(StructPackHeader pack) throws IOException {
+		if (pack == null) {
+			throw new IllegalArgumentException("'pack' must not be null");
+		}
+
 		checkIsFileOpen();
 		checkIsPackArrayInitialized();
 
 		if (header.packCount == packArrayCapacity) {
-			if (autoGrow) {
-				increasePackArrayCapacity(writer, packArrayCapacity + growSize);
-			} else {
-				throw new IllegalStateException(); // TODO
-			}
+			increasePackArrayCapacity(packArrayCapacity + growSize);
 		}
 
 		final long offset = header.packOffset + (header.packCount * StructPackHeader.SIZE_IN_BYTES);
@@ -282,9 +273,11 @@ class BasePackFile implements PackFile {
 			throw new IllegalStateException(); // TODO
 		}
 
-		writer.seek(Seek.BEGIN, offset);
-		writer.writeInt64(pack.offset);
-		writer.writeInt64(pack.size);
+		try (BinaryWriter writer = getFileWriter()) {
+			writer.seek(Seek.BEGIN, offset);
+			writer.writeInt64(pack.offset);
+			writer.writeInt64(pack.size);
+		}
 
 		final long idx = header.packCount;
 		header.packCount += 1;
@@ -308,20 +301,18 @@ class BasePackFile implements PackFile {
 	}
 
 	@Override
-	public void setPackArrayAutoGrow(boolean value) {
-		this.autoGrow = value;
-	}
-
-	@Override
 	public void setPackArrayAutoGrowSize(int value) {
-		this.growSize = Math.min(1, value);
+		if (value <= 0) {
+			throw new IllegalArgumentException("'value' must be greater than 0");
+		}
+		growSize = value;
 	}
 
-	@Override
 	public void initializePackArray() throws IOException {
 		setPackArrayCapacityTo(growSize);
 	}
 
+	// TODO does not allow to shrink the pack array
 	@Override
 	public void setPackArrayCapacityTo(int minimalSize) throws IOException {
 		checkIsFileOpen();
@@ -344,7 +335,7 @@ class BasePackFile implements PackFile {
 	}
 
 	private void buildMemoryModel(BinaryReader reader, boolean direction) {
-		memoryModel.clear();
+		memoryModel.clearMemoryModel();
 		while (reader.getPosition() < header.fileSize) {
 			final long blockGuard = reader.readInt64();
 			final long blockPosition = reader.getPosition();
@@ -481,6 +472,10 @@ class BasePackFile implements PackFile {
 	}
 
 	private StructPackHeader writeRootElement(BinaryWriter writer, StructRootBlock element) {
+		if (element == null) {
+			throw new IllegalArgumentException("'element' must not be null");
+		}
+
 		StructPackHeader rootPack;
 		if (header.packRootIdx != -1) { // element already set
 			rootPack = getPack(header.packRootIdx);
@@ -498,11 +493,12 @@ class BasePackFile implements PackFile {
 		rootElement = element;
 		return rootPack;
 	}
-	
+
 	private void writePackRootToFile(BinaryWriter writer) {
-		if(header.packRootIdx == -1)
+		if (header.packRootIdx == -1) {
 			return;
-		StructPackHeader rootPack = getPack(header.packRootIdx);
+		}
+		final StructPackHeader rootPack = getPack(header.packRootIdx);
 		writer.seek(Seek.BEGIN, rootPack.offset);
 		writer.writeInt32(rootElement.signature);
 		writer.writeInt32(rootElement.version);
@@ -537,20 +533,26 @@ class BasePackFile implements PackFile {
 		packArrayCapacity = (int) header.packCount;
 	}
 
-	protected void checkIsFileOpen() {
-		if (!isFileOpen()) {
-			throw new IllegalStateException("File not open"); // TODO
+	private void writeHeader() throws IOException {
+		try (BinaryWriter writer = getFileWriter()) {
+			writer.seek(Seek.BEGIN, 0);
+			StructUtil.writeStruct(header, writer, true);
 		}
-		// TODO Auto-generated method stub
-
 	}
 
-	private long relocateMemory(BinaryWriter writer, long memOffset, long memOldSize, long memNewSize) throws IOException {
+	protected void checkIsFileOpen() {
+		if (!isFileOpen()) {
+			throw new IllegalStateException("File not open");
+		}
+	}
+
+	private long relocateMemory(long memOffset, long memOldSize, long memNewSize) throws IOException {
 		final ArchiveMemoryModel memoryModel = getMemoryModel();
-		final MemoryBlock oldBlock = memoryModel.tryFindBlockAt(memOffset);
+		final MemoryBlock oldBlock = memoryModel.findBlockAt(memOffset);
 		if (oldBlock == null) {
 			throw new IllegalStateException(); // TODO
 		}
+
 		final ByteBuffer temp = ByteBuffer.allocateDirect((int) memOldSize);
 		try (BinaryReader reader = getFileReader()) {
 			reader.seek(Seek.BEGIN, oldBlock.position());
@@ -558,12 +560,24 @@ class BasePackFile implements PackFile {
 			temp.flip();
 		}
 
+		clearMemory(oldBlock);
 		memoryModel.freeMemory(oldBlock);
 
 		final MemoryBlock newBlock = memoryModel.allocateMemory(memNewSize);
-		writer.seek(Seek.BEGIN, newBlock.position());
-		writer.write(temp);
+		try (BinaryWriter writer = getFileWriter()) {
+			writer.seek(Seek.BEGIN, newBlock.position());
+			writer.write(temp);
+		}
 		return newBlock.position();
+	}
+
+	public void clearMemory(MemoryBlock block) throws IOException {
+		try (BinaryWriter writer = getFileWriter()) {
+			writer.seek(Seek.BEGIN, block.size());
+			for (int i = 0; i < block.size(); ++i) {
+				writer.writeInt8(0);
+			}
+		}
 	}
 
 	private void allocateInitialPackArray(int minimalCapacity) throws IOException {
@@ -583,12 +597,6 @@ class BasePackFile implements PackFile {
 	}
 
 	private void increasePackArrayCapacity(int newCapacity) throws IOException {
-		try (BinaryWriter writer = getFileWriter()) {
-			increasePackArrayCapacity(writer, newCapacity);
-		}
-	}
-
-	private void increasePackArrayCapacity(BinaryWriter writer, int newCapacity) throws IOException {
 		if (newCapacity < packArrayCapacity) {
 			throw new IllegalArgumentException("'new capacity' must be greater or equal to current capacity");
 		}
@@ -599,7 +607,7 @@ class BasePackFile implements PackFile {
 
 		final long oldSize = header.packCount * StructPackHeader.SIZE_IN_BYTES;
 		final long newSize = newCapacity * StructPackHeader.SIZE_IN_BYTES;
-		final long newPackOffset = relocateMemory(writer, header.packOffset, oldSize, newSize);
+		final long newPackOffset = relocateMemory(header.packOffset, oldSize, newSize);
 		header.packOffset = newPackOffset;
 
 		computePackArrayCapacity();

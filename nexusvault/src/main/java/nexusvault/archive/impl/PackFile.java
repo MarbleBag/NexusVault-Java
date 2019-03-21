@@ -37,25 +37,74 @@ interface PackFile {
 	 */
 	ArchiveMemoryModel getMemoryModel() throws IllegalStateException;
 
+	/**
+	 * Returns the {@link StructPackHeader} for <tt>packIdx</tt>. Throws an {@link IndexOutOfBoundsException} if the index is negative or greater than the
+	 * {@link #getPackArraySize() array size}
+	 *
+	 * @param packIdx
+	 * @return {@link IndexOutOfBoundsException} associated with <tt>packIdx</tt>
+	 * @see #isPackAvailable(long)
+	 */
 	StructPackHeader getPack(long packIdx);
 
 	int getPackArrayCapacity();
 
+	/**
+	 * @return the number of available {@link StructPackHeader}
+	 */
 	int getPackArraySize();
 
+	/**
+	 * @param packIdx
+	 * @return true if <tt>packIdx</tt> is valid
+	 */
 	boolean isPackAvailable(long packIdx);
 
-	boolean isPackWritable(long packIdx);
-
+	/**
+	 * Overwrites {@link StructPackHeader} at <tt>packIdx</tt>
+	 *
+	 * @param pack
+	 *            will be written at <tt>packIdx</tt>
+	 * @param packIdx
+	 *            index at which <tt>pack</tt> should be written
+	 *
+	 * @throws IllegalArgumentException
+	 *             if <tt>pack</tt> is null
+	 * @throws IndexOutOfBoundsException
+	 *             if <tt>packIdx</tt> is invalid
+	 * @throws IOException
+	 *             if an I/O error occurs
+	 *
+	 * @see #isPackAvailable(long)
+	 */
 	void overwritePack(StructPackHeader pack, long packIdx) throws IOException;
 
+	/**
+	 * Writes a new {@link StructPackHeader}. This function may trigger a resizing of the underlying pack array<br>
+	 *
+	 * @param pack
+	 *            to write
+	 * @return a new <tt>packIdx</tt> which will now be associated with the given <tt>pack</tt>
+	 *
+	 * @throws IllegalArgumentException
+	 *             if <tt>pack</tt> is null
+	 * @throws IOException
+	 *             if an I/O error occurs
+	 *
+	 * @see #setPackArrayAutoGrowSize(int)
+	 */
 	long writeNewPack(StructPackHeader pack) throws IOException;
 
-	void setPackArrayAutoGrow(boolean value);
-
+	/**
+	 * Sets the grow value. In case the {@link #getPackArrayCapacity()} needs to be increased, this value is used to determine how many additional slots needs
+	 * to be added.
+	 * <p>
+	 * The minimal value is 1.
+	 *
+	 * @throws IllegalArgumentException
+	 *             if <tt>value</tt> is equal or less than 0
+	 */
 	void setPackArrayAutoGrowSize(int value);
-
-	void initializePackArray() throws IOException;
 
 	void setPackArrayCapacityTo(int minimalSize) throws IOException;
 

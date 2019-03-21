@@ -4,9 +4,9 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
-import java.util.Map.Entry;
-import java.util.TreeMap;
 
 import kreed.io.util.BinaryReader;
 import kreed.io.util.BinaryWriter;
@@ -41,16 +41,18 @@ final class BaseIndexFile extends AbstractArchiveFile implements IndexFile {
 
 		} else {
 			final StructRootBlock aidx = getRootElement();
-			if (aidx == null)
+			if (aidx == null) {
 				throw new IllegalStateException(); // TODO
-			if (aidx.signature != StructAIDX.SIGNATURE_AIDX)
+			}
+			if (aidx.signature != StructAIDX.SIGNATURE_AIDX) {
 				throw new SignatureMismatchException("Index file", StructAIDX.SIGNATURE_AIDX, aidx.signature);
+			}
 		}
 	}
 
 	@Override
 	protected void beforeFileClose() throws IOException {
-		
+
 	}
 
 	@Override
@@ -60,10 +62,10 @@ final class BaseIndexFile extends AbstractArchiveFile implements IndexFile {
 
 	@Override
 	public IndexDirectoryData getDirectoryData(long packIdx) throws IOException {
-		StructPackHeader pack = getPack(packIdx);
+		final StructPackHeader pack = getPack(packIdx);
 		try (BinaryReader reader = getFileReader()) {
 			if (pack.offset == 0) {
-				return null;
+				return new IndexDirectoryData(Collections.emptyList(), Collections.emptyList());
 			}
 
 			reader.seek(Seek.BEGIN, pack.getOffset());
@@ -158,6 +160,65 @@ final class BaseIndexFile extends AbstractArchiveFile implements IndexFile {
 	}
 
 	@Override
+	public void overwriteFileAttribute(long packIdx, int fileIndex, byte[] hash, StructIdxFile file) throws IOException {
+		if (!isPackAvailable(packIdx)) {
+			throw new IllegalArgumentException(String.format("Pack with index %d not found", packIdx));
+		}
+
+		final StructPackHeader pack = getPack(packIdx);
+		if (pack.offset == 0) {
+			throw new IllegalStateException(String.format("Pack with index %d not initialized", packIdx));
+		}
+
+		long fileOffset = 0;
+
+		try (BinaryReader reader = getFileReader()) {
+			reader.seek(Seek.BEGIN, pack.offset);
+			final long dirCount = reader.readInt32();
+			final long fileCount = reader.readInt32();
+
+			if ((fileCount == 0) || (fileCount < fileIndex)) {
+				throw new IllegalStateException();
+			}
+
+			if (fileIndex == -1) {
+				for (int i = 0; i < fileCount; ++i) {
+					fileOffset = pack.offset + (dirCount * StructIdxDirectory.SIZE_IN_BYTES) + (i * StructIdxFile.SIZE_IN_BYTES);
+					reader.seek(Seek.BEGIN, fileOffset + 0x020);
+					final byte[] fileHash = new byte[20];
+					reader.readInt8(hash, 0, hash.length);
+					if (Arrays.equals(hash, fileHash)) {
+						break;
+					}
+				}
+
+				if (fileIndex == -1) {
+					throw new IllegalStateException("No file entry found with hash " + ByteUtil.byteToHex(hash)); // TODO
+				}
+			} else {
+				fileOffset = pack.offset + (dirCount * StructIdxDirectory.SIZE_IN_BYTES) + (fileIndex * StructIdxFile.SIZE_IN_BYTES);
+				reader.seek(Seek.BEGIN, fileOffset + 0x020);
+				final byte[] fileHash = new byte[20];
+				reader.readInt8(hash, 0, hash.length);
+				if (!Arrays.equals(hash, fileHash)) {
+					throw new IllegalStateException(
+							String.format("File hash at %d. Expected %s, but was %s", fileIndex, ByteUtil.byteToHex(hash), ByteUtil.byteToHex(fileHash)));
+				}
+			}
+		}
+
+		try (BinaryWriter writer = getFileWriter()) {
+			writer.seek(Seek.BEGIN, fileOffset + 0x04); // +nameOffset
+			writer.writeInt32(file.flags);
+			writer.writeInt64(file.writeTime);
+			writer.writeInt64(file.uncompressedSize);
+			writer.writeInt64(file.compressedSize);
+			writer.writeInt8(file.hash, 0, 20);
+			writer.writeInt32(file.unk_034);
+		}
+	}
+
+	@Override
 	public void flushWrite() throws IOException {
 		super.flushWrite();
 	}
@@ -168,12 +229,18 @@ final class BaseIndexFile extends AbstractArchiveFile implements IndexFile {
 		final List<StructIdxDirectory> dirs = data.getDirectories();
 		expectedSize += dirs.size() * StructIdxDirectory.SIZE_IN_BYTES;
 		for (final StructIdxDirectory dir : dirs) {
+			if (dir.name == null) {
+				throw new IllegalStateException("Directory has no name");
+			}
 			expectedSize += (dir.name.length() * 1) + 1;
 		}
 
 		final List<StructIdxFile> files = data.getFileLinks();
 		expectedSize += files.size() * StructIdxFile.SIZE_IN_BYTES;
 		for (final StructIdxFile file : files) {
+			if (file.name == null) {
+				throw new IllegalStateException("File has no name");
+			}
 			expectedSize += (file.name.length() * 1) + 1;
 		}
 		return expectedSize;
@@ -184,7 +251,7 @@ final class BaseIndexFile extends AbstractArchiveFile implements IndexFile {
 
 		StructPackHeader newPack;
 		MemoryBlock memoryBlock = findMemoryBlock(pack.offset);
-		if (!(expectedSize < pack.size || expectedSize < memoryBlock.size())) {
+		if (!((expectedSize < pack.size) || (expectedSize < memoryBlock.size()))) {
 			freeMemoryBlock(memoryBlock);
 			memoryBlock = allocateMemory(expectedSize);
 		}
@@ -227,16 +294,22 @@ final class BaseIndexFile extends AbstractArchiveFile implements IndexFile {
 		for (final StructIdxDirectory dir : data.getDirectories()) {
 			dir.nameOffset = nameOffset;
 			final String name = dir.name;
+			if (name == null) {
+				throw new IllegalStateException("Directory has no name");
+			}
 			final byte[] nameBytes = name.getBytes(StandardCharsets.UTF_8);
 			nameOffset += nameBytes.length + 1;
 
 			writer.writeInt32(dir.nameOffset);
-			writer.writeInt32(dir.directoryHeaderIdx);
+			writer.writeInt32(dir.directoryIndex);
 		}
 
 		for (final StructIdxFile file : data.getFileLinks()) {
 			file.nameOffset = nameOffset;
 			final String name = file.name;
+			if (name == null) {
+				throw new IllegalStateException("File has no name");
+			}
 			final byte[] nameBytes = name.getBytes(StandardCharsets.UTF_8);
 			nameOffset += nameBytes.length + 1;
 
@@ -276,10 +349,11 @@ final class BaseIndexFile extends AbstractArchiveFile implements IndexFile {
 	}
 
 	@Override
-	public void setEstimatedNumberForWriteEntries(int count) throws IOException { 
-		if (count < 0)
-			throw new IllegalArgumentException("'count' must be greater than or equal 0");		
-		this.packFile.setPackArrayMinimalCapacity(count+2);
+	public void setEstimatedNumberForWriteEntries(int count) throws IOException {
+		if (count < 0) {
+			throw new IllegalArgumentException("'count' must be greater than or equal 0");
+		}
+		packFile.setPackArrayMinimalCapacity(count + 2);
 	}
 
 }

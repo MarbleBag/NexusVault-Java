@@ -2,28 +2,27 @@ package nexusvault.archive.impl;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.Map.Entry;
 import java.util.TreeMap;
 
 import kreed.io.util.BinaryReader;
 import kreed.io.util.BinaryWriter;
-
-import java.util.Map.Entry;
-
 import nexusvault.archive.struct.StructPackHeader;
 import nexusvault.archive.struct.StructRootBlock;
 
 final class BufferedPackFile implements PackFile {
 
-	private PackFile packFile;
+	private final PackFile packFile;
 
-	private TreeMap<Integer, StructPackHeader> pendingPacks;
+	private final TreeMap<Integer, StructPackHeader> pendingPacks;
 	private int minimalSize;
 
 	public BufferedPackFile() {
 		packFile = new BasePackFile();
-		pendingPacks = new TreeMap<Integer, StructPackHeader>();
+		pendingPacks = new TreeMap<>();
 	}
 
+	@Override
 	public void closeFile() throws IOException {
 		flushWrite(false);
 		packFile.closeFile();
@@ -34,9 +33,10 @@ final class BufferedPackFile implements PackFile {
 		if (size <= 0) {
 			throw new IllegalArgumentException("'size' must be greater than 0");
 		}
-		this.minimalSize = size;
+		minimalSize = size;
 	}
-	
+
+	@Override
 	public void flushWrite() throws IOException {
 		flushWrite(true);
 	}
@@ -61,10 +61,12 @@ final class BufferedPackFile implements PackFile {
 			}
 			pendingPacks.clear();
 		}
-		if(flushSub)
-		packFile.flushWrite();
+		if (flushSub) {
+			packFile.flushWrite();
+		}
 	}
 
+	@Override
 	public void overwritePack(StructPackHeader pack, long packIdx) throws IOException {
 		if (isPendingPack(packIdx)) {
 			storePendingPack(pack, packIdx);
@@ -73,10 +75,12 @@ final class BufferedPackFile implements PackFile {
 		}
 	}
 
+	@Override
 	public long writeNewPack(StructPackHeader pack) throws IOException {
 		return storePendingPack(pack);
 	}
 
+	@Override
 	public StructPackHeader getPack(long packIdx) {
 		if (isPendingPack(packIdx)) {
 			return getPendingPack(packIdx);
@@ -85,6 +89,7 @@ final class BufferedPackFile implements PackFile {
 		}
 	}
 
+	@Override
 	public int getPackArraySize() {
 		return packFile.getPackArraySize() + pendingPacks.size();
 	}
@@ -110,82 +115,87 @@ final class BufferedPackFile implements PackFile {
 		return pendingPacks.get(Integer.valueOf((int) packIdx));
 	}
 
+	@Override
 	public void openFile(Path path) throws IOException {
 		packFile.openFile(path);
 	}
 
+	@Override
 	public boolean isFileOpen() {
 		return packFile.isFileOpen();
 	}
 
+	@Override
 	public Path getFile() {
 		return packFile.getFile();
 	}
 
+	@Override
 	public void enableWriteMode() throws IOException {
 		packFile.enableWriteMode();
 	}
 
+	@Override
 	public boolean isWriteModeEnabled() {
 		return packFile.isWriteModeEnabled();
 	}
 
+	@Override
 	public BinaryReader getFileReader() throws IOException {
 		return packFile.getFileReader();
 	}
 
+	@Override
 	public BinaryWriter getFileWriter() throws IOException {
 		return packFile.getFileWriter();
 	}
 
+	@Override
 	public ArchiveMemoryModel getMemoryModel() throws IllegalStateException {
 		return packFile.getMemoryModel();
 	}
 
+	@Override
 	public int getPackArrayCapacity() {
 		return packFile.getPackArrayCapacity();
 	}
 
+	@Override
 	public boolean isPackAvailable(long packIdx) {
 		return packFile.isPackAvailable(packIdx) || isPendingPack(packIdx);
 	}
 
-	public boolean isPackWritable(long packIdx) {
-		return packFile.isPackWritable(packIdx);
-	}
-
-	public void setPackArrayAutoGrow(boolean value) {
-		packFile.setPackArrayAutoGrow(value);
-	}
-
+	@Override
 	public void setPackArrayAutoGrowSize(int value) {
 		packFile.setPackArrayAutoGrowSize(value);
 	}
 
-	public void initializePackArray() throws IOException {
-		packFile.initializePackArray();
-	}
-
+	@Override
 	public void setPackArrayCapacityTo(int minimalSize) throws IOException {
 		packFile.setPackArrayCapacityTo(minimalSize);
 	}
 
+	@Override
 	public boolean isPackArrayInitialized() {
 		return packFile.isPackArrayInitialized();
 	}
 
+	@Override
 	public StructRootBlock getRootElement() {
 		return packFile.getRootElement();
 	}
 
+	@Override
 	public StructPackHeader writeRootElement(StructRootBlock element) throws IOException {
 		return packFile.writeRootElement(element);
 	}
 
+	@Override
 	public void setPackRootIdx(long rootIdx) {
 		packFile.setPackRootIdx(rootIdx);
 	}
 
+	@Override
 	public long getPackRootIndex() {
 		return packFile.getPackRootIndex();
 	}

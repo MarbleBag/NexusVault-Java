@@ -12,7 +12,6 @@ import kreed.io.util.BinaryWriter;
 import kreed.io.util.ByteBufferBinaryReader;
 import kreed.io.util.Seek;
 import nexusvault.archive.ArchiveEntryNotFoundException;
-import nexusvault.archive.ArchiveException;
 import nexusvault.archive.ArchiveHashCollisionException;
 import nexusvault.archive.impl.ArchiveMemoryModel.MemoryBlock;
 import nexusvault.archive.struct.StructAARC;
@@ -25,7 +24,7 @@ import nexusvault.shared.exception.SignatureMismatchException;
 final class BaseArchiveFile extends AbstractArchiveFile implements ArchiveFile {
 
 	private Map<String, Integer> entryLookUp;
-	private Map<String, Integer> queuedEntryLookUp;
+	private final Map<String, Integer> queuedEntryLookUp;
 	private List<StructArchiveEntry> entries;
 
 	private int archiveArrayMinimalSize;
@@ -33,9 +32,9 @@ final class BaseArchiveFile extends AbstractArchiveFile implements ArchiveFile {
 
 	public BaseArchiveFile() {
 		super();
-		entryLookUp = new HashMap<String, Integer>();
-		queuedEntryLookUp = new HashMap<String, Integer>();
-		entries = new ArrayList<StructArchiveEntry>();
+		entryLookUp = new HashMap<>();
+		queuedEntryLookUp = new HashMap<>();
+		entries = new ArrayList<>();
 	}
 
 	@Override
@@ -45,7 +44,6 @@ final class BaseArchiveFile extends AbstractArchiveFile implements ArchiveFile {
 		if (isFileNew) {
 			enableWriteMode();
 			packFile.setPackArrayAutoGrowSize(1000);
-			packFile.setPackArrayAutoGrow(true);
 
 			final long emptyPack = writeNewPack(new StructPackHeader());
 			final long archiveEntryPack = writeNewPack(new StructPackHeader());
@@ -54,12 +52,13 @@ final class BaseArchiveFile extends AbstractArchiveFile implements ArchiveFile {
 			final StructPackHeader pack = writeRootElement(aarc);
 			final long aidxIndex = writeNewPack(pack);
 			setPackRootIdx(aidxIndex);
-			
+
 			computeArchiveArrayCapacity();
 		} else {
 			final StructRootBlock aarc = getRootElement();
-			if (aarc == null)
+			if (aarc == null) {
 				throw new IllegalStateException(); // TODO
+			}
 			if (aarc.signature != StructAARC.SIGNATURE_AARC) {
 				throw new SignatureMismatchException("Archive file", StructAARC.SIGNATURE_AARC, aarc.signature);
 			}
@@ -67,7 +66,6 @@ final class BaseArchiveFile extends AbstractArchiveFile implements ArchiveFile {
 			loadArchivEntries();
 		}
 
-		
 	}
 
 	@Override
@@ -89,13 +87,15 @@ final class BaseArchiveFile extends AbstractArchiveFile implements ArchiveFile {
 	}
 
 	private StructArchiveEntry getArchiveEntry(byte[] hash) throws ArchiveEntryNotFoundException {
-		if (hash == null)
+		if (hash == null) {
 			throw new IllegalArgumentException("'entry' must not be null");
+		}
 
 		final String key = ByteUtil.byteToHex(hash);
-		Integer index = queuedEntryLookUp.containsKey(key) ? queuedEntryLookUp.get(key) : entryLookUp.get(key);
-		if (index == null)
+		final Integer index = queuedEntryLookUp.containsKey(key) ? queuedEntryLookUp.get(key) : entryLookUp.get(key);
+		if (index == null) {
 			throw new ArchiveEntryNotFoundException(String.format("No entry found for hash %s", key));
+		}
 		final StructArchiveEntry entry = entries.get(index.intValue());
 		return entry;
 	}
@@ -111,16 +111,19 @@ final class BaseArchiveFile extends AbstractArchiveFile implements ArchiveFile {
 
 	@Override
 	public boolean hasArchiveData(byte[] hash) {
-		return entryLookUp.containsKey(ByteUtil.byteToHex(hash));
+		final String key = ByteUtil.byteToHex(hash);
+		return entryLookUp.containsKey(key) || queuedEntryLookUp.containsKey(key);
 	}
 
 	@Override
-	public void writeArchiveData(byte[] hash, BinaryReader data) throws IOException {
-		if (hasArchiveData(hash)) {
-			overwriteArchiveData(hash, data);
-		} else {
-			writeNewArchiveData(hash, data);
+	public void deleteArchiveData(byte[] hash) {
+		final String key = ByteUtil.byteToHex(hash);
+		final Integer index = queuedEntryLookUp.containsKey(key) ? queuedEntryLookUp.get(key) : entryLookUp.get(key);
+		if (index == null) {
+			throw new ArchiveEntryNotFoundException(String.format("No entry found for hash %s", key));
 		}
+
+		throw new UnsupportedOperationException("Not implemented yet");
 	}
 
 	private StructPackHeader getPack(StructArchiveEntry entry) throws ArchiveEntryNotFoundException {
@@ -141,11 +144,11 @@ final class BaseArchiveFile extends AbstractArchiveFile implements ArchiveFile {
 		final StructRootBlock root = getRootElement();
 
 		final StructPackHeader rootPack = getPack(root.headerIdx);
-		reader.seek(Seek.BEGIN, rootPack.getOffset()-Long.BYTES);
+		reader.seek(Seek.BEGIN, rootPack.getOffset() - Long.BYTES);
 
-		long blockSize = reader.readInt64();
+		final long blockSize = reader.readInt64();
 		archiveArrayCapacity = (int) (blockSize / StructArchiveEntry.SIZE_IN_BYTES);
-		
+
 		entries = new ArrayList<>(root.entryCount);
 		for (int i = 0; i < root.entryCount; ++i) {
 			final long blockIndex = reader.readUInt32();
@@ -168,10 +171,19 @@ final class BaseArchiveFile extends AbstractArchiveFile implements ArchiveFile {
 		}
 	}
 
+	@Override
+	public void writeArchiveData(byte[] hash, BinaryReader data) throws IOException {
+		if (hasArchiveData(hash)) {
+			overwriteArchiveData(hash, data);
+		} else {
+			writeNewArchiveData(hash, data);
+		}
+	}
+
 	private void overwriteArchiveData(byte[] hash, BinaryReader data) throws IOException {
 		final StructArchiveEntry entry = getArchiveEntry(hash);
 		final StructPackHeader pack = getPack(entry);
-		long dataSize = data.size();
+		final long dataSize = data.size();
 
 		MemoryBlock memoryBlock = findMemoryBlock(pack.getOffset());
 		if (memoryBlock.size() < dataSize) {
@@ -184,25 +196,32 @@ final class BaseArchiveFile extends AbstractArchiveFile implements ArchiveFile {
 		overwriteArchiveEntry(new StructArchiveEntry(entry.headerIdx, hash, dataSize));
 	}
 
-	protected void overwriteArchiveEntry(StructArchiveEntry entry) throws IOException {
-		final String key = ByteUtil.byteToHex(entry.hash);
-		if (queuedEntryLookUp.containsKey(key)) {
-			Integer index = queuedEntryLookUp.get(key);
-			entries.set(index, entry);
-		} else {
-			final Integer index = entryLookUp.get(key);
-			final StructPackHeader rootPack = getRootPack();
-			final long offset = rootPack.getOffset() + (index * StructArchiveEntry.SIZE_IN_BYTES);
-			entries.set(index, entry);
-			writeArchiveEntryToFileAt(offset, entry);
+	@Override
+	public void replaceArchiveData(byte[] oldHash, byte[] newHash, BinaryReader data) throws IOException {
+		final StructArchiveEntry entry = getArchiveEntry(oldHash);
+		final StructPackHeader pack = getPack(entry);
+		final long dataSize = data.size();
+
+		MemoryBlock memoryBlock = findMemoryBlock(pack.getOffset());
+		if (memoryBlock.size() < dataSize) {
+			freeMemoryBlock(memoryBlock);
+			memoryBlock = allocateMemory(dataSize);
 		}
+
+		final long dataOffset = writeDataToFile(memoryBlock, data);
+		overwritePack(new StructPackHeader(dataOffset, dataSize), entry.headerIdx);
+		replaceArchiveEntry(oldHash, new StructArchiveEntry(entry.headerIdx, newHash, dataSize));
 	}
 
 	private void writeNewArchiveData(byte[] hash, BinaryReader data) throws IOException {
-		long dataSize = data.size();
-		MemoryBlock memoryBlock = allocateMemory(dataSize);
+		if (hasArchiveData(hash)) {
+			throw new ArchiveHashCollisionException();
+		}
+
+		final long dataSize = data.size();
+		final MemoryBlock memoryBlock = allocateMemory(dataSize);
 		final long dataOffset = writeDataToFile(memoryBlock, data);
-		long packIndex = writeNewPack(new StructPackHeader(dataOffset, dataSize));
+		final long packIndex = writeNewPack(new StructPackHeader(dataOffset, dataSize));
 		writeNewArchiveEntry(new StructArchiveEntry(packIndex, hash, dataSize));
 	}
 
@@ -211,23 +230,6 @@ final class BaseArchiveFile extends AbstractArchiveFile implements ArchiveFile {
 			writer.seek(Seek.BEGIN, memoryBlock.position());
 			writer.write(data);
 			return memoryBlock.position();
-		}
-	}
-
-	private void writeNewArchiveEntry(StructArchiveEntry entry) throws IOException {
-		final String key = ByteUtil.byteToHex(entry.hash);
-
-		if (entryLookUp.containsKey(key) || queuedEntryLookUp.containsKey(key))
-			throw new ArchiveHashCollisionException();
-
-		Integer index = Integer.valueOf(entries.size());
-		entries.add(entry);
-
-		if (getArchiveArraySize() < getArchiveArrayCapacity()) {
-			entryLookUp.put(key, index);
-			writeArchiveEntryToFile(index, entry);
-		} else {
-			queuedEntryLookUp.put(key, index);
 		}
 	}
 
@@ -247,8 +249,9 @@ final class BaseArchiveFile extends AbstractArchiveFile implements ArchiveFile {
 
 	@Override
 	public void setEstimatedNumberForWriteEntries(int count) throws IOException {
-		if (count < 0)
+		if (count < 0) {
 			throw new IllegalArgumentException("'count' must be greater than or equal 0");
+		}
 		packFile.setPackArrayMinimalCapacity(count + 2);
 		archiveArrayMinimalSize = count;
 	}
@@ -267,23 +270,24 @@ final class BaseArchiveFile extends AbstractArchiveFile implements ArchiveFile {
 				setArchiveArrayCapacityTo(size);
 			}
 
-			StructPackHeader pack = getRootPack();
-			for (Integer index : queuedEntryLookUp.values()) {
-				long offset = pack.offset + index * StructArchiveEntry.SIZE_IN_BYTES;
-				StructArchiveEntry entry = entries.get(index);
+			final StructPackHeader pack = getRootPack();
+			for (final Integer index : queuedEntryLookUp.values()) {
+				final long offset = pack.offset + (index * StructArchiveEntry.SIZE_IN_BYTES);
+				final StructArchiveEntry entry = entries.get(index);
 				writeArchiveEntryToFileAt(offset, entry);
 			}
 
 			queuedEntryLookUp.clear();
 		}
 
-		if (flushSub)
+		if (flushSub) {
 			super.flushWrite();
+		}
 	}
 
 	private void writeArchiveEntryToFile(int index, StructArchiveEntry entry) throws IOException {
-		StructPackHeader pack = getRootPack();
-		long offset = pack.offset + index * StructArchiveEntry.SIZE_IN_BYTES;
+		final StructPackHeader pack = getRootPack();
+		final long offset = pack.offset + (index * StructArchiveEntry.SIZE_IN_BYTES);
 		writeArchiveEntryToFileAt(offset, entry);
 	}
 
@@ -313,8 +317,8 @@ final class BaseArchiveFile extends AbstractArchiveFile implements ArchiveFile {
 			return;
 		}
 
-		StructRootBlock rootElement = getRootElement();
-		StructPackHeader pack = getPack(rootElement.headerIdx);
+		final StructRootBlock rootElement = getRootElement();
+		final StructPackHeader pack = getPack(rootElement.headerIdx);
 
 		final long oldSize = getArchiveArraySize() * StructArchiveEntry.SIZE_IN_BYTES;
 		final long newSize = newCapacity * StructArchiveEntry.SIZE_IN_BYTES;
@@ -351,13 +355,13 @@ final class BaseArchiveFile extends AbstractArchiveFile implements ArchiveFile {
 	}
 
 	private boolean isArchiveArrayInitialized() {
-		StructPackHeader pack = getRootPack();
+		final StructPackHeader pack = getRootPack();
 		return pack.offset != 0;
 	}
 
 	private void allocateInitialArchiveArray(int size) throws IOException {
-		StructRootBlock rootElement = getRootElement();
-		StructPackHeader pack = getPack(rootElement.headerIdx);
+		final StructRootBlock rootElement = getRootElement();
+		final StructPackHeader pack = getPack(rootElement.headerIdx);
 		final MemoryBlock block = allocateMemory(size * StructArchiveEntry.SIZE_IN_BYTES);
 		pack.offset = block.position();
 		pack.size = block.size();
@@ -371,6 +375,56 @@ final class BaseArchiveFile extends AbstractArchiveFile implements ArchiveFile {
 		entryLookUp.clear();
 		queuedEntryLookUp.clear();
 		entries.clear();
+	}
+
+	private void writeNewArchiveEntry(StructArchiveEntry entry) throws IOException {
+		final String key = ByteUtil.byteToHex(entry.hash);
+		final Integer index = Integer.valueOf(entries.size());
+		entries.add(entry);
+
+		if (getArchiveArraySize() < getArchiveArrayCapacity()) {
+			entryLookUp.put(key, index);
+			writeArchiveEntryToFile(index, entry);
+		} else {
+			queuedEntryLookUp.put(key, index);
+		}
+	}
+
+	private void overwriteArchiveEntry(StructArchiveEntry entry) throws IOException {
+		final String key = ByteUtil.byteToHex(entry.hash);
+
+		if (queuedEntryLookUp.containsKey(key)) {
+			final Integer index = queuedEntryLookUp.get(key);
+			entries.set(index, entry);
+		} else {
+			final Integer index = entryLookUp.get(key);
+			final StructPackHeader rootPack = getRootPack();
+			final long offset = rootPack.getOffset() + (index * StructArchiveEntry.SIZE_IN_BYTES);
+			entries.set(index, entry);
+			writeArchiveEntryToFileAt(offset, entry);
+		}
+	}
+
+	private void replaceArchiveEntry(byte[] oldHash, StructArchiveEntry entry) throws IOException {
+		final String oldKey = ByteUtil.byteToHex(oldHash);
+		final String newKey = ByteUtil.byteToHex(entry.hash);
+
+		if (queuedEntryLookUp.containsKey(oldKey)) {
+			final Integer index = queuedEntryLookUp.get(oldKey);
+			entries.set(index, entry);
+
+			queuedEntryLookUp.remove(oldKey);
+			queuedEntryLookUp.put(newKey, index);
+		} else {
+			final Integer index = entryLookUp.get(oldKey);
+			final StructPackHeader rootPack = getRootPack();
+			final long offset = rootPack.getOffset() + (index * StructArchiveEntry.SIZE_IN_BYTES);
+			entries.set(index, entry);
+			writeArchiveEntryToFileAt(offset, entry);
+
+			entryLookUp.remove(oldKey);
+			entryLookUp.put(newKey, index);
+		}
 	}
 
 }

@@ -32,6 +32,10 @@ public interface ArchiveFile {
 
 	void writeArchiveData(byte[] hash, BinaryReader data) throws IOException;
 
+	void replaceArchiveData(byte[] oldHash, byte[] newHash, BinaryReader data) throws IOException;
+
+	void deleteArchiveData(byte[] hash) throws IOException;
+
 	void flushWrite() throws IOException;
 
 }

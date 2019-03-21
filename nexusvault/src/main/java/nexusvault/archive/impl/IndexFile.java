@@ -91,6 +91,8 @@ public interface IndexFile {
 	 */
 	long writeDirectoryData(long index, IndexDirectoryData data) throws IOException;
 
+	void overwriteFileAttribute(long packIdx, int fileIndex, byte[] hash, StructIdxFile file) throws IOException;
+
 	void flushWrite() throws IOException;
 
 }
