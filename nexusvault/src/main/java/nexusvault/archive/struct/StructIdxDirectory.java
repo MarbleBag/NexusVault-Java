@@ -15,13 +15,20 @@ public final class StructIdxDirectory {
 
 	@Order(2)
 	@StructField(DataType.UBIT_32)
-	public int directoryHeaderIdx; // 0x004
+	public int directoryIndex; // 0x004
 
+	/**
+	 * Name of the directory. Not part of the struct.
+	 */
 	public String name;
+
+	public StructIdxDirectory() {
+
+	}
 
 	public StructIdxDirectory(int nameOffset, int directoryHeaderIdx) {
 		this.nameOffset = nameOffset;
-		this.directoryHeaderIdx = directoryHeaderIdx;
+		directoryIndex = directoryHeaderIdx;
 	}
 
 }
