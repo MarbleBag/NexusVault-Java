@@ -8,6 +8,10 @@ import java.util.TreeSet;
 
 import nexusvault.shared.exception.IntegerOverflowException;
 
+/**
+ * An abstract model of how the memory inside of .index- and .archive-files is organized. Its used to ease the task to the allocate new, reuse old and free
+ * space within the files.
+ */
 final class ArchiveMemoryModel {
 
 	public final class MemoryBlock implements Comparable<MemoryBlock> {
@@ -21,30 +25,14 @@ final class ArchiveMemoryModel {
 			this.free = free;
 		}
 
-		public int size() {
-			return size;
-		}
-
-		public long position() {
-			return position;
-		}
-
-		public boolean isFree() {
-			return free;
+		public void clearUpdateFlag() {
+			pendingUpdate.remove(this);
 		}
 
 		@Override
 		public int compareTo(MemoryBlock o) {
 			final long diff = position - o.position;
 			return diff < 0 ? -1 : diff > 0 ? 1 : 0;
-		}
-
-		@Override
-		public int hashCode() {
-			final int prime = 31;
-			int result = 1;
-			result = (prime * result) + (int) (position ^ (position >>> 32));
-			return result;
 		}
 
 		@Override
@@ -66,6 +54,26 @@ final class ArchiveMemoryModel {
 		}
 
 		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = (prime * result) + (int) (position ^ (position >>> 32));
+			return result;
+		}
+
+		public boolean isFree() {
+			return free;
+		}
+
+		public long position() {
+			return position;
+		}
+
+		public int size() {
+			return size;
+		}
+
+		@Override
 		public String toString() {
 			final StringBuilder builder = new StringBuilder();
 			builder.append("MemoryBlock [position=");
@@ -77,17 +85,13 @@ final class ArchiveMemoryModel {
 			builder.append("]");
 			return builder.toString();
 		}
-
-		public void clearUpdateFlag() {
-			ArchiveMemoryModel.this.pendingUpdate.remove(this);
-		}
 	}
+
+	private static final long SPLIT_THRESHOLD = alignValue(6 * Long.BYTES);
 
 	private static long alignValue(long pos) {
 		return (pos + 0xF) & 0xFFFFFFFFFFFFFFF0l;
 	}
-
-	private static final long SPLIT_THRESHOLD = alignValue(6 * Long.BYTES);
 
 	private final SortedSet<MemoryBlock> unusedBlocks = new TreeSet<>();
 	private final SortedSet<MemoryBlock> usedBlocks = new TreeSet<>();
@@ -98,17 +102,142 @@ final class ArchiveMemoryModel {
 		this.memOffset = alignValue(memOffset);
 	}
 
+	/**
+	 * Allocates a memory block which is equal or bigger than the <tt>requestedSize</tt>.<br>
+	 * The returned {@link MemoryBlock} may either be a block which is marked as <b>free</b> or, in case no such block with the requested size is available, a
+	 * newly created block. <br>
+	 * <p>
+	 * The returned block will be marked as <b>not free</b> and will never be returned by this method again, until marked as <b>free</b> again by calling
+	 * {@link #freeMemory(MemoryBlock)}
+	 * <p>
+	 * A call to this method will result in {@link #getMemoryToUpdate() new pending updates}.
+	 *
+	 * @param requestedSize
+	 *            is the minimal size of the requested block
+	 * @return A {@link MemoryBlock} which size is equal or greater than the requested size.
+	 * @see MemoryBlock
+	 * @see #allocateNewMemory(long)
+	 * @see #freeMemory(MemoryBlock)
+	 * @see #getMemoryToUpdate()
+	 */
+	// TODO Split blocks which are 'far' bigger than needed
+	public MemoryBlock allocateMemory(long requestedSize) {
+		requestedSize = alignValue(requestedSize);
+
+		MemoryBlock unusedBlock = findUnusedBlock(requestedSize);
+		if (unusedBlock != null) {
+			if (unusedBlock.size > (requestedSize + (2 * Long.BYTES) + SPLIT_THRESHOLD)) {
+				unusedBlock = splitBlock(unusedBlock);
+			}
+		} else {
+			unusedBlock = allocateMemoryAtEnd(requestedSize);
+		}
+
+		markBlockAsUsed(unusedBlock);
+		return unusedBlock;
+	}
+
+	/**
+	 * Allocates <b>always a new</b> block of memory which is equal or bigger than the <tt>requestedSize</tt>. This method will <b>never</b> return a
+	 * {@link MemoryBlock} which is marked as <b>free</b>.
+	 * <p>
+	 * The returned block will be marked as <b>not free</b> and will never be returned by this method again, until marked as <b>free</b> again by calling
+	 * {@link #freeMemory(MemoryBlock)}
+	 * <p>
+	 * A call to this method will result in {@link #getMemoryToUpdate() new pending updates}.
+	 *
+	 * @param requestedSize
+	 * @return
+	 * @see MemoryBlock
+	 * @see #allocateMemory(long)
+	 * @see #freeMemory(MemoryBlock)
+	 * @see #getMemoryToUpdate()
+	 */
+	public MemoryBlock allocateNewMemory(long requestedSize) {
+		requestedSize = alignValue(requestedSize);
+		final MemoryBlock block = createMemoryAtEnd(requestedSize);
+		markBlockAsUsed(block);
+		return block;
+	}
+
+	/**
+	 * Will clear the memory model, this means the model no longer contains any {@link MemoryBlock MemoryBlocks} and has no waiting updates.
+	 */
+	public void clearMemoryModel() {
+		unusedBlocks.clear();
+		usedBlocks.clear();
+		pendingUpdate.clear();
+	}
+
+	/**
+	 * Returns the {@link MemoryBlock} at <tt>position</tt> or throws an exception if no {@link MemoryBlock} starts at <tt>position</tt>
+	 *
+	 * @param position
+	 *            at which a {@link MemoryBlock} starts
+	 * @return the {@link MemoryBlock} which starts at <tt>position</tt>
+	 * @throws IllegalStateException
+	 *             If not {@link MemoryBlock} starts at <tt>position</tt>
+	 * @see #tryFindBlockAt(long)
+	 */
+	public MemoryBlock findBlockAt(long position) {
+		final MemoryBlock block = tryFindBlockAt(position);
+		if (block == null) {
+			throw new IllegalStateException(String.format("Memory error. Unable to find memory block at position %d", position)); // TODO
+		}
+		return block;
+	}
+
+	/**
+	 * Marks the given {@link MemoryBlock} as <b>free</b>
+	 * <p>
+	 * A call to this method may result in {@link #getMemoryToUpdate() new pending updates}.
+	 *
+	 * @see #allocateMemory(long)
+	 * @see #getMemoryToUpdate()
+	 */
+	// TODO Merge adjacent unused blocks
+	public void freeMemory(MemoryBlock block) {
+		if (!block.free) {
+			if (!usedBlocks.remove(block)) { // true, if collection doesn't contain block
+				throw new IllegalStateException("Memory block is not referenced as used");
+			}
+			markBlockAsUnused(block);
+		} else {
+			if (!unusedBlocks.contains(block)) { // true, if collection doesn't contain block
+				throw new IllegalStateException("Memory block is not referenced as unused");
+			}
+		}
+	}
+
+	/**
+	 * Returns a set of {@link MemoryBlock MemoryBlocks} which <b>changed since the last call</b> to {@link #getMemoryToUpdate()}.<br>
+	 * This set includes newly allocated, freed, merged and blocks which are split.
+	 */
+	public Collection<MemoryBlock> getMemoryToUpdate() {
+		final List<MemoryBlock> list = new ArrayList<>(pendingUpdate);
+		pendingUpdate.clear();
+		return list;
+	}
+
+	/**
+	 * Add a {@link MemoryBlock} to the model. This method can be called multiple times to <b>initialize</b> the model. <br>
+	 * This method must not be called after the model is already in use, the resulting behavior is undefined.
+	 * <p>
+	 * While new blocks can be added in any order, it is important to ensure that the whole set of blocks covers a sequentially part of <i>abstract</i> memory,
+	 * without overlapping.
+	 *
+	 */
 	public void setInitialBlock(long blockPosition, long blockSize, boolean isFree) {
 		if (blockSize > Integer.MAX_VALUE) {
-			throw new IntegerOverflowException(); // TODO
+			throw new IntegerOverflowException("This implementation only supports a 'blockSize' of up to the maximum size of an integer");
 		}
 
 		if (blockPosition != alignValue(blockPosition)) {
-			throw new IllegalArgumentException(); // TODO
+			throw new IllegalArgumentException("'blockPosition' must be aligned to a 16-byte boundary"); // TODO
 		}
 
 		if (blockSize != alignValue(blockSize)) {
-			throw new IllegalArgumentException(); // TODO
+			throw new IllegalArgumentException(String.format("'blockSize' must be a multiple of 16. Was %d", blockSize)); // TODO
 		}
 
 		final MemoryBlock m = new MemoryBlock(blockPosition, (int) blockSize, isFree);
@@ -119,12 +248,14 @@ final class ArchiveMemoryModel {
 		}
 	}
 
-	public void clear() {
-		unusedBlocks.clear();
-		usedBlocks.clear();
-		pendingUpdate.clear();
-	}
-
+	/**
+	 * Tries to find a block that starts at <tt>position</tt>. <br>
+	 * If there is no block, this method will return <tt>null</tt> to indicate this.
+	 *
+	 * @param position
+	 * @return {@link MemoryBlock} at the given <tt>position</tt> or <tt>null</tt> if there is nothing.
+	 * @see #findBlockAt(long)
+	 */
 	public MemoryBlock tryFindBlockAt(long position) {
 		for (final MemoryBlock block : usedBlocks) {
 			if (block.position == position) {
@@ -143,14 +274,6 @@ final class ArchiveMemoryModel {
 			}
 		}
 		return null;
-	}
-
-	public MemoryBlock findBlockAt(long position) {
-		final MemoryBlock block = tryFindBlockAt(position);
-		if (block == null) {
-			throw new IllegalStateException(String.format("Memory error. Unable to find memory block for offset %d", position)); // TODO
-		}
-		return block;
 	}
 
 	public MemoryBlock tryFindBlockWithin(long position) {
@@ -173,70 +296,25 @@ final class ArchiveMemoryModel {
 		return null;
 	}
 
-	public MemoryBlock allocateMemory(long requestedSize) {
-		requestedSize = alignValue(requestedSize);
-
-		MemoryBlock unusedBlock = findUnusedBlock(requestedSize);
-		if (unusedBlock != null) {
-			if (unusedBlock.size > (requestedSize + (2 * Long.BYTES) + SPLIT_THRESHOLD)) {
-				unusedBlock = splitBlock(unusedBlock);
+	private MemoryBlock allocateMemoryAtEnd(long requestedSize) {
+		if (isEndOfMemoryUnused()) {
+			final MemoryBlock lastBlock = unusedBlocks.last();
+			if (lastBlock.size < requestedSize) {
+				lastBlock.size = (int) requestedSize;
+				pendingUpdate.add(lastBlock);
 			}
+			return lastBlock;
 		} else {
-			unusedBlock = allocateMemoryAtEnd(requestedSize);
-		}
-
-		markBlockAsUsed(unusedBlock);
-		return unusedBlock;
-	}
-
-	private MemoryBlock splitBlock(MemoryBlock unusedBlock) {
-		// TODO Auto-generated method stub
-		return unusedBlock;
-	}
-
-	private MemoryBlock mergeBlocks(MemoryBlock first, MemoryBlock second) {
-		// TODO
-		return null;
-	}
-
-	private void markBlockAsUsed(MemoryBlock block) {
-		block.free = false;
-		usedBlocks.add(block);
-		pendingUpdate.add(block);
-		unusedBlocks.remove(block);
-	}
-
-	private void markBlockAsUnused(MemoryBlock block) {
-		block.free = true;
-		unusedBlocks.add(block);
-		pendingUpdate.add(block);
-		usedBlocks.remove(block);
-	}
-
-	public MemoryBlock allocateNewMemory(long requestedSize) {
-		requestedSize = alignValue(requestedSize);
-		final MemoryBlock block = createMemoryAtEnd(requestedSize);
-		markBlockAsUsed(block);
-		return block;
-	}
-
-	public void freeMemory(MemoryBlock block) {
-		if (!block.free) {
-			if (!usedBlocks.remove(block)) {
-				throw new IllegalStateException(); // TODO
-			}
-			markBlockAsUnused(block);
-		} else {
-			if (!unusedBlocks.contains(block)) {
-				throw new IllegalStateException(); // TODO
-			}
+			return createMemoryAtEnd(requestedSize);
 		}
 	}
 
-	public Collection<MemoryBlock> getMemoryToUpdate() {
-		final List<MemoryBlock> list = new ArrayList<>(pendingUpdate);
-		pendingUpdate.clear();
-		return list;
+	private MemoryBlock createMemoryAtEnd(long requestedSize) {
+		final long endOfMemory = getEndOfMemory();
+		final MemoryBlock unusedBlock = new MemoryBlock(alignValue(endOfMemory), (int) requestedSize, true);
+		pendingUpdate.add(unusedBlock);
+		unusedBlocks.add(unusedBlock);
+		return unusedBlock;
 	}
 
 	private MemoryBlock findUnusedBlock(long requestedSize) {
@@ -268,27 +346,6 @@ final class ArchiveMemoryModel {
 		return endOfMemory;
 	}
 
-	private MemoryBlock allocateMemoryAtEnd(long requestedSize) {
-		if (isEndOfMemoryUnused()) {
-			final MemoryBlock lastBlock = this.unusedBlocks.last();
-			if (lastBlock.size < requestedSize) {
-				lastBlock.size = (int) requestedSize;
-				pendingUpdate.add(lastBlock);
-			}
-			return lastBlock;
-		} else {
-			return createMemoryAtEnd(requestedSize);
-		}
-	}
-
-	private MemoryBlock createMemoryAtEnd(long requestedSize) {
-		final long endOfMemory = getEndOfMemory();
-		final MemoryBlock unusedBlock = new MemoryBlock(alignValue(endOfMemory), (int) requestedSize, true);
-		pendingUpdate.add(unusedBlock);
-		unusedBlocks.add(unusedBlock);
-		return unusedBlock;
-	}
-
 	private boolean isEndOfMemoryUnused() {
 		if (unusedBlocks.isEmpty()) {
 			return false;
@@ -299,6 +356,30 @@ final class ArchiveMemoryModel {
 		}
 
 		return usedBlocks.last().position < unusedBlocks.last().position;
+	}
+
+	private void markBlockAsUnused(MemoryBlock block) {
+		block.free = true;
+		unusedBlocks.add(block);
+		pendingUpdate.add(block);
+		usedBlocks.remove(block);
+	}
+
+	private void markBlockAsUsed(MemoryBlock block) {
+		block.free = false;
+		usedBlocks.add(block);
+		pendingUpdate.add(block);
+		unusedBlocks.remove(block);
+	}
+
+	private MemoryBlock mergeBlocks(MemoryBlock first, MemoryBlock second) {
+		// TODO
+		return null;
+	}
+
+	private MemoryBlock splitBlock(MemoryBlock unusedBlock) {
+		// TODO Auto-generated method stub
+		return unusedBlock;
 	}
 
 }
