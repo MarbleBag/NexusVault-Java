@@ -21,7 +21,7 @@ import nexusvault.archive.struct.StructIdxDirectory;
 import nexusvault.archive.struct.StructIdxFile;
 import nexusvault.shared.exception.IntegerOverflowException;
 
-public final class BaseNexusArchiveReader2 extends BaseNexusArchiveReader implements NexusArchiveReader {
+public final class BaseNexusArchiveReader implements NexusArchiveReader {
 
 	private static final class BasePathNexusArchiveSource implements NexusArchiveSource { // TODO
 		private final Path indexFile;
@@ -46,12 +46,12 @@ public final class BaseNexusArchiveReader2 extends BaseNexusArchiveReader implem
 	private static final LZMACodec CODEC_LZMA = new LZMACodec();
 	private static final ZipCodec CODEC_ZIP = new ZipCodec();
 
-	public static BaseNexusArchiveReader2 buildArchive() {
-		return new BaseNexusArchiveReader2();
+	public static BaseNexusArchiveReader buildArchive() {
+		return new BaseNexusArchiveReader();
 	}
 
-	public static BaseNexusArchiveReader2 loadArchive(Path archiveOrIndex) throws IOException {
-		return new BaseNexusArchiveReader2(archiveOrIndex);
+	public static BaseNexusArchiveReader loadArchive(Path archiveOrIndex) throws IOException {
+		return new BaseNexusArchiveReader(archiveOrIndex);
 	}
 
 	private IndexFile indexFile;
@@ -62,12 +62,12 @@ public final class BaseNexusArchiveReader2 extends BaseNexusArchiveReader implem
 
 	boolean isDisposed = true;
 
-	private BaseNexusArchiveReader2(Path archiveOrIndex) throws IOException {
+	private BaseNexusArchiveReader(Path archiveOrIndex) throws IOException {
 		super();
 		load(archiveOrIndex);
 	}
 
-	private BaseNexusArchiveReader2() {
+	private BaseNexusArchiveReader() {
 		super();
 	}
 
@@ -94,62 +94,61 @@ public final class BaseNexusArchiveReader2 extends BaseNexusArchiveReader implem
 
 		dispose();
 
-		this.indexFile = IndexFile.createIndexFile();
-		this.indexFile.openFile(idxPath);
+		indexFile = IndexFile.createIndexFile();
+		indexFile.openFile(idxPath);
 
-		this.archiveFile = ArchiveFile.createArchiveFile();
-		this.archiveFile.openFile(arcPath);
+		archiveFile = ArchiveFile.createArchiveFile();
+		archiveFile.openFile(arcPath);
 
-		this.source = new BasePathNexusArchiveSource(idxPath, arcPath);
+		source = new BasePathNexusArchiveSource(idxPath, arcPath);
 
 		initializeArchive();
 		isDisposed = false;
 	}
 
 	private void initializeArchive() {
-		this.rootDirectory = new BaseLazyRootIdxDirectory(this.indexFile.getRootDirectoryIndex());
-		this.rootDirectory.setArchive(this);
+		rootDirectory = new BaseLazyRootIdxDirectory(indexFile.getRootDirectoryIndex());
+		rootDirectory.setArchive(this);
 	}
 
 	@Override
 	public IdxDirectory getRootDirectory() {
-		return this.rootDirectory;
+		return rootDirectory;
 	}
 
 	@Override
 	public NexusArchiveSource getSource() {
-		return this.source;
+		return source;
 	}
 
 	@Override
 	public void dispose() {
-		if (this.isDisposed) {
+		if (isDisposed) {
 			return;
 		}
 
-		this.isDisposed = true;
+		isDisposed = true;
 
 		try {
-			this.indexFile.closeFile();
+			indexFile.closeFile();
 		} catch (final IOException e) { // ignore
 		}
 		try {
-			this.archiveFile.closeFile();
+			archiveFile.closeFile();
 		} catch (final IOException e) { // ignore
 		}
 
-		this.indexFile = null;
-		this.archiveFile = null;
+		indexFile = null;
+		archiveFile = null;
 
-		this.rootDirectory = null;
+		rootDirectory = null;
 	}
 
 	@Override
 	public boolean isDisposed() {
-		return this.isDisposed;
+		return isDisposed;
 	}
 
-	@Override
 	protected List<BaseIdxEntry> loadDirectory(BaseIdxDirectory baseIdxDirectory) {
 		if (isDisposed()) {
 			throw new NexusArchiveDisposedException();
@@ -158,7 +157,7 @@ public final class BaseNexusArchiveReader2 extends BaseNexusArchiveReader implem
 		IndexFile.IndexDirectoryData folderData;
 
 		try {
-			folderData = this.indexFile.getDirectoryData((int) baseIdxDirectory.getDirectoryPackIndex());
+			folderData = indexFile.getDirectoryData((int) baseIdxDirectory.getDirectoryPackIndex());
 		} catch (final IOException e) {
 			throw new IdxException("Unable to read index-file", e);
 		}
@@ -168,7 +167,7 @@ public final class BaseNexusArchiveReader2 extends BaseNexusArchiveReader implem
 
 		final List<BaseIdxEntry> childs = new ArrayList<>(rawFolder.size() + rawFiles.size());
 		for (final StructIdxDirectory sdir : rawFolder) {
-			final BaseIdxDirectory dir = new BaseLazyIdxDirectory(baseIdxDirectory, sdir.name, sdir.directoryHeaderIdx);
+			final BaseIdxDirectory dir = new BaseLazyIdxDirectory(baseIdxDirectory, sdir.name, sdir.directoryIndex);
 			childs.add(dir);
 		}
 
@@ -181,13 +180,12 @@ public final class BaseNexusArchiveReader2 extends BaseNexusArchiveReader implem
 		return childs;
 	}
 
-	@Override
 	protected ByteBuffer getData(IdxFileLink file) throws IOException, ArchiveEntryNotFoundException {
 		if (isDisposed()) {
 			throw new NexusArchiveDisposedException();
 		}
 
-		final BinaryReader reader = this.archiveFile.getArchiveData(file.getShaHash());
+		final BinaryReader reader = archiveFile.getArchiveData(file.getHash());
 
 		final int compressionType = file.getFlags();
 
