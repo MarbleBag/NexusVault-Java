@@ -5,7 +5,7 @@ import java.nio.ByteBuffer;
 
 public interface IdxFileLink extends IdxEntry {
 
-	byte[] getShaHash();
+	byte[] getHash();
 
 	int getFlags();
 

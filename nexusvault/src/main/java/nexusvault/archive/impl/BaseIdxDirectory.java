@@ -14,13 +14,26 @@ import nexusvault.archive.IdxEntryNotADirectoryException;
 import nexusvault.archive.IdxEntryNotAFileException;
 import nexusvault.archive.IdxEntryNotFoundException;
 import nexusvault.archive.IdxFileLink;
+import nexusvault.archive.IdxPath;
 
 abstract class BaseIdxDirectory extends BaseIdxEntry implements IdxDirectory {
 
 	private final long headerIndex;
 
+	/**
+	 *
+	 * @throws IllegalArgumentException
+	 *             if <tt>parent</tt> is null
+	 * @throws IllegalArgumentException
+	 *             if <tt>name</tt> is null or contains an {@link IdxPath#SEPARATOR illegal character}
+	 */
 	protected BaseIdxDirectory(BaseIdxDirectory parent, String name, long headerIndex) {
 		super(parent, name);
+
+		if (parent == null) {
+			throw new IllegalArgumentException("'parent' must not be null");
+		}
+
 		this.headerIndex = headerIndex;
 	}
 

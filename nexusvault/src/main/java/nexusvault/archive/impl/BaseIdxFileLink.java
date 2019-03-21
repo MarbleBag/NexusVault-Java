@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 
 import nexusvault.archive.IdxFileLink;
+import nexusvault.archive.IdxPath;
 
 final class BaseIdxFileLink extends BaseIdxEntry implements IdxFileLink {
 
@@ -11,22 +12,38 @@ final class BaseIdxFileLink extends BaseIdxEntry implements IdxFileLink {
 	protected final long writeTime;
 	protected final long uncompressedSize;
 	protected final long compressedSize;
-	protected final byte[] shaHash;
+	protected final byte[] hash;
 	protected final int unk1;
 
+	/**
+	 *
+	 * @throws IllegalArgumentException
+	 *             if <tt>parent</tt> or <tt>hash</tt> is null
+	 * @throws IllegalArgumentException
+	 *             if <tt>name</tt> is null or contains an {@link IdxPath#SEPARATOR illegal character}
+	 */
 	public BaseIdxFileLink(BaseIdxDirectory parent, String name, int flags, long writeTime, long uncompressedSize, long compressedSize, byte[] hash, int unk1) {
 		super(parent, name);
+
+		if (parent == null) {
+			throw new IllegalArgumentException("'parent' must not be null");
+		}
+
+		if (hash == null) {
+			throw new IllegalArgumentException("'hash' must not be null");
+		}
+
 		this.flags = flags;
 		this.writeTime = writeTime;
 		this.uncompressedSize = uncompressedSize;
 		this.compressedSize = compressedSize;
-		this.shaHash = hash;
+		this.hash = hash;
 		this.unk1 = unk1;
 	}
 
 	@Override
-	public byte[] getShaHash() {
-		return shaHash;
+	public byte[] getHash() {
+		return hash;
 	}
 
 	@Override
@@ -86,7 +103,7 @@ final class BaseIdxFileLink extends BaseIdxEntry implements IdxFileLink {
 		builder.append(", compressedSize=");
 		builder.append(compressedSize);
 		builder.append(", shaHash=");
-		builder.append(ByteUtil.byteToHex(shaHash));
+		builder.append(ByteUtil.byteToHex(hash));
 		builder.append(", unk1=");
 		builder.append(unk1);
 		builder.append("]");

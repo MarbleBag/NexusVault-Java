@@ -12,10 +12,15 @@ abstract class BaseIdxEntry implements IdxEntry {
 	private final BaseIdxDirectory parent;
 	private final String name;
 
+	/**
+	 * @throws IllegalArgumentException
+	 *             if <tt>name</tt> is null or contains an {@link IdxPath#SEPARATOR illegal character}
+	 */
 	protected BaseIdxEntry(BaseIdxDirectory parent, String name) {
 		if (name == null) {
 			throw new IllegalArgumentException("'name' must not be null.");
 		}
+
 		if (name.contains(IdxPath.SEPARATOR)) {
 			throw new IllegalArgumentException("Name can not contain the file seperator '" + IdxPath.SEPARATOR + "'.");
 		}
