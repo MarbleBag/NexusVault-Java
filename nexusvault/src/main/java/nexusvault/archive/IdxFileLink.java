@@ -15,7 +15,7 @@ public interface IdxFileLink extends IdxEntry {
 
 	String getFileEnding();
 
-	String getNameWithoutFileEnding();
+	String getNameWithoutFileExtension();
 
 	ByteBuffer getData() throws IOException;
 

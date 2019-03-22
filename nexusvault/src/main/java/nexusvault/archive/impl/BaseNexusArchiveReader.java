@@ -2,7 +2,6 @@ package nexusvault.archive.impl;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -216,7 +215,7 @@ public final class BaseNexusArchiveReader implements NexusArchiveReader {
 				}
 		}
 
-		result.order(ByteOrder.LITTLE_ENDIAN);
+		result.order(reader.getOrder());
 		return result;
 	}
 

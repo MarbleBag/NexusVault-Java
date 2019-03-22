@@ -76,7 +76,7 @@ final class BaseIdxFileLink extends BaseIdxEntry implements IdxFileLink {
 	}
 
 	@Override
-	public String getNameWithoutFileEnding() {
+	public String getNameWithoutFileExtension() {
 		final String name = getName();
 		final int ext = name.lastIndexOf('.');
 		if (ext < 0) {
