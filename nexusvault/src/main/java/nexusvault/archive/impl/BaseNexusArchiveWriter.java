@@ -271,6 +271,10 @@ public class BaseNexusArchiveWriter implements NexusArchiveWriter {
 		completeFileTree(elements);
 	}
 
+	public void replace(IdxPath src, IdxPath destination, boolean deleteOldDestination) {
+
+	}
+
 	private void verifyData(Collection<? extends IntegrateableElement> elements) {
 		// TODO Auto-generated method stub
 	}
@@ -326,7 +330,7 @@ public class BaseNexusArchiveWriter implements NexusArchiveWriter {
 
 	private TreeEntry getEntryAndValidateName(TreeDirectory directory, String entryName) {
 		final TreeEntry entry = directory.getEntry(entryName);
-		if ((entry != null) && !entry.getName().equals(entryName)) {
+		if ((entry != null) && entry.hasFlags(TreeEntry.FLAG_NEW) && !entry.getName().equals(entryName)) {
 			throw new IllegalStateException(entryName); // TODO
 		}
 		return entry;
