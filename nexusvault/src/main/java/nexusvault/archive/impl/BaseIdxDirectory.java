@@ -23,17 +23,10 @@ abstract class BaseIdxDirectory extends BaseIdxEntry implements IdxDirectory {
 	/**
 	 *
 	 * @throws IllegalArgumentException
-	 *             if <tt>parent</tt> is null
-	 * @throws IllegalArgumentException
 	 *             if <tt>name</tt> is null or contains an {@link IdxPath#SEPARATOR illegal character}
 	 */
 	protected BaseIdxDirectory(BaseIdxDirectory parent, String name, long headerIndex) {
 		super(parent, name);
-
-		if (parent == null) {
-			throw new IllegalArgumentException("'parent' must not be null");
-		}
-
 		this.headerIndex = headerIndex;
 	}
 
