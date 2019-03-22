@@ -6,7 +6,6 @@ import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -117,7 +116,6 @@ public class BaseNexusArchiveWriter implements NexusArchiveWriter {
 		processDirectory(root);
 	}
 
-	// TODO (re)writes EVERYTHING in its current state
 	private void processDirectory(TreeDirectory directory) throws IOException {
 		for (final TreeDirectory subdir : directory.getDirectories()) {
 			if (subdir.isWaitingForChildWriteUpdate() || subdir.isWaitingForDirectoryUpdate()) {
@@ -205,10 +203,10 @@ public class BaseNexusArchiveWriter implements NexusArchiveWriter {
 		return directory.hasFlags(TreeEntry.FLAG_NEW);
 	}
 
-	private StructIdxFile writeToArchive(byte[] oldHash, IntegrateableElement element) throws IOException {
-		final BinaryReader uncompressedData = element.getData();
-		final IntegrateableElementConfig config = element.getConfig();
-		final BinaryReader compressedData = compress(uncompressedData, config.getCompressionType());
+	private StructIdxFile writeToArchive(byte[] oldHash, DataSource data) throws IOException {
+		final BinaryReader uncompressedData = data.getData();
+		final DataSourceConfig config = data.getConfig();
+		final BinaryReader compressedData = compress(uncompressedData, config.getRequestedCompressionType());
 
 		final long uncompressedSize = uncompressedData.size();
 		final long compressedSize = compressedData.size();
@@ -220,7 +218,7 @@ public class BaseNexusArchiveWriter implements NexusArchiveWriter {
 			archiveFile.replaceArchiveData(oldHash, hash, compressedData);
 		}
 
-		return new StructIdxFile(-1, config.getCompressionType().getFlag(), System.currentTimeMillis(), uncompressedSize, compressedSize, hash, 0);
+		return new StructIdxFile(-1, config.getRequestedCompressionType().getFlag(), System.currentTimeMillis(), uncompressedSize, compressedSize, hash, 0);
 	}
 
 	private BinaryReader compress(BinaryReader originalData, CompressionType compressionType) {
@@ -266,24 +264,17 @@ public class BaseNexusArchiveWriter implements NexusArchiveWriter {
 	}
 
 	@Override
-	public void write(Collection<? extends IntegrateableElement> elements) throws IOException {
-		verifyData(elements);
-		completeFileTree(elements);
+	public void write(DataSource source, IdxPath destination) throws IOException {
+		completeFileTree(source, destination);
 	}
 
 	public void replace(IdxPath src, IdxPath destination, boolean deleteOldDestination) {
 
 	}
 
-	private void verifyData(Collection<? extends IntegrateableElement> elements) {
-		// TODO Auto-generated method stub
-	}
-
-	private void completeFileTree(Collection<? extends IntegrateableElement> elements) {
-		for (final IntegrateableElement element : elements) {
-			final TreeFile file = findOrCreateFile(element.getDestination());
-			file.setFileData(element);
-		}
+	private void completeFileTree(DataSource source, IdxPath destination) {
+		final TreeFile file = findOrCreateFile(destination);
+		file.setFileData(source);
 	}
 
 	private TreeFile findOrCreateFile(IdxPath destination) {
@@ -514,7 +505,7 @@ public class BaseNexusArchiveWriter implements NexusArchiveWriter {
 
 	private static final class TreeFile extends TreeEntry {
 		private StructIdxFile file;
-		private IntegrateableElement element;
+		private DataSource data;
 
 		public TreeFile(TreeDirectory parent, StructIdxFile file) {
 			super(parent, file.name);
@@ -534,15 +525,15 @@ public class BaseNexusArchiveWriter implements NexusArchiveWriter {
 			return file;
 		}
 
-		public void setFileData(IntegrateableElement element) {
-			this.element = element;
+		public void setFileData(DataSource data) {
+			this.data = data;
 			setFlags(FLAG_NEW_DATA);
 			notifyParentAboutPendingWriteUpdate();
 			getParent().setFlags(FLAG_CHILD_CHANGED);
 		}
 
-		public IntegrateableElement getFileData() {
-			return element;
+		public DataSource getFileData() {
+			return data;
 		}
 	}
 

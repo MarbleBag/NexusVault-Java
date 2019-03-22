@@ -1,23 +1,22 @@
 package nexusvault.archive;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.nio.file.Path;
-import java.util.Collection;
 
 import kreed.io.util.BinaryReader;
 import nexusvault.archive.impl.BaseNexusArchiveWriter;
+import nexusvault.archive.impl.ByteBufferDataSource;
+import nexusvault.archive.impl.FileDataSource;
 
 public interface NexusArchiveWriter {
 
-	public static NexusArchiveWriter createWriter() {
-		return new BaseNexusArchiveWriter();
-	}
-
 	public static enum CompressionType {
-		PREVIOUS(-1),
+		// PREVIOUS(-1),
 		NONE(0),
-		ZIP(3),
-		LZMA(5);
+		ZIP(2 | 1),
+		LZMA(4 | 1);
+
 		private final int flag;
 
 		private CompressionType(int flag) {
@@ -29,72 +28,49 @@ public interface NexusArchiveWriter {
 		}
 	}
 
-	public static interface IntegrateableElementConfig {
-		CompressionType getCompressionType();
+	public static interface DataSource {
+
+		public static DataSource wrap(ByteBuffer buffer) {
+			return new ByteBufferDataSource(buffer);
+		}
+
+		public static DataSource wrap(Path file) {
+			return new FileDataSource(file);
+		}
+
+		DataSourceConfig getConfig();
+
+		BinaryReader getData() throws IOException;
 	}
 
-	public static interface IntegrateableElement {
-		IdxPath getDestination();
-
-		BinaryReader getData();
-
-		void checkDataAvailability();
-
-		IntegrateableElementConfig getConfig();
-	}
-
-	public static final class DefaultIntegrateableElementConfig implements IntegrateableElementConfig {
+	public static final class DataSourceConfig {
 		private CompressionType compressionType = CompressionType.NONE;
 
-		@Override
-		public CompressionType getCompressionType() {
+		public CompressionType getRequestedCompressionType() {
 			return compressionType;
 		}
 
-		public void setCompressionType(CompressionType compressionType) {
+		public void setRequestedCompressionType(CompressionType compressionType) {
 			if (compressionType == null) {
 				throw new IllegalArgumentException();
 			}
 			this.compressionType = compressionType;
 		}
-
 	}
 
-	public static abstract class AbstIntegreateableElement implements IntegrateableElement {
-		private final DefaultIntegrateableElementConfig integrateableElementConfig = new DefaultIntegrateableElementConfig();
-
-		private final IdxPath destination;
-
-		public AbstIntegreateableElement(IdxPath destination) {
-			this.destination = destination;
-		}
-
-		@Override
-		public DefaultIntegrateableElementConfig getConfig() {
-			return integrateableElementConfig;
-		}
-
-		@Override
-		public void checkDataAvailability() {
-			// empty
-		}
-
-		@Override
-		public IdxPath getDestination() {
-			return destination;
-		}
-
+	public static NexusArchiveWriter createWriter() {
+		return new BaseNexusArchiveWriter();
 	}
-
-	void load(Path archiveOrIndex) throws IOException;
 
 	void dispose();
 
+	void flush() throws IOException;
+
 	boolean isDisposed();
 
-	void write(Collection<? extends IntegrateableElement> src) throws IOException;
+	void load(Path archiveOrIndex) throws IOException;
 
-	void flush() throws IOException;
+	void write(DataSource source, IdxPath destination) throws IOException;
 
 	// void delete(Collection<IdxPath> targets) throws IOException;
 
