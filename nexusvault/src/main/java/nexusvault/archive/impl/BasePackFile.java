@@ -314,11 +314,12 @@ class BasePackFile implements PackFile {
 
 		header.packCount -= 1;
 
-		if ((packs.size() - 1) == packIdx) {
-			packs.remove(packs.size() - 1);
+		final long lastPackIdx = packs.size() - 1;
+
+		if (lastPackIdx == packIdx) {
+			packs.remove((int) lastPackIdx);
 			return null;
 		} else {
-			final long lastPackIdx = packs.size() - 1;
 			overwritePack(getPack(lastPackIdx), packIdx);
 			packs.remove((int) lastPackIdx);
 			return new PackIdxSwap(lastPackIdx, packIdx);
