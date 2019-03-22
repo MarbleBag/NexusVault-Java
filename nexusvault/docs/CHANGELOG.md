@@ -5,7 +5,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com)
 ## [Unreleased] 
 ## [3.0.0]
 ### Added
-- An archive contains informations about its source
+- An archive contains now informations about its source
+- NexusArchiveWriter which allows to modify (don't forget to back up!) or create new archive files
 
 ### Changed
 - ArchiveReader was renamed to NexusArchiveReader
