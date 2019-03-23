@@ -56,6 +56,6 @@ public final class StructArchiveFile {
 
 	// @Order(10)
 	// @StructField(value = DataType.BIT_64, length = 2)
-	private long[] blockGuardStop; // 0x230 //used for blockguards. First value needs to be 0, second value is equal to the next block.
+	// private long[] blockGuardStop; // 0x230 //used for blockguards. First value needs to be 0, second value is equal to the next block.
 
 }
