@@ -15,12 +15,12 @@ import nexusvault.archive.IdxDirectory;
 import nexusvault.archive.IdxException;
 import nexusvault.archive.IdxFileLink;
 import nexusvault.archive.NexusArchiveDisposedException;
-import nexusvault.archive.NexusArchiveReader;
+import nexusvault.archive.NexusArchive;
 import nexusvault.archive.struct.StructIdxDirectory;
 import nexusvault.archive.struct.StructIdxFile;
 import nexusvault.shared.exception.IntegerOverflowException;
 
-public final class BaseNexusArchiveReader implements NexusArchiveReader {
+public final class BaseNexusArchiveReader implements NexusArchive {
 
 	private static final class BasePathNexusArchiveSource implements NexusArchiveSource { // TODO
 		private final Path indexFile;
