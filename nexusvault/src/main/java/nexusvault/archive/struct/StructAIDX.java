@@ -1,7 +1,6 @@
 package nexusvault.archive.struct;
 
 public final class StructAIDX extends StructRootBlock {
-	public static final int SIGNATURE_AIDX = ('A' << 24) | ('I' << 16) | ('D' << 8) | 'X';
 
 	public StructAIDX() {
 		super();
