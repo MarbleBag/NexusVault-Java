@@ -21,6 +21,14 @@ interface PackFile {
 		}
 	}
 
+	/**
+	 * @throws IOException
+	 *             if an I/O error occurs
+	 * @throws IllegalArgumentException
+	 *             if <tt>path</tt> is null
+	 * @throws IllegalStateException
+	 *             if another file is already opened
+	 */
 	void openFile(Path path) throws IOException;
 
 	void closeFile() throws IOException;
@@ -49,12 +57,12 @@ interface PackFile {
 	ArchiveMemoryModel getMemoryModel() throws IllegalStateException;
 
 	/**
-	 * Returns the {@link StructPackHeader} for <tt>packIdx</tt>. Throws an {@link IndexOutOfBoundsException} if the index is negative or greater than the
-	 * {@link #getPackArraySize() array size}
+	 * Returns the {@link StructPackHeader} for <tt>packIdx</tt>.
 	 *
-	 * @param packIdx
-	 * @return {@link IndexOutOfBoundsException} associated with <tt>packIdx</tt>
-	 * @see #isPackAvailable(long)
+	 * @return {@link StructPackHeader} associated with <tt>packIdx</tt>
+	 *
+	 * @throws IllegalArgumentException
+	 *             if <tt>packIdx</tt> is negative or equal or greater than {@link #getPackArraySize()}
 	 */
 	StructPackHeader getPack(long packIdx);
 
@@ -66,12 +74,6 @@ interface PackFile {
 	int getPackArraySize();
 
 	/**
-	 * @param packIdx
-	 * @return true if <tt>packIdx</tt> is valid
-	 */
-	boolean isPackAvailable(long packIdx);
-
-	/**
 	 * Overwrites {@link StructPackHeader} at <tt>packIdx</tt>
 	 *
 	 * @param pack
@@ -81,12 +83,12 @@ interface PackFile {
 	 *
 	 * @throws IllegalArgumentException
 	 *             if <tt>pack</tt> is null
-	 * @throws IndexOutOfBoundsException
-	 *             if <tt>packIdx</tt> is invalid
+	 * @throws IllegalArgumentException
+	 *             if <tt>packIdx</tt> is negative or equal or greater than {@link #getPackArraySize()}
 	 * @throws IOException
 	 *             if an I/O error occurs
-	 *
-	 * @see #isPackAvailable(long)
+	 * 
+	 * @see #getPackArraySize()
 	 */
 	void overwritePack(StructPackHeader pack, long packIdx) throws IOException;
 
@@ -125,6 +127,18 @@ interface PackFile {
 
 	StructPackHeader writeRootElement(StructRootBlock element) throws IOException;
 
+	/**
+	 *
+	 * @param packIdx
+	 * @return
+	 * @throws IOException
+	 *             if an I/O error occurs
+	 * @throws IllegalArgumentException
+	 *             if <tt>packIdx</tt> is negative or equal or greater than {@link #getPackArraySize()}
+	 * 
+	 * @see #getPackArraySize()
+	 */
+	// TODO complete javadoc
 	PackIdxSwap deletePack(long packIdx) throws IOException;
 
 	void setPackRootIdx(long rootIdx);

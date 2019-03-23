@@ -27,7 +27,7 @@ import nexusvault.shared.exception.IntegerOverflowException;
 import nexusvault.shared.exception.SignatureMismatchException;
 import nexusvault.shared.exception.VersionMismatchException;
 
-class BasePackFile implements PackFile {
+final class BasePackFile implements PackFile {
 
 	private static final int SIZE_2_MB = 2 << 20;
 
@@ -118,7 +118,9 @@ class BasePackFile implements PackFile {
 		if (writeReady) {
 			return;
 		}
+
 		checkIsFileOpen();
+
 		writeReady = true;
 		try (BinaryReader reader = getFileReader()) {
 			initializeWriteMode(reader);
@@ -148,6 +150,7 @@ class BasePackFile implements PackFile {
 	@Override
 	public BinaryReader getFileReader() throws IOException {
 		checkIsFileOpen();
+
 		if (readBuffer == null) {
 			readBuffer = createByteBuffer();
 		}
@@ -169,6 +172,7 @@ class BasePackFile implements PackFile {
 	@Override
 	public BinaryWriter getFileWriter() throws IOException {
 		checkIsFileOpen();
+
 		if (writeBuffer == null) {
 			writeBuffer = createByteBuffer();
 		}
@@ -207,6 +211,7 @@ class BasePackFile implements PackFile {
 	@Override
 	public StructPackHeader getPack(long packIdx) {
 		checkIsFileOpen();
+		checkIsPackAvailable(packIdx);
 		return packs.get((int) packIdx);
 	}
 
@@ -222,9 +227,22 @@ class BasePackFile implements PackFile {
 		return (int) header.packCount;
 	}
 
-	@Override
-	public boolean isPackAvailable(long packIdx) {
+	private boolean isPackAvailable(long packIdx) {
 		return (0 <= packIdx) && (packIdx < getPackArraySize());
+	}
+
+	private void checkIsPackAvailable(long index) {
+		checkIsPackAvailable(index, null);
+	}
+
+	private void checkIsPackAvailable(long index, String msg) {
+		if (!isPackAvailable(index)) {
+			String error = String.format("Pack index %d invalid. Must be in range of [0,%d).", index, getPackArraySize());
+			if (msg != null) {
+				error += " " + msg;
+			}
+			throw new IllegalArgumentException(error);
+		}
 	}
 
 	public boolean isPackWritable(long packIdx) {
@@ -239,10 +257,7 @@ class BasePackFile implements PackFile {
 
 		checkIsFileOpen();
 		checkIsPackArrayInitialized();
-
-		if (!isPackAvailable(packIdx)) {
-			throw new IndexOutOfBoundsException(String.format("PackIdx %d is not in use. Unable to overwrite.", packIdx)); // TODO
-		}
+		checkIsPackAvailable(packIdx, "Unable to overwrite.");
 
 		final long offset = header.packOffset + (packIdx * StructPackHeader.SIZE_IN_BYTES);
 
@@ -288,13 +303,8 @@ class BasePackFile implements PackFile {
 	}
 
 	public void swapPack(long packIdx1, long packIdx2) throws IOException {
-		if (!isPackAvailable(packIdx1)) {
-			throw new IndexOutOfBoundsException(String.format("PackIdx1 %d is not in use. Unable to delete.", packIdx1));
-		}
-
-		if (!isPackAvailable(packIdx2)) {
-			throw new IndexOutOfBoundsException(String.format("PackIdx2 %d is not in use. Unable to delete.", packIdx2));
-		}
+		checkIsPackAvailable(packIdx1, "Unable to swap index 1.");
+		checkIsPackAvailable(packIdx2, "Unable to swap index 2.");
 
 		if (packIdx1 == packIdx2) {
 			return;
@@ -308,9 +318,8 @@ class BasePackFile implements PackFile {
 
 	@Override
 	public PackIdxSwap deletePack(long packIdx) throws IOException {
-		if (!isPackAvailable(packIdx)) {
-			throw new IndexOutOfBoundsException(String.format("PackIdx %d is not in use. Unable to delete.", packIdx));
-		}
+		checkIsFileOpen();
+		checkIsPackAvailable(packIdx, "Unable to delete.");
 
 		header.packCount -= 1;
 
@@ -353,6 +362,7 @@ class BasePackFile implements PackFile {
 	public void setPackArrayCapacityTo(int minimalSize) throws IOException {
 		checkIsFileOpen();
 		checkWriteState();
+
 		if (isPackArrayInitialized()) {
 			increasePackArrayCapacity(Math.max(getPackArrayCapacity(), minimalSize));
 		} else {
@@ -576,7 +586,7 @@ class BasePackFile implements PackFile {
 		}
 	}
 
-	protected void checkIsFileOpen() {
+	private void checkIsFileOpen() {
 		if (!isFileOpen()) {
 			throw new IllegalStateException("File not open");
 		}

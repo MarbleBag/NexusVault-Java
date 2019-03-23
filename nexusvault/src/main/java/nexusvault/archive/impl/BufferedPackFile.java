@@ -50,7 +50,7 @@ final class BufferedPackFile implements PackFile {
 
 			for (final Entry<Integer, StructPackHeader> pendingPack : pendingPacks.entrySet()) {
 				final long expectedPackIndex = pendingPack.getKey().longValue();
-				if (packFile.isPackAvailable(expectedPackIndex)) {
+				if (expectedPackIndex < packFile.getPackArraySize()) {
 					packFile.overwritePack(pendingPack.getValue(), expectedPackIndex);
 				} else {
 					final long actualPackIndex = packFile.writeNewPack(pendingPack.getValue());
@@ -61,6 +61,7 @@ final class BufferedPackFile implements PackFile {
 			}
 			pendingPacks.clear();
 		}
+
 		if (flushSub) {
 			packFile.flushWrite();
 		}
@@ -172,11 +173,6 @@ final class BufferedPackFile implements PackFile {
 	@Override
 	public int getPackArrayCapacity() {
 		return packFile.getPackArrayCapacity();
-	}
-
-	@Override
-	public boolean isPackAvailable(long packIdx) {
-		return packFile.isPackAvailable(packIdx) || isPendingPack(packIdx);
 	}
 
 	@Override
