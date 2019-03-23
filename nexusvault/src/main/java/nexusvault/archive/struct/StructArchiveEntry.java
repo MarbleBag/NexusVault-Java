@@ -13,7 +13,7 @@ public final class StructArchiveEntry {
 
 	@Order(1)
 	@StructField(DataType.UBIT_32)
-	public long headerIdx;
+	public long packIdx;
 
 	@Order(2)
 	@StructField(value = DataType.BIT_8, length = 20)
@@ -27,13 +27,17 @@ public final class StructArchiveEntry {
 
 	}
 
-	public StructArchiveEntry(long blockIndex, byte[] hash, long size) {
+	/**
+	 * @throws IllegalArgumentException
+	 *             if <tt>hash</tt> is null
+	 */
+	public StructArchiveEntry(long packIdx, byte[] hash, long size) {
 		super();
-		if (hash.length != 20) {
-			throw new IllegalArgumentException("'hash' length does not match");
+		if (hash == null) {
+			throw new IllegalArgumentException("'hash' must not be null");
 		}
 
-		this.headerIdx = blockIndex;
+		this.packIdx = packIdx;
 		this.size = size;
 		this.hash = new byte[hash.length];
 		System.arraycopy(hash, 0, this.hash, 0, hash.length);
@@ -41,14 +45,14 @@ public final class StructArchiveEntry {
 
 	@Override
 	public String toString() {
-		return "StructArchiveEntry [blockIndex=" + headerIdx + ", shaHash=" + Arrays.toString(hash) + ", size=" + size + "]";
+		return "StructArchiveEntry [blockIndex=" + packIdx + ", shaHash=" + Arrays.toString(hash) + ", size=" + size + "]";
 	}
 
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = (prime * result) + (int) (headerIdx ^ (headerIdx >>> 32));
+		result = (prime * result) + (int) (packIdx ^ (packIdx >>> 32));
 		result = (prime * result) + Arrays.hashCode(hash);
 		result = (prime * result) + (int) (size ^ (size >>> 32));
 		return result;
@@ -66,7 +70,7 @@ public final class StructArchiveEntry {
 			return false;
 		}
 		final StructArchiveEntry other = (StructArchiveEntry) obj;
-		if (headerIdx != other.headerIdx) {
+		if (packIdx != other.packIdx) {
 			return false;
 		}
 		if (!Arrays.equals(hash, other.hash)) {
