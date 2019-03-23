@@ -129,13 +129,13 @@ final class BaseArchiveFile extends AbstractArchiveFile implements ArchiveFile {
 		final MemoryBlock memoryBlock = findMemoryBlock(packHeader.offset);
 		freeMemoryBlock(memoryBlock);
 
-		final PackIdxSwap headerIdxSwap = packFile.deletePack(archiveEntry.headerIdx);
+		final PackIdxSwap headerIdxSwap = packFile.deletePack(archiveEntry.packIdx);
 		if (headerIdxSwap != null) { // pack idx changed, this means one archiveEntry has now an invalid packIdx. Find the entry and update its packIdx.
 			// start with the last element, the change is high, that the last archive entry also uses the last pack
 			for (int i = entries.size() - 1; 0 <= i; i--) {
 				final StructArchiveEntry aentry = entries.get(i);
-				if (aentry.headerIdx == headerIdxSwap.oldPackIdx) {
-					aentry.headerIdx = headerIdxSwap.newPackIdx;
+				if (aentry.packIdx == headerIdxSwap.oldPackIdx) {
+					aentry.packIdx = headerIdxSwap.newPackIdx;
 					overwriteArchiveEntry(aentry);
 					break;
 				}
@@ -151,7 +151,7 @@ final class BaseArchiveFile extends AbstractArchiveFile implements ArchiveFile {
 	}
 
 	private StructPackHeader getPack(StructArchiveEntry entry) throws ArchiveEntryNotFoundException {
-		return getPack(entry.headerIdx);
+		return getPack(entry.packIdx);
 	}
 
 	private StructPackHeader getArchiveEntryRelatedPack(byte[] hash) {
@@ -216,8 +216,8 @@ final class BaseArchiveFile extends AbstractArchiveFile implements ArchiveFile {
 		}
 
 		final long dataOffset = writeDataToFile(memoryBlock, data);
-		overwritePack(new StructPackHeader(dataOffset, dataSize), entry.headerIdx);
-		overwriteArchiveEntry(new StructArchiveEntry(entry.headerIdx, hash, dataSize));
+		overwritePack(new StructPackHeader(dataOffset, dataSize), entry.packIdx);
+		overwriteArchiveEntry(new StructArchiveEntry(entry.packIdx, hash, dataSize));
 	}
 
 	@Override
@@ -233,8 +233,8 @@ final class BaseArchiveFile extends AbstractArchiveFile implements ArchiveFile {
 		}
 
 		final long dataOffset = writeDataToFile(memoryBlock, data);
-		overwritePack(new StructPackHeader(dataOffset, dataSize), entry.headerIdx);
-		replaceArchiveEntry(oldHash, new StructArchiveEntry(entry.headerIdx, newHash, dataSize));
+		overwritePack(new StructPackHeader(dataOffset, dataSize), entry.packIdx);
+		replaceArchiveEntry(oldHash, new StructArchiveEntry(entry.packIdx, newHash, dataSize));
 	}
 
 	private void writeNewArchiveData(byte[] hash, BinaryReader data) throws IOException {
@@ -318,7 +318,7 @@ final class BaseArchiveFile extends AbstractArchiveFile implements ArchiveFile {
 	private void writeArchiveEntryToFileAt(long offset, StructArchiveEntry entry) throws IOException {
 		try (BinaryWriter writer = getFileWriter()) {
 			writer.seek(Seek.BEGIN, offset);
-			writer.writeInt32(entry.headerIdx);
+			writer.writeInt32(entry.packIdx);
 			writer.writeInt8(entry.hash, 0, 20);
 			writer.writeInt64(entry.size);
 		}

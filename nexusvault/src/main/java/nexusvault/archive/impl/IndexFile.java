@@ -4,16 +4,13 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 
-import nexusvault.archive.struct.StructIdxDirectory;
-import nexusvault.archive.struct.StructIdxFile;
-
 public interface IndexFile {
 
 	public static final class IndexDirectoryData {
-		private final List<StructIdxDirectory> directories;
-		private final List<StructIdxFile> fileLinks;
+		private final List<IdxDirectoryAttribute> directories;
+		private final List<IdxFileAttribute> fileLinks;
 
-		public IndexDirectoryData(List<StructIdxDirectory> directories, List<StructIdxFile> fileLinks) {
+		public IndexDirectoryData(List<IdxDirectoryAttribute> directories, List<IdxFileAttribute> fileLinks) {
 			if (directories == null) {
 				throw new IllegalArgumentException("'directories' must not be null");
 			}
@@ -25,11 +22,11 @@ public interface IndexFile {
 			this.fileLinks = fileLinks;
 		}
 
-		public List<StructIdxDirectory> getDirectories() {
+		public List<IdxDirectoryAttribute> getDirectories() {
 			return directories;
 		}
 
-		public List<StructIdxFile> getFileLinks() {
+		public List<IdxFileAttribute> getFileLinks() {
 			return fileLinks;
 		}
 
@@ -91,7 +88,7 @@ public interface IndexFile {
 	 */
 	long writeDirectoryData(long index, IndexDirectoryData data) throws IOException;
 
-	void overwriteFileAttribute(long packIdx, int fileIndex, byte[] hash, StructIdxFile file) throws IOException;
+	void overwriteFileAttribute(long packIdx, int fileIndex, byte[] hash, IdxFileAttribute fileAttribute) throws IOException;
 
 	void flushWrite() throws IOException;
 

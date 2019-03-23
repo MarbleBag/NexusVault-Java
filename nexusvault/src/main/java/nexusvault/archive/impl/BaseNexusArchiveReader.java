@@ -14,10 +14,8 @@ import nexusvault.archive.ArchiveException;
 import nexusvault.archive.IdxDirectory;
 import nexusvault.archive.IdxException;
 import nexusvault.archive.IdxFileLink;
-import nexusvault.archive.NexusArchiveDisposedException;
 import nexusvault.archive.NexusArchive;
-import nexusvault.archive.struct.StructIdxDirectory;
-import nexusvault.archive.struct.StructIdxFile;
+import nexusvault.archive.NexusArchiveDisposedException;
 import nexusvault.shared.exception.IntegerOverflowException;
 
 public final class BaseNexusArchiveReader implements NexusArchive {
@@ -161,19 +159,19 @@ public final class BaseNexusArchiveReader implements NexusArchive {
 			throw new IdxException("Unable to read index-file", e);
 		}
 
-		final List<StructIdxDirectory> rawFolder = folderData.getDirectories();
-		final List<StructIdxFile> rawFiles = folderData.getFileLinks();
+		final List<IdxDirectoryAttribute> folderAttributes = folderData.getDirectories();
+		final List<IdxFileAttribute> fileAttributes = folderData.getFileLinks();
 
-		final List<BaseIdxEntry> childs = new ArrayList<>(rawFolder.size() + rawFiles.size());
-		for (final StructIdxDirectory sdir : rawFolder) {
-			final BaseIdxDirectory dir = new BaseLazyIdxDirectory(baseIdxDirectory, sdir.name, sdir.directoryIndex);
+		final List<BaseIdxEntry> childs = new ArrayList<>(folderAttributes.size() + fileAttributes.size());
+		for (final IdxDirectoryAttribute folderAttribute : folderAttributes) {
+			final BaseIdxDirectory dir = new BaseLazyIdxDirectory(baseIdxDirectory, folderAttribute.getName(), folderAttribute.getDirectoryIndex());
 			childs.add(dir);
 		}
 
-		for (final StructIdxFile sfile : rawFiles) {
-			final BaseIdxFileLink file = new BaseIdxFileLink(baseIdxDirectory, sfile.name, sfile.flags, sfile.writeTime, sfile.uncompressedSize,
-					sfile.compressedSize, sfile.hash, sfile.unk_034);
-			childs.add(file);
+		for (final IdxFileAttribute sfile : fileAttributes) {
+			final BaseIdxFileLink fileAttribute = new BaseIdxFileLink(baseIdxDirectory, sfile.getName(), sfile.getFlags(), sfile.getWriteTime(),
+					sfile.getUncompressedSize(), sfile.getCompressedSize(), sfile.getHash(), sfile.getUnk_034());
+			childs.add(fileAttribute);
 		}
 
 		return childs;

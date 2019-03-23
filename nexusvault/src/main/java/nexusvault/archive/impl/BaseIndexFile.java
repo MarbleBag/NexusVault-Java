@@ -11,6 +11,7 @@ import java.util.List;
 import kreed.io.util.BinaryReader;
 import kreed.io.util.BinaryWriter;
 import kreed.io.util.Seek;
+import nexusvault.archive.ArchiveMemoryException;
 import nexusvault.archive.impl.ArchiveMemoryModel.MemoryBlock;
 import nexusvault.archive.struct.StructAIDX;
 import nexusvault.archive.struct.StructIdxDirectory;
@@ -91,17 +92,28 @@ final class BaseIndexFile extends AbstractArchiveFile implements IndexFile {
 				throw new IntegerOverflowException("number of file links");
 			}
 
-			final List<StructIdxDirectory> directories = new ArrayList<>((int) numSubDirectories);
+			final List<IdxDirectoryAttribute> directories = new ArrayList<>((int) numSubDirectories);
 			for (int i = 0; i < numSubDirectories; ++i) {
-				final StructIdxDirectory dir = new StructIdxDirectory((int) reader.readUInt32(), (int) reader.readUInt32());
-				final int nullTerminator = nameTwine.indexOf(0, dir.nameOffset);
-				dir.name = nameTwine.substring(dir.nameOffset, nullTerminator);
-				directories.add(dir);
+				final int nameOffset = (int) reader.readUInt32();
+				final int directoryIndex = (int) reader.readUInt32();
+
+				if (nameOffset < 0) {
+					throw new IntegerOverflowException("'nameOffset'");
+				}
+
+				if (directoryIndex < 0) {
+					throw new IntegerOverflowException("'directoryIndex'");
+				}
+
+				final int nullTerminator = nameTwine.indexOf(0, nameOffset);
+				final String directoryName = nameTwine.substring(nameOffset, nullTerminator);
+
+				directories.add(new IdxDirectoryAttribute(directoryName, directoryIndex));
 			}
 
-			final List<StructIdxFile> fileLinks = new ArrayList<>((int) numFiles);
+			final List<IdxFileAttribute> fileLinks = new ArrayList<>((int) numFiles);
 			for (long i = 0; i < numFiles; ++i) {
-				final long nameOffset = reader.readUInt32();
+				final int nameOffset = (int) reader.readUInt32();
 				final int flags = reader.readInt32();
 				final long writeTime = reader.readInt64();
 				final long uncompressedSize = reader.readInt64();
@@ -110,11 +122,14 @@ final class BaseIndexFile extends AbstractArchiveFile implements IndexFile {
 				reader.readInt8(hash, 0, hash.length);
 				final int unk_034 = reader.readInt32();
 
-				final StructIdxFile fileLink = new StructIdxFile(nameOffset, flags, writeTime, uncompressedSize, compressedSize, hash, unk_034);
+				if (nameOffset < 0) {
+					throw new IntegerOverflowException("'nameOffset'");
+				}
 
-				final int nullTerminator = nameTwine.indexOf(0, (int) fileLink.nameOffset);
-				fileLink.name = nameTwine.substring((int) fileLink.nameOffset, nullTerminator);
-				fileLinks.add(fileLink);
+				final int nullTerminator = nameTwine.indexOf(0, nameOffset);
+				final String fileName = nameTwine.substring(nameOffset, nullTerminator);
+
+				fileLinks.add(new IdxFileAttribute(fileName, flags, writeTime, uncompressedSize, compressedSize, hash, unk_034));
 			}
 
 			return new IndexDirectoryData(directories, fileLinks);
@@ -140,6 +155,12 @@ final class BaseIndexFile extends AbstractArchiveFile implements IndexFile {
 
 	@Override
 	public long writeDirectoryData(long packIdx, IndexDirectoryData data) throws IOException {
+		if (packIdx == -1) { // pack unavailable
+			final StructPackHeader pack = writeNewIndexDirectory(data);
+			packIdx = writeNewPack(pack);
+			return packIdx;
+		}
+
 		if (isPackAvailable(packIdx)) { // pack available
 			StructPackHeader pack = getPack(packIdx);
 			if (pack.offset == 0) { // directory new -> create directory, overwrite pack
@@ -160,10 +181,8 @@ final class BaseIndexFile extends AbstractArchiveFile implements IndexFile {
 	}
 
 	@Override
-	public void overwriteFileAttribute(long packIdx, int fileIndex, byte[] hash, StructIdxFile file) throws IOException {
-		if (!isPackAvailable(packIdx)) {
-			throw new IllegalArgumentException(String.format("Pack with index %d not found", packIdx));
-		}
+	public void overwriteFileAttribute(long packIdx, int fileIndex, byte[] hash, IdxFileAttribute fileAttribute) throws IOException {
+		checkPackAvailability(packIdx);
 
 		final StructPackHeader pack = getPack(packIdx);
 		if (pack.offset == 0) {
@@ -209,12 +228,18 @@ final class BaseIndexFile extends AbstractArchiveFile implements IndexFile {
 
 		try (BinaryWriter writer = getFileWriter()) {
 			writer.seek(Seek.BEGIN, fileOffset + 0x04); // +nameOffset
-			writer.writeInt32(file.flags);
-			writer.writeInt64(file.writeTime);
-			writer.writeInt64(file.uncompressedSize);
-			writer.writeInt64(file.compressedSize);
-			writer.writeInt8(file.hash, 0, 20);
-			writer.writeInt32(file.unk_034);
+			writer.writeInt32(fileAttribute.getFlags());
+			writer.writeInt64(fileAttribute.getWriteTime());
+			writer.writeInt64(fileAttribute.getUncompressedSize());
+			writer.writeInt64(fileAttribute.getCompressedSize());
+			writer.writeInt8(fileAttribute.getHash(), 0, 20);
+			writer.writeInt32(fileAttribute.getUnk_034());
+		}
+	}
+
+	private void checkPackAvailability(long packIdx) {
+		if (!isPackAvailable(packIdx)) {
+			throw new IndexOutOfBoundsException(String.format("Pack with index %d not found", packIdx));
 		}
 	}
 
@@ -226,22 +251,16 @@ final class BaseIndexFile extends AbstractArchiveFile implements IndexFile {
 	private long computeDirectoryDataSize(IndexDirectoryData data) {
 		long expectedSize = 2 * Integer.BYTES;
 
-		final List<StructIdxDirectory> dirs = data.getDirectories();
+		final List<IdxDirectoryAttribute> dirs = data.getDirectories();
 		expectedSize += dirs.size() * StructIdxDirectory.SIZE_IN_BYTES;
-		for (final StructIdxDirectory dir : dirs) {
-			if (dir.name == null) {
-				throw new IllegalStateException("Directory has no name");
-			}
-			expectedSize += (dir.name.length() * 1) + 1;
+		for (final IdxDirectoryAttribute dir : dirs) {
+			expectedSize += (dir.getName().length() * 1) + 1; // UTF8, max 1 byte per character
 		}
 
-		final List<StructIdxFile> files = data.getFileLinks();
+		final List<IdxFileAttribute> files = data.getFileLinks();
 		expectedSize += files.size() * StructIdxFile.SIZE_IN_BYTES;
-		for (final StructIdxFile file : files) {
-			if (file.name == null) {
-				throw new IllegalStateException("File has no name");
-			}
-			expectedSize += (file.name.length() * 1) + 1;
+		for (final IdxFileAttribute file : files) {
+			expectedSize += (file.getName().length() * 1) + 1; // UTF8, max 1 byte per character
 		}
 		return expectedSize;
 	}
@@ -249,19 +268,19 @@ final class BaseIndexFile extends AbstractArchiveFile implements IndexFile {
 	private StructPackHeader overwriteIndexDirectory(StructPackHeader pack, IndexDirectoryData data) throws IOException {
 		final long expectedSize = computeDirectoryDataSize(data);
 
-		StructPackHeader newPack;
 		MemoryBlock memoryBlock = findMemoryBlock(pack.offset);
-		if (!((expectedSize < pack.size) || (expectedSize < memoryBlock.size()))) {
+		if (expectedSize > memoryBlock.size()) {
 			freeMemoryBlock(memoryBlock);
 			memoryBlock = allocateMemory(expectedSize);
 		}
 
+		StructPackHeader newPack;
 		try (BinaryWriter writer = getFileWriter()) {
 			newPack = writeIndexDirectory(writer, memoryBlock.position(), data);
 		}
 
-		if (newPack.size > pack.size) {
-			throw new IllegalStateException(); // TODO oh no
+		if (newPack.size > memoryBlock.size()) {
+			throw new ArchiveMemoryException("MemoryBlock size violation. Possible write operation outside of allocation.");
 		}
 
 		return newPack;
@@ -271,15 +290,16 @@ final class BaseIndexFile extends AbstractArchiveFile implements IndexFile {
 		final long expectedSize = computeDirectoryDataSize(data);
 		final MemoryBlock block = allocateMemory(expectedSize);
 
+		StructPackHeader pack;
 		try (BinaryWriter writer = getFileWriter()) {
-			final StructPackHeader pack = writeIndexDirectory(writer, block.position(), data);
-
-			if (pack.size > block.size()) {
-				throw new IllegalStateException(); // TODO oh no
-			}
-
-			return pack;
+			pack = writeIndexDirectory(writer, block.position(), data);
 		}
+
+		if (pack.size > block.size()) {
+			throw new ArchiveMemoryException("MemoryBlock size violation. Possible write operation outside of allocation.");
+		}
+
+		return pack;
 	}
 
 	private StructPackHeader writeIndexDirectory(BinaryWriter writer, long offset, IndexDirectoryData data) {
@@ -291,43 +311,35 @@ final class BaseIndexFile extends AbstractArchiveFile implements IndexFile {
 
 		int nameOffset = 0;
 
-		for (final StructIdxDirectory dir : data.getDirectories()) {
-			dir.nameOffset = nameOffset;
-			final String name = dir.name;
-			if (name == null) {
-				throw new IllegalStateException("Directory has no name");
-			}
-			final byte[] nameBytes = name.getBytes(StandardCharsets.UTF_8);
+		for (final IdxDirectoryAttribute dir : data.getDirectories()) {
+			final byte[] nameBytes = dir.getName().getBytes(StandardCharsets.UTF_8);
+
+			writer.writeInt32(nameOffset);
+			writer.writeInt32(dir.getDirectoryIndex());
+
 			nameOffset += nameBytes.length + 1;
-
-			writer.writeInt32(dir.nameOffset);
-			writer.writeInt32(dir.directoryIndex);
 		}
 
-		for (final StructIdxFile file : data.getFileLinks()) {
-			file.nameOffset = nameOffset;
-			final String name = file.name;
-			if (name == null) {
-				throw new IllegalStateException("File has no name");
-			}
-			final byte[] nameBytes = name.getBytes(StandardCharsets.UTF_8);
+		for (final IdxFileAttribute file : data.getFileLinks()) {
+			final byte[] nameBytes = file.getName().getBytes(StandardCharsets.UTF_8);
+
+			writer.writeInt32(nameOffset);
+			writer.writeInt32(file.getFlags());
+			writer.writeInt64(file.getWriteTime());
+			writer.writeInt64(file.getUncompressedSize());
+			writer.writeInt64(file.getCompressedSize());
+			writer.writeInt8(file.getHash(), 0, 20);
+			writer.writeInt32(file.getUnk_034());
+
 			nameOffset += nameBytes.length + 1;
-
-			writer.writeInt32(file.nameOffset);
-			writer.writeInt32(file.flags);
-			writer.writeInt64(file.writeTime);
-			writer.writeInt64(file.uncompressedSize);
-			writer.writeInt64(file.compressedSize);
-			writer.writeInt8(file.hash, 0, 20);
-			writer.writeInt32(file.unk_034);
 		}
 
-		for (final StructIdxDirectory dir : data.getDirectories()) {
-			writeIndexName(writer, dir.name);
+		for (final IdxDirectoryAttribute dir : data.getDirectories()) {
+			writeIndexName(writer, dir.getName());
 		}
 
-		for (final StructIdxFile file : data.getFileLinks()) {
-			writeIndexName(writer, file.name);
+		for (final IdxFileAttribute file : data.getFileLinks()) {
+			writeIndexName(writer, file.getName());
 		}
 
 		final long size = writer.getPosition() - position;
@@ -337,8 +349,10 @@ final class BaseIndexFile extends AbstractArchiveFile implements IndexFile {
 	private void writeIndexName(BinaryWriter writer, String name) {
 		final byte[] nameBytes = name.getBytes(StandardCharsets.UTF_8);
 		if (name.length() != nameBytes.length) {
-			throw new IllegalStateException(); // TODO Shit hits the fan again
+			throw new IllegalStateException(
+					String.format("Names which contain characters which span multiple codepoints are not supported. Invalid Name: %s", name));
 		}
+
 		writer.writeInt8(nameBytes, 0, nameBytes.length);
 		writer.writeInt8(0); // 0 terminated
 	}

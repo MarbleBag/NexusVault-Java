@@ -15,14 +15,13 @@ import java.util.Queue;
 import kreed.io.util.BinaryReader;
 import kreed.io.util.ByteBufferBinaryReader;
 import kreed.io.util.Seek;
+import nexusvault.archive.CompressionType;
 import nexusvault.archive.IdxEntryNotADirectoryException;
 import nexusvault.archive.IdxEntryNotAFileException;
 import nexusvault.archive.IdxEntryNotFoundException;
 import nexusvault.archive.IdxPath;
 import nexusvault.archive.NexusArchiveWriter;
 import nexusvault.archive.impl.IndexFile.IndexDirectoryData;
-import nexusvault.archive.struct.StructIdxDirectory;
-import nexusvault.archive.struct.StructIdxFile;
 
 public class BaseNexusArchiveWriter implements NexusArchiveWriter {
 
@@ -132,35 +131,36 @@ public class BaseNexusArchiveWriter implements NexusArchiveWriter {
 			indexFile.enableWriteMode();
 			archiveFile.enableWriteMode();
 
-			final List<StructIdxDirectory> directories = new ArrayList<>();
-			final List<StructIdxFile> files = new ArrayList<>();
+			final List<IdxDirectoryAttribute> directories = new ArrayList<>();
+			final List<IdxFileAttribute> files = new ArrayList<>();
 
 			for (final TreeDirectory subdir : directory.getDirectories()) {
-				final StructIdxDirectory sdir = new StructIdxDirectory(-1, subdir.getDirectoryIndex());
-				sdir.name = subdir.getName();
-				directories.add(sdir);
+				final var attribute = new IdxDirectoryAttribute(subdir.getName(), subdir.getDirectoryIndex());
+				directories.add(attribute);
 			}
 
 			for (final TreeFile file : directory.getFiles()) {
-				StructIdxFile sfile = file.getFileInfo();
 
+				IdxFileAttribute fileAttribute;
 				if (file.hasFlags(TreeEntry.FLAG_NEW)) {
-					sfile = writeToArchive(null, file.getFileData());
-					sfile.name = file.getName();
+					fileAttribute = writeToArchive(null, file.getFileData());
+					fileAttribute.setName(file.getName());
 				} else if (file.hasFlags(TreeEntry.FLAG_NEW_DATA)) {
-					if (sfile == null) {
+					fileAttribute = file.getFileAttribute();
+					if (fileAttribute == null) {
 						throw new IllegalStateException(); // TODO
 					}
-					sfile = writeToArchive(sfile.hash, file.getFileData());
-					sfile.name = file.getName();
+					fileAttribute = writeToArchive(fileAttribute.getHash(), file.getFileData());
+					fileAttribute.setName(file.getName());
 				} else {
-					if (sfile == null) {
+					fileAttribute = file.getFileAttribute();
+					if (fileAttribute == null) {
 						throw new IllegalStateException(); // TODO
 					}
 				}
 
-				file.setFileInfo(sfile);
-				files.add(sfile);
+				file.setFileAttribute(fileAttribute);
+				files.add(fileAttribute);
 				file.clearFlags();
 			}
 
@@ -177,9 +177,9 @@ public class BaseNexusArchiveWriter implements NexusArchiveWriter {
 			int index = 0;
 			for (final TreeFile file : directory.getFiles()) {
 				if (file.hasFlags(TreeEntry.FLAG_NEW_DATA)) {
-					StructIdxFile sfile = file.getFileInfo();
-					sfile = writeToArchive(sfile.hash, file.getFileData());
-					indexFile.overwriteFileAttribute(directory.getDirectoryIndex(), index, sfile.hash, sfile);
+					var fileAttribute = file.getFileAttribute();
+					fileAttribute = writeToArchive(fileAttribute.getHash(), file.getFileData());
+					indexFile.overwriteFileAttribute(directory.getDirectoryIndex(), index, fileAttribute.getHash(), fileAttribute);
 				}
 				index++;
 			}
@@ -203,7 +203,7 @@ public class BaseNexusArchiveWriter implements NexusArchiveWriter {
 		return directory.hasFlags(TreeEntry.FLAG_NEW);
 	}
 
-	private StructIdxFile writeToArchive(byte[] oldHash, DataSource data) throws IOException {
+	private IdxFileAttribute writeToArchive(byte[] oldHash, DataSource data) throws IOException {
 		final BinaryReader uncompressedData = data.getData();
 		final DataSourceConfig config = data.getConfig();
 		final BinaryReader compressedData = compress(uncompressedData, config.getRequestedCompressionType());
@@ -218,7 +218,8 @@ public class BaseNexusArchiveWriter implements NexusArchiveWriter {
 			archiveFile.replaceArchiveData(oldHash, hash, compressedData);
 		}
 
-		return new StructIdxFile(-1, config.getRequestedCompressionType().getFlag(), System.currentTimeMillis(), uncompressedSize, compressedSize, hash, 0);
+		final int flags = config.getRequestedCompressionType().getFlag();
+		return new IdxFileAttribute("", flags, System.currentTimeMillis(), uncompressedSize, compressedSize, hash, 0);
 	}
 
 	private BinaryReader compress(BinaryReader originalData, CompressionType compressionType) {
@@ -423,8 +424,8 @@ public class BaseNexusArchiveWriter implements NexusArchiveWriter {
 			directoryIndex = (int) packIdx;
 		}
 
-		public TreeDirectory(TreeDirectory parent, StructIdxDirectory directory) {
-			this(parent, directory.name, directory.directoryIndex);
+		public TreeDirectory(TreeDirectory parent, IdxDirectoryAttribute directoryAttribute) {
+			this(parent, directoryAttribute.getName(), directoryAttribute.getDirectoryIndex());
 		}
 
 		/**
@@ -504,25 +505,25 @@ public class BaseNexusArchiveWriter implements NexusArchiveWriter {
 	}
 
 	private static final class TreeFile extends TreeEntry {
-		private StructIdxFile file;
+		private IdxFileAttribute fileAttribute;
 		private DataSource data;
 
-		public TreeFile(TreeDirectory parent, StructIdxFile file) {
-			super(parent, file.name);
-			this.file = file;
+		public TreeFile(TreeDirectory parent, IdxFileAttribute fileAttribute) {
+			super(parent, fileAttribute.getName());
+			this.fileAttribute = fileAttribute;
 		}
 
 		public TreeFile(TreeDirectory parent, String name) {
 			super(parent, name);
-			file = null;
+			fileAttribute = null;
 		}
 
-		protected void setFileInfo(StructIdxFile info) {
-			file = info;
+		protected void setFileAttribute(IdxFileAttribute info) {
+			fileAttribute = info;
 		}
 
-		public StructIdxFile getFileInfo() {
-			return file;
+		public IdxFileAttribute getFileAttribute() {
+			return fileAttribute;
 		}
 
 		public void setFileData(DataSource data) {
