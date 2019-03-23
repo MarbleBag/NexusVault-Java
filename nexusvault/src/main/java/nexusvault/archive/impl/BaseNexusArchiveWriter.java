@@ -126,7 +126,7 @@ public class BaseNexusArchiveWriter implements NexusArchiveWriter {
 			}
 		}
 
-		if (isDirectoryNew(directory) || isDirectoryChildNew(directory) || hasMoreThanNFilesChanged(directory, 1)) {
+		if (isDirectoryNew(directory) || isADirectoryChildNew(directory) || hasMoreThanNFilesChanged(directory, 1)) {
 
 			indexFile.enableWriteMode();
 			archiveFile.enableWriteMode();
@@ -195,8 +195,18 @@ public class BaseNexusArchiveWriter implements NexusArchiveWriter {
 		return i < 0;
 	}
 
-	private boolean isDirectoryChildNew(TreeDirectory directory) {
-		return directory.hasFlags(TreeEntry.FLAG_NEW); // TODO
+	private boolean isADirectoryChildNew(TreeDirectory directory) {
+		for (final var child : directory.getDirectories()) {
+			if (child.hasFlags(TreeEntry.FLAG_NEW)) {
+				return true;
+			}
+		}
+		for (final var child : directory.getFiles()) {
+			if (child.hasFlags(TreeEntry.FLAG_NEW)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	private boolean isDirectoryNew(TreeDirectory directory) {
@@ -274,12 +284,21 @@ public class BaseNexusArchiveWriter implements NexusArchiveWriter {
 	}
 
 	private void completeFileTree(DataSource source, IdxPath destination) {
+		if (source == null) {
+			throw new IllegalArgumentException("'source' must not be null");
+		}
+
+		if (destination == null) {
+			throw new IllegalArgumentException("'destination' must not be null");
+		}
+
 		final TreeFile file = findOrCreateFile(destination);
 		file.setFileData(source);
 	}
 
 	private TreeFile findOrCreateFile(IdxPath destination) {
-		return findOrCreateFile(destination.iterateElements().iterator());
+		final Iterator<String> iterator = destination.iterateElements().iterator();
+		return findOrCreateFile(iterator);
 	}
 
 	private TreeFile findOrCreateFile(Iterator<String> path) {
@@ -339,6 +358,7 @@ public class BaseNexusArchiveWriter implements NexusArchiveWriter {
 			CHILD_WAITS_FOR_UPDATE,
 		}
 
+		// TODO not so happy
 		public static final int FLAG_NEW = 1;
 		public static final int FLAG_ADDED = 2;
 		public static final int FLAG_NEW_DATA = 4;
@@ -445,12 +465,14 @@ public class BaseNexusArchiveWriter implements NexusArchiveWriter {
 
 		protected void addDirectory(TreeDirectory subdir) {
 			directories.add(subdir);
+			setFlags(FLAG_CHILD_CHANGED);
 			subdir.setFlags(FLAG_ADDED);
 			subdir.notifyParentAboutPendingWriteUpdate();
 		}
 
 		protected void addFile(TreeFile file) {
 			files.add(file);
+			setFlags(FLAG_CHILD_CHANGED);
 			file.setFlags(FLAG_ADDED);
 			file.notifyParentAboutPendingWriteUpdate();
 		}
