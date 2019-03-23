@@ -46,7 +46,7 @@ abstract class AbstractArchiveFile {
 	}
 
 	protected boolean isPackAvailable(long index) {
-		return packFile.isPackAvailable(index);
+		return index < packFile.getPackArraySize();
 	}
 
 	protected int getPackArraySize() {
