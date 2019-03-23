@@ -17,11 +17,6 @@ public final class StructIdxDirectory {
 	@StructField(DataType.UBIT_32)
 	public int directoryIndex; // 0x004
 
-	/**
-	 * Name of the directory. Not part of the struct.
-	 */
-	public String name;
-
 	public StructIdxDirectory() {
 
 	}

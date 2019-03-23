@@ -43,11 +43,6 @@ public final class StructIdxFile {
 	@StructField(DataType.BIT_32)
 	public int unk_034; // 0x034
 
-	/**
-	 * Name of the file. Not part of the struct.
-	 */
-	public String name;
-
 	public StructIdxFile() {
 
 	}
