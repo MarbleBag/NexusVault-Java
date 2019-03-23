@@ -35,8 +35,8 @@ public interface IdxEntry {
 	IdxPath getPath();
 
 	/**
-	 * @return the {@link NexusArchiveReader archive} this entry belongs to
+	 * @return the {@link NexusArchive archive} this entry belongs to
 	 */
-	NexusArchiveReader getArchive();
+	NexusArchive getArchive();
 
 }

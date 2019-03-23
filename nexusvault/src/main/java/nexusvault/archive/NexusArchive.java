@@ -6,17 +6,17 @@ import java.nio.file.Path;
 import nexusvault.archive.impl.BaseNexusArchiveReader;
 import nexusvault.archive.util.IdxFileCollector;
 
-public interface NexusArchiveReader {
+public interface NexusArchive {
 
 	/**
-	 * Creates a default {@link NexusArchiveReader}
+	 * Creates a default {@link NexusArchive}
 	 */
-	public static NexusArchiveReader loadArchive(Path archiveOrIndex) throws IOException {
-		return BaseNexusArchiveReader.loadArchive(archiveOrIndex); // TODO
+	public static NexusArchive loadArchive(Path archiveOrIndex) throws IOException {
+		return BaseNexusArchiveReader.loadArchive(archiveOrIndex);
 	}
 
 	/**
-	 * Contains informations about the source of a {@link NexusArchiveReader}
+	 * Contains informations about the source of a {@link NexusArchive}
 	 */
 	public static interface NexusArchiveSource {
 		Path getIndexFile();
