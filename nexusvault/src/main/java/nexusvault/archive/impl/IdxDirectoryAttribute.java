@@ -54,7 +54,7 @@ public final class IdxDirectoryAttribute {
 
 	/**
 	 * @throws IllegalArgumentException
-	 *             if <tt>name</tt> is null
+	 *             if <code>name</code> is null
 	 */
 	public void setName(String name) {
 		if (name == null) {

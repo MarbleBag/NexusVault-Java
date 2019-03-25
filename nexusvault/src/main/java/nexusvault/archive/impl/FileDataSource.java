@@ -16,7 +16,7 @@ public final class FileDataSource extends AbstractDataSource implements DataSour
 
 	/**
 	 * @throws IllegalArgumentException
-	 *             if <tt>path</tt> is null
+	 *             if <code>path</code> is null
 	 */
 	public FileDataSource(Path path) {
 		if (path == null) {

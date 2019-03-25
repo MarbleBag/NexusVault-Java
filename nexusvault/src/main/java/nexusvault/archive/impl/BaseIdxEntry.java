@@ -14,7 +14,7 @@ abstract class BaseIdxEntry implements IdxEntry {
 
 	/**
 	 * @throws IllegalArgumentException
-	 *             if <tt>name</tt> is null or contains an {@link IdxPath#SEPARATOR illegal character}
+	 *             if <code>name</code> is null or contains an {@link IdxPath#SEPARATOR illegal character}
 	 */
 	protected BaseIdxEntry(BaseIdxDirectory parent, String name) {
 		if (name == null) {

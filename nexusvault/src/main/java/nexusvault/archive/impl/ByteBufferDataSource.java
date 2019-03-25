@@ -12,7 +12,7 @@ public final class ByteBufferDataSource extends AbstractDataSource implements Da
 
 	/**
 	 * @throws IllegalArgumentException
-	 *             if <tt>buffer</tt> is null
+	 *             if <code>buffer</code> is null
 	 */
 	public ByteBufferDataSource(ByteBuffer buffer) {
 		if (buffer == null) {

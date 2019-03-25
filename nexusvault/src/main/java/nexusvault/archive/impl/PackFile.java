@@ -25,7 +25,7 @@ interface PackFile {
 	 * @throws IOException
 	 *             if an I/O error occurs
 	 * @throws IllegalArgumentException
-	 *             if <tt>path</tt> is null
+	 *             if <code>path</code> is null
 	 * @throws IllegalStateException
 	 *             if another file is already opened
 	 */
@@ -57,12 +57,12 @@ interface PackFile {
 	ArchiveMemoryModel getMemoryModel() throws IllegalStateException;
 
 	/**
-	 * Returns the {@link StructPackHeader} for <tt>packIdx</tt>.
+	 * Returns the {@link StructPackHeader} for <code>packIdx</code>.
 	 *
-	 * @return {@link StructPackHeader} associated with <tt>packIdx</tt>
+	 * @return {@link StructPackHeader} associated with <code>packIdx</code>
 	 *
 	 * @throws IllegalArgumentException
-	 *             if <tt>packIdx</tt> is negative or equal or greater than {@link #getPackArraySize()}
+	 *             if <code>packIdx</code> is negative or equal or greater than {@link #getPackArraySize()}
 	 */
 	StructPackHeader getPack(long packIdx);
 
@@ -74,17 +74,17 @@ interface PackFile {
 	int getPackArraySize();
 
 	/**
-	 * Overwrites {@link StructPackHeader} at <tt>packIdx</tt>
+	 * Overwrites {@link StructPackHeader} at <code>packIdx</code>
 	 *
 	 * @param pack
-	 *            will be written at <tt>packIdx</tt>
+	 *            will be written at <code>packIdx</code>
 	 * @param packIdx
-	 *            index at which <tt>pack</tt> should be written
+	 *            index at which <code>pack</code> should be written
 	 *
 	 * @throws IllegalArgumentException
-	 *             if <tt>pack</tt> is null
+	 *             if <code>pack</code> is null
 	 * @throws IllegalArgumentException
-	 *             if <tt>packIdx</tt> is negative or equal or greater than {@link #getPackArraySize()}
+	 *             if <code>packIdx</code> is negative or equal or greater than {@link #getPackArraySize()}
 	 * @throws IOException
 	 *             if an I/O error occurs
 	 * 
@@ -97,10 +97,10 @@ interface PackFile {
 	 *
 	 * @param pack
 	 *            to write
-	 * @return a new <tt>packIdx</tt> which will now be associated with the given <tt>pack</tt>
+	 * @return a new <code>packIdx</code> which will now be associated with the given <code>pack</code>
 	 *
 	 * @throws IllegalArgumentException
-	 *             if <tt>pack</tt> is null
+	 *             if <code>pack</code> is null
 	 * @throws IOException
 	 *             if an I/O error occurs
 	 *
@@ -115,7 +115,7 @@ interface PackFile {
 	 * The minimal value is 1.
 	 *
 	 * @throws IllegalArgumentException
-	 *             if <tt>value</tt> is equal or less than 0
+	 *             if <code>value</code> is equal or less than 0
 	 */
 	void setPackArrayAutoGrowSize(int value);
 
@@ -134,7 +134,7 @@ interface PackFile {
 	 * @throws IOException
 	 *             if an I/O error occurs
 	 * @throws IllegalArgumentException
-	 *             if <tt>packIdx</tt> is negative or equal or greater than {@link #getPackArraySize()}
+	 *             if <code>packIdx</code> is negative or equal or greater than {@link #getPackArraySize()}
 	 * 
 	 * @see #getPackArraySize()
 	 */

@@ -10,7 +10,7 @@ public final class StructIdxFile {
 	public static final int SIZE_IN_BYTES = StructUtil.sizeOf(StructIdxFile.class);
 
 	/**
-	 * A {@code nameOffset} of <tt>-1</tt> indicates, that no offset is set
+	 * A {@code nameOffset} of <code>-1</code> indicates, that no offset is set
 	 */
 	@Order(1)
 	@StructField(DataType.UBIT_32)

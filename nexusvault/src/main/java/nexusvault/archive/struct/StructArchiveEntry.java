@@ -29,7 +29,7 @@ public final class StructArchiveEntry {
 
 	/**
 	 * @throws IllegalArgumentException
-	 *             if <tt>hash</tt> is null
+	 *             if <code>hash</code> is null
 	 */
 	public StructArchiveEntry(long packIdx, byte[] hash, long size) {
 		super();

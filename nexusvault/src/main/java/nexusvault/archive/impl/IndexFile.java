@@ -78,10 +78,10 @@ public interface IndexFile {
 	long writeDirectoryData(IndexDirectoryData data) throws IOException;
 
 	/**
-	 * Overwrites the data at <tt>packIdx</tt> position, or writes new data if <tt>packIdx</tt> is equal to {@link #UNUSED_INDEX}
+	 * Overwrites the data at <code>packIdx</code> position, or writes new data if <code>packIdx</code> is equal to {@link #UNUSED_INDEX}
 	 *
 	 * @param index
-	 *            that should be overwriten, in case <tt>index</tt> is equal to {@link #UNUSED_INDEX}, a new entry will be written
+	 *            that should be overwriten, in case <code>index</code> is equal to {@link #UNUSED_INDEX}, a new entry will be written
 	 * @param data
 	 * @return index that is now associated to the given directory data
 	 * @throws IOException

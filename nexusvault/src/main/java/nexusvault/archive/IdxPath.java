@@ -10,14 +10,14 @@ import nexusvault.archive.impl.BaseIdxPath;
  * A path is independent regarding any archive, so it is possible to create a path, which may not point to a file for some, or any archives at all.
  * <p>
  * A path is a fixed sequence of named elements. Each named element will be handled in a case-insensitive manner.<br>
- * If a path does not contain any elements, thus it is empty, it is called a <tt>root path</tt>. Each named element represents a directory. Only the last named
+ * If a path does not contain any elements, thus it is empty, it is called a <code>root path</code>. Each named element represents a directory. Only the last named
  * element can represent a file or a directory. A path can also be expressed as a {@link String} of its named elements, each separated by a {@link #SEPARATOR
- * delimiting character}. The {@link String} representation of a <tt>root path</tt> is equivalent to an empty {@link String}.
+ * delimiting character}. The {@link String} representation of a <code>root path</code> is equivalent to an empty {@link String}.
  */
 public interface IdxPath extends Cloneable, Comparable<IdxPath> {
 
 	/**
-	 * The separator <tt>\</tt> which is equal to the separator used in the archive specification
+	 * The separator <code>\</code> which is equal to the separator used in the archive specification
 	 */
 	public static final String SEPARATOR = "\\";
 
@@ -39,21 +39,21 @@ public interface IdxPath extends Cloneable, Comparable<IdxPath> {
 	}
 
 	/**
-	 * Resolves this path against the given <tt>root</tt>.
+	 * Resolves this path against the given <code>root</code>.
 	 * <p>
-	 * To do so, this method checks if <tt>root</tt> contains a child which name is equal to the first element of this path. Is this true, the process will
+	 * To do so, this method checks if <code>root</code> contains a child which name is equal to the first element of this path. Is this true, the process will
 	 * continue with the child and the next element of this path, until all elements of this path are traversed and the last found child is returned.
 	 * <p>
 	 * If at any point no child can be found, a {@link IdxEntryNotFoundException} is thrown. If another named element, beside the last named element, references
 	 * a {@link IdxFileLink}, thus it is impossible to reach the end of the path, a {@link IdxEntryNotADirectoryException} is thrown.
 	 * <p>
-	 * If this path is a root path, the returned value is the given <tt>root</tt>.
+	 * If this path is a root path, the returned value is the given <code>root</code>.
 	 *
 	 * @param root
 	 *            start point of this path
 	 * @return the resolved entry
 	 * @throws IllegalArgumentException
-	 *             If <tt>root</tt> is null
+	 *             If <code>root</code> is null
 	 * @throws IdxEntryNotFoundException
 	 *             If no entry can be found for a named element
 	 * @throws IdxEntryNotADirectoryException
@@ -64,19 +64,19 @@ public interface IdxPath extends Cloneable, Comparable<IdxPath> {
 	IdxEntry resolve(IdxEntry root) throws IdxEntryNotFoundException;
 
 	/**
-	 * Tries to resolve this path against the given <tt>root</tt>.<br>
-	 * Returns <tt>true</tt> if and only if there is a valid path, starting at <tt>root</tt> and ending at {@link #getLastName()} with a equally named
+	 * Tries to resolve this path against the given <code>root</code>.<br>
+	 * Returns <code>true</code> if and only if there is a valid path, starting at <code>root</code> and ending at {@link #getLastName()} with a equally named
 	 * {@link IdxEntry}, with one exception:
 	 * <p>
-	 * If this path is a root path (it does not contain any elements), the returned value will always be <tt>true</tt>, because a root path, always matches its
-	 * given <tt>root</tt>.
+	 * If this path is a root path (it does not contain any elements), the returned value will always be <code>true</code>, because a root path, always matches its
+	 * given <code>root</code>.
 	 *
 	 * @param root
 	 *            - entry to start
 	 * @return true if the path is resolvable
 	 *
 	 * @throws IllegalArgumentException
-	 *             If <tt>root</tt> is null
+	 *             If <code>root</code> is null
 	 *
 	 * @see #resolve(IdxEntry)
 	 */
@@ -87,7 +87,7 @@ public interface IdxPath extends Cloneable, Comparable<IdxPath> {
 	 * <ul>
 	 * <li>If the input is an empty string: The returned path is equal to this path
 	 * <li>If the input is equal to the {@link #SEPARATOR separator}: The returned path is equal to {@link #getRoot()}
-	 * <li>If the input is equal to <tt>..</tt>: The returned path is equal to {@link #getParent()}
+	 * <li>If the input is equal to <code>..</code>: The returned path is equal to {@link #getParent()}
 	 * <li>If the input is a string: The returned path is equal to {@link #pathToChild(String)}
 	 * </ul>
 	 *
@@ -96,14 +96,14 @@ public interface IdxPath extends Cloneable, Comparable<IdxPath> {
 	 * @return a new path or this path, if element is empty
 	 * @throws IllegalArgumentException
 	 *             <ul>
-	 *             <li>If <tt>element</tt> is <tt>null</tt>
-	 *             <li>If <tt>element</tt> contains at least one {@link #SEPARATOR separator}
+	 *             <li>If <code>element</code> is <code>null</code>
+	 *             <li>If <code>element</code> contains at least one {@link #SEPARATOR separator}
 	 *             </ul>
 	 */
 	IdxPath resolve(String element);
 
 	/**
-	 * Returns a new path that is an extension of this path and includes the given child as its new <tt>last element</tt>.
+	 * Returns a new path that is an extension of this path and includes the given child as its new <code>last element</code>.
 	 */
 	IdxPath pathToChild(String childName);
 
@@ -122,18 +122,18 @@ public interface IdxPath extends Cloneable, Comparable<IdxPath> {
 	IdxPath pathToSibling(String siblingName) throws IdxPathInvalidException;
 
 	/**
-	 * @return a <tt>root path</tt>
+	 * @return a <code>root path</code>
 	 */
 	IdxPath getRoot();
 
 	/**
 	 *
-	 * @return true iff this path is a <tt>root path</tt>
+	 * @return true iff this path is a <code>root path</code>
 	 */
 	boolean isRoot();
 
 	/**
-	 * The parent path of this path. That is a path that is equal to this path from the named elements beginning at <tt>0 to {@link #length() length} - 1</tt>
+	 * The parent path of this path. That is a path that is equal to this path from the named elements beginning at <code>0 to {@link #length() length} - 1</code>
 	 *
 	 * @return
 	 */
@@ -142,16 +142,16 @@ public interface IdxPath extends Cloneable, Comparable<IdxPath> {
 	boolean hasParent();
 
 	/**
-	 * Returns a path which is a subpath of this path, starting at the named element at <tt>startIdx</tt> and ending one named element before <tt>endIdx</tt>,
-	 * thus the length of the subpath is <tt>endIdx-startIdx</tt>.
+	 * Returns a path which is a subpath of this path, starting at the named element at <code>startIdx</code> and ending one named element before <code>endIdx</code>,
+	 * thus the length of the subpath is <code>endIdx-startIdx</code>.
 	 *
 	 * @param startIdx
 	 *            - index of the first element, starting at 0, inclusive
 	 * @param endIdx
 	 *            - index of the last element, exclusive
-	 * @return An independent subpath of this path, containing all elements from <tt>startIdx</tt> to <tt>endIdx-1</tt>
+	 * @return An independent subpath of this path, containing all elements from <code>startIdx</code> to <code>endIdx-1</code>
 	 * @throws IndexOutOfBoundsException
-	 *             If <tt>startIdx < 0 || endIdx < startIdx || {@link #length()} < endIdx</tt>
+	 *             If <code>startIdx < 0 || endIdx < startIdx || {@link #length()} < endIdx</code>
 	 */
 	IdxPath subpath(int startIdx, int endIdx);
 
@@ -164,7 +164,7 @@ public interface IdxPath extends Cloneable, Comparable<IdxPath> {
 
 	/**
 	 * Returns the {@link String} representation of this path. Returns a {@link String}, containing all named elements in sequential order, each separated by a
-	 * {@link #SEPARATOR delimiting character}. If this path is a <tt>root path</tt>, an empty {@link String#} will be returned.
+	 * {@link #SEPARATOR delimiting character}. If this path is a <code>root path</code>, an empty {@link String#} will be returned.
 	 */
 	String getFullName();
 
@@ -176,13 +176,13 @@ public interface IdxPath extends Cloneable, Comparable<IdxPath> {
 	String getLastName();
 
 	/**
-	 * Returns the named element at position <tt>elementIdx</tt>. 0 denotes the first element. The number of elements is equal to {@link #length()}.
+	 * Returns the named element at position <code>elementIdx</code>. 0 denotes the first element. The number of elements is equal to {@link #length()}.
 	 *
 	 * @param elementIdx
 	 *            index of the element, which name should be returned
 	 * @return the name of the element at elementIdx
 	 * @throws IndexOutOfBoundsException
-	 *             If <tt>elementIdx < 0 || {@link #length()} <= elementIdx</tt>
+	 *             If <code>elementIdx < 0 || {@link #length()} <= elementIdx</code>
 	 */
 	String getNameOf(int elementIdx);
 
@@ -213,7 +213,7 @@ public interface IdxPath extends Cloneable, Comparable<IdxPath> {
 	 * </ul>
 	 *
 	 * @throws IllegalArgumentException
-	 *             if <tt>otherPath</tt> is null
+	 *             if <code>otherPath</code> is null
 	 */
 	@Override
 	int compareTo(IdxPath otherPath);

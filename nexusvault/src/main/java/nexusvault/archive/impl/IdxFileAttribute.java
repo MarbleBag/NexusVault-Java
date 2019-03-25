@@ -123,7 +123,7 @@ public final class IdxFileAttribute {
 
 	/**
 	 * @throws IllegalArgumentException
-	 *             if <tt>hash</tt> is null
+	 *             if <code>hash</code> is null
 	 */
 	public void setHash(byte[] hash) {
 		if (hash == null) {
@@ -134,7 +134,7 @@ public final class IdxFileAttribute {
 
 	/**
 	 * @throws IllegalArgumentException
-	 *             if <tt>name</tt> is null
+	 *             if <code>name</code> is null
 	 */
 	public void setName(String name) {
 		if (name == null) {

@@ -449,7 +449,7 @@ public class BaseNexusArchiveWriter implements NexusArchiveWriter {
 		}
 
 		/**
-		 * @return the directory index, or <tt>-1</tt> if no directory index is set
+		 * @return the directory index, or <code>-1</code> if no directory index is set
 		 */
 		public int getDirectoryIndex() {
 			return directoryIndex;

@@ -103,7 +103,7 @@ final class ArchiveMemoryModel {
 	}
 
 	/**
-	 * Allocates a memory block which is equal or bigger than the <tt>requestedSize</tt>.<br>
+	 * Allocates a memory block which is equal or bigger than the <code>requestedSize</code>.<br>
 	 * The returned {@link MemoryBlock} may either be a block which is marked as <b>free</b> or, in case no such block with the requested size is available, a
 	 * newly created block. <br>
 	 * <p>
@@ -138,7 +138,7 @@ final class ArchiveMemoryModel {
 	}
 
 	/**
-	 * Allocates <b>always a new</b> block of memory which is equal or bigger than the <tt>requestedSize</tt>. This method will <b>never</b> return a
+	 * Allocates <b>always a new</b> block of memory which is equal or bigger than the <code>requestedSize</code>. This method will <b>never</b> return a
 	 * {@link MemoryBlock} which is marked as <b>free</b>.
 	 * <p>
 	 * The returned block will be marked as <b>not free</b> and will never be returned by this method again, until marked as <b>free</b> again by calling
@@ -170,13 +170,13 @@ final class ArchiveMemoryModel {
 	}
 
 	/**
-	 * Returns the {@link MemoryBlock} at <tt>position</tt> or throws an exception if no {@link MemoryBlock} starts at <tt>position</tt>
+	 * Returns the {@link MemoryBlock} at <code>position</code> or throws an exception if no {@link MemoryBlock} starts at <code>position</code>
 	 *
 	 * @param position
 	 *            at which a {@link MemoryBlock} starts
-	 * @return the {@link MemoryBlock} which starts at <tt>position</tt>
+	 * @return the {@link MemoryBlock} which starts at <code>position</code>
 	 * @throws IllegalStateException
-	 *             If not {@link MemoryBlock} starts at <tt>position</tt>
+	 *             If not {@link MemoryBlock} starts at <code>position</code>
 	 * @see #tryFindBlockAt(long)
 	 */
 	public MemoryBlock findBlockAt(long position) {
@@ -249,11 +249,11 @@ final class ArchiveMemoryModel {
 	}
 
 	/**
-	 * Tries to find a block that starts at <tt>position</tt>. <br>
-	 * If there is no block, this method will return <tt>null</tt> to indicate this.
+	 * Tries to find a block that starts at <code>position</code>. <br>
+	 * If there is no block, this method will return <code>null</code> to indicate this.
 	 *
 	 * @param position
-	 * @return {@link MemoryBlock} at the given <tt>position</tt> or <tt>null</tt> if there is nothing.
+	 * @return {@link MemoryBlock} at the given <code>position</code> or <code>null</code> if there is nothing.
 	 * @see #findBlockAt(long)
 	 */
 	public MemoryBlock tryFindBlockAt(long position) {

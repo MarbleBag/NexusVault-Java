@@ -18,9 +18,9 @@ final class BaseIdxFileLink extends BaseIdxEntry implements IdxFileLink {
 	/**
 	 *
 	 * @throws IllegalArgumentException
-	 *             if <tt>parent</tt> or <tt>hash</tt> is null
+	 *             if <code>parent</code> or <code>hash</code> is null
 	 * @throws IllegalArgumentException
-	 *             if <tt>name</tt> is null or contains an {@link IdxPath#SEPARATOR illegal character}
+	 *             if <code>name</code> is null or contains an {@link IdxPath#SEPARATOR illegal character}
 	 */
 	public BaseIdxFileLink(BaseIdxDirectory parent, String name, int flags, long writeTime, long uncompressedSize, long compressedSize, byte[] hash, int unk1) {
 		super(parent, name);

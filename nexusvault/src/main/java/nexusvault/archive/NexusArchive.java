@@ -54,7 +54,7 @@ public interface NexusArchive {
 	void dispose();
 
 	/**
-	 * @return <tt>true</tt> - if this archive was disposed. Calls to a disposed archive may cause undefined behavior
+	 * @return <code>true</code> - if this archive was disposed. Calls to a disposed archive may cause undefined behavior
 	 */
 	boolean isDisposed();
 
