@@ -10,9 +10,9 @@ import nexusvault.archive.impl.BaseIdxPath;
  * A path is independent regarding any archive, so it is possible to create a path, which may not point to a file for some, or any archives at all.
  * <p>
  * A path is a fixed sequence of named elements. Each named element will be handled in a case-insensitive manner.<br>
- * If a path does not contain any elements, thus it is empty, it is called a <code>root path</code>. Each named element represents a directory. Only the last named
- * element can represent a file or a directory. A path can also be expressed as a {@link String} of its named elements, each separated by a {@link #SEPARATOR
- * delimiting character}. The {@link String} representation of a <code>root path</code> is equivalent to an empty {@link String}.
+ * If a path does not contain any elements, thus it is empty, it is called a <code>root path</code>. Each named element represents a directory. Only the last
+ * named element can represent a file or a directory. A path can also be expressed as a {@link String} of its named elements, each separated by a
+ * {@link #SEPARATOR delimiting character}. The {@link String} representation of a <code>root path</code> is equivalent to an empty {@link String}.
  */
 public interface IdxPath extends Cloneable, Comparable<IdxPath> {
 
@@ -59,7 +59,7 @@ public interface IdxPath extends Cloneable, Comparable<IdxPath> {
 	 * @throws IdxEntryNotADirectoryException
 	 *             If the path can not reach its end, because of the occurrence of a {@link IdxFileLink}
 	 *
-	 * @see {@link #isResolvable(IdxEntry)}s
+	 * @see #isResolvable(IdxEntry)
 	 */
 	IdxEntry resolve(IdxEntry root) throws IdxEntryNotFoundException;
 
@@ -68,11 +68,11 @@ public interface IdxPath extends Cloneable, Comparable<IdxPath> {
 	 * Returns <code>true</code> if and only if there is a valid path, starting at <code>root</code> and ending at {@link #getLastName()} with a equally named
 	 * {@link IdxEntry}, with one exception:
 	 * <p>
-	 * If this path is a root path (it does not contain any elements), the returned value will always be <code>true</code>, because a root path, always matches its
-	 * given <code>root</code>.
+	 * If this path is a root path (it does not contain any elements), the returned value will always be <code>true</code>, because a root path, always matches
+	 * its given <code>root</code>.
 	 *
 	 * @param root
-	 *            - entry to start
+	 *            the entry to start
 	 * @return true if the path is resolvable
 	 *
 	 * @throws IllegalArgumentException
@@ -104,6 +104,10 @@ public interface IdxPath extends Cloneable, Comparable<IdxPath> {
 
 	/**
 	 * Returns a new path that is an extension of this path and includes the given child as its new <code>last element</code>.
+	 *
+	 * @param childName
+	 *            name of the child
+	 * @return path to the given child
 	 */
 	IdxPath pathToChild(String childName);
 
@@ -114,6 +118,9 @@ public interface IdxPath extends Cloneable, Comparable<IdxPath> {
 	 * path.getParent().pathToChild(newElement);
 	 * </pre>
 	 *
+	 * @param siblingName
+	 *            name of the sibling
+	 * @return the path to the sibling of this path
 	 * @throws IdxPathInvalidException
 	 *             If this path is a root path.
 	 * @see #getParent()
@@ -133,17 +140,18 @@ public interface IdxPath extends Cloneable, Comparable<IdxPath> {
 	boolean isRoot();
 
 	/**
-	 * The parent path of this path. That is a path that is equal to this path from the named elements beginning at <code>0 to {@link #length() length} - 1</code>
+	 * The parent path of this path. That is a path that is equal to this path from the named elements beginning at
+	 * <code>0 to {@link #length() length} - 1</code>
 	 *
-	 * @return
+	 * @return the parent of this path
 	 */
 	IdxPath getParent();
 
 	boolean hasParent();
 
 	/**
-	 * Returns a path which is a subpath of this path, starting at the named element at <code>startIdx</code> and ending one named element before <code>endIdx</code>,
-	 * thus the length of the subpath is <code>endIdx-startIdx</code>.
+	 * Returns a path which is a subpath of this path, starting at the named element at <code>startIdx</code> and ending one named element before
+	 * <code>endIdx</code>, thus the length of the subpath is <code>endIdx-startIdx</code>.
 	 *
 	 * @param startIdx
 	 *            - index of the first element, starting at 0, inclusive
@@ -151,12 +159,14 @@ public interface IdxPath extends Cloneable, Comparable<IdxPath> {
 	 *            - index of the last element, exclusive
 	 * @return An independent subpath of this path, containing all elements from <code>startIdx</code> to <code>endIdx-1</code>
 	 * @throws IndexOutOfBoundsException
-	 *             If <code>startIdx < 0 || endIdx < startIdx || {@link #length()} < endIdx</code>
+	 *             If <code>startIdx &lt; 0 || endIdx &lt; startIdx || {@link #length()} &lt; endIdx</code>
 	 */
 	IdxPath subpath(int startIdx, int endIdx);
 
 	/**
 	 * Returns the length of this path, which is equivalent to the number of named elements. A path that contains no elements has a length of 0.
+	 *
+	 * @return the length
 	 */
 	int length();
 
@@ -164,7 +174,9 @@ public interface IdxPath extends Cloneable, Comparable<IdxPath> {
 
 	/**
 	 * Returns the {@link String} representation of this path. Returns a {@link String}, containing all named elements in sequential order, each separated by a
-	 * {@link #SEPARATOR delimiting character}. If this path is a <code>root path</code>, an empty {@link String#} will be returned.
+	 * {@link #SEPARATOR delimiting character}. If this path is a <code>root path</code>, an empty {@link String} will be returned.
+	 *
+	 * @return the full name of this path
 	 */
 	String getFullName();
 
@@ -172,6 +184,8 @@ public interface IdxPath extends Cloneable, Comparable<IdxPath> {
 	 * Returns the last named element of this path.<br>
 	 * If this path is a root path, the returned {@link String} will be empty, otherwise the returned value is equal to {@link #getNameOf(int)
 	 * getNameOf(length-1)}.
+	 *
+	 * @return last named element
 	 */
 	String getLastName();
 
@@ -182,12 +196,16 @@ public interface IdxPath extends Cloneable, Comparable<IdxPath> {
 	 *            index of the element, which name should be returned
 	 * @return the name of the element at elementIdx
 	 * @throws IndexOutOfBoundsException
-	 *             If <code>elementIdx < 0 || {@link #length()} <= elementIdx</code>
+	 *             If <code>elementIdx &lt; 0 || {@link #length()} &le; elementIdx</code>
 	 */
 	String getNameOf(int elementIdx);
 
 	/**
 	 * Two paths are equal, if and only if each pair of named elements fulfill {@link String#equalsIgnoreCase(String)}
+	 *
+	 * @param path
+	 *            with which this path is compared
+	 * @return true if the two paths are equal
 	 */
 	boolean equals(IdxPath path);
 

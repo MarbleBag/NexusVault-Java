@@ -11,10 +11,16 @@ import kreed.io.util.BinaryReader;
 import kreed.io.util.SeekableByteChannelBinaryReader;
 import nexusvault.archive.NexusArchiveWriter.DataSource;
 
+/**
+ * A {@link DataSource} which links to a file via {@link Path}. On request, the file will be read and returned. <br>
+ * <b>Note:</b>The file will be read in little endian format.
+ */
 public final class FileDataSource extends AbstractDataSource implements DataSource {
 	private final Path path;
 
 	/**
+	 * @param path
+	 *            the location of the file which will be returned on request
 	 * @throws IllegalArgumentException
 	 *             if <code>path</code> is null
 	 */

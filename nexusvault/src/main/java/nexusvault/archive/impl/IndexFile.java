@@ -71,9 +71,11 @@ public interface IndexFile {
 	 * Writes new data to the index file.
 	 *
 	 * @param data
+	 *            will be written to the file
 	 * @return index that is now associated to the given directory data
 	 * @throws IOException
-	 * @see {@link #getDirectoryData(long)}
+	 *             if an I/O error occurs
+	 * @see #getDirectoryData(long)
 	 */
 	long writeDirectoryData(IndexDirectoryData data) throws IOException;
 
@@ -81,10 +83,12 @@ public interface IndexFile {
 	 * Overwrites the data at <code>packIdx</code> position, or writes new data if <code>packIdx</code> is equal to {@link #UNUSED_INDEX}
 	 *
 	 * @param index
-	 *            that should be overwriten, in case <code>index</code> is equal to {@link #UNUSED_INDEX}, a new entry will be written
+	 *            that should be overwriten, in case <code>index</code> is equal to {@link #UNUSED_INDEX}, a new entry will be created
 	 * @param data
+	 *            will be written to the file
 	 * @return index that is now associated to the given directory data
 	 * @throws IOException
+	 *             if an I/O error occurs
 	 */
 	long writeDirectoryData(long index, IndexDirectoryData data) throws IOException;
 

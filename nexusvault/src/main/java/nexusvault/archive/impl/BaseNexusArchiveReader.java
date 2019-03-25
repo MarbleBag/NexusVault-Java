@@ -110,6 +110,9 @@ public final class BaseNexusArchiveReader implements NexusArchive {
 
 	@Override
 	public IdxDirectory getRootDirectory() {
+		if (isDisposed()) {
+			throw new NexusArchiveDisposedException();
+		}
 		return rootDirectory;
 	}
 

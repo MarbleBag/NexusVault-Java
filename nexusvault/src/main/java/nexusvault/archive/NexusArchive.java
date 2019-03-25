@@ -9,7 +9,14 @@ import nexusvault.archive.util.IdxFileCollector;
 public interface NexusArchive {
 
 	/**
-	 * Creates a default {@link NexusArchive}
+	 * Creates a default {@link NexusArchive} for the given file. If an archive file is given, the archive will look for an index file with the same name and
+	 * vice versa.
+	 *
+	 * @param archiveOrIndex
+	 *            the location of an archive or index file
+	 * @return a archive which is build from the given source
+	 * @throws IOException
+	 *             if an I/O error occurs
 	 */
 	public static NexusArchive loadArchive(Path archiveOrIndex) throws IOException {
 		return BaseNexusArchiveReader.loadArchive(archiveOrIndex);
@@ -34,6 +41,8 @@ public interface NexusArchive {
 	 * @return root directory of this archive
 	 * @see IdxPath
 	 * @see IdxFileCollector
+	 * @throws NexusArchiveDisposedException
+	 *             if the archive was disposed
 	 */
 	IdxDirectory getRootDirectory();
 
@@ -42,7 +51,7 @@ public interface NexusArchive {
 	 * This information will still be retrievable after this archive was {@link #dispose() disposed} and will be equal to the value of this method before the
 	 * archive was disposed.
 	 *
-	 * @throws NexusArchiveDisposedException
+	 * @return the source of this archive
 	 */
 	NexusArchiveSource getSource();
 

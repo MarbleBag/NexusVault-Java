@@ -28,6 +28,13 @@ public final class StructArchiveEntry {
 	}
 
 	/**
+	 * @param packIdx
+	 *            reference to the pack which belongs to this entry
+	 * @param hash
+	 *            is used to identify a entry
+	 * @param size
+	 *            of the data in bytes, which is stored under <code>packIdx</code>
+	 *
 	 * @throws IllegalArgumentException
 	 *             if <code>hash</code> is null
 	 */

@@ -122,6 +122,8 @@ public final class IdxFileAttribute {
 	}
 
 	/**
+	 * @param hash
+	 *            the new hash
 	 * @throws IllegalArgumentException
 	 *             if <code>hash</code> is null
 	 */
@@ -133,6 +135,8 @@ public final class IdxFileAttribute {
 	}
 
 	/**
+	 * @param name
+	 *            the new name
 	 * @throws IllegalArgumentException
 	 *             if <code>name</code> is null
 	 */

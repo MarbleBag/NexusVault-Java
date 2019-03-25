@@ -16,7 +16,7 @@ public interface IdxEntry {
 	 * The full name of an entry is equal to the {@link IdxPath#getFullName() full name} of a {@link #getPath() path} that is starting at the root and ending
 	 * with this entry.
 	 *
-	 * @return
+	 * @return the full name of this entry
 	 * @see IdxPath#getFullName()
 	 */
 	String getFullName();

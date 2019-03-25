@@ -11,6 +11,8 @@ public final class ByteBufferDataSource extends AbstractDataSource implements Da
 	private final ByteBuffer buffer;
 
 	/**
+	 * @param buffer
+	 *            the buffer which will be returned on request
 	 * @throws IllegalArgumentException
 	 *             if <code>buffer</code> is null
 	 */

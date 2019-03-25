@@ -53,6 +53,8 @@ public final class IdxDirectoryAttribute {
 	}
 
 	/**
+	 * @param name
+	 *            the new name
 	 * @throws IllegalArgumentException
 	 *             if <code>name</code> is null
 	 */
