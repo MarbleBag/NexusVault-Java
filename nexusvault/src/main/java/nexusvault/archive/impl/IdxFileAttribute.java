@@ -1,6 +1,7 @@
 package nexusvault.archive.impl;
 
 import java.util.Arrays;
+import java.util.Objects;
 
 public final class IdxFileAttribute {
 
@@ -43,32 +44,8 @@ public final class IdxFileAttribute {
 			return false;
 		}
 		final IdxFileAttribute other = (IdxFileAttribute) obj;
-		if (compressedSize != other.compressedSize) {
-			return false;
-		}
-		if (flags != other.flags) {
-			return false;
-		}
-		if (!Arrays.equals(hash, other.hash)) {
-			return false;
-		}
-		if (name == null) {
-			if (other.name != null) {
-				return false;
-			}
-		} else if (!name.equals(other.name)) {
-			return false;
-		}
-		if (uncompressedSize != other.uncompressedSize) {
-			return false;
-		}
-		if (unk_034 != other.unk_034) {
-			return false;
-		}
-		if (writeTime != other.writeTime) {
-			return false;
-		}
-		return true;
+		return (compressedSize == other.compressedSize) && (flags == other.flags) && Arrays.equals(hash, other.hash) && Objects.equals(name, other.name)
+				&& (uncompressedSize == other.uncompressedSize) && (unk_034 == other.unk_034) && (writeTime == other.writeTime);
 	}
 
 	public long getCompressedSize() {
@@ -103,13 +80,8 @@ public final class IdxFileAttribute {
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = (prime * result) + (int) (compressedSize ^ (compressedSize >>> 32));
-		result = (prime * result) + flags;
 		result = (prime * result) + Arrays.hashCode(hash);
-		result = (prime * result) + ((name == null) ? 0 : name.hashCode());
-		result = (prime * result) + (int) (uncompressedSize ^ (uncompressedSize >>> 32));
-		result = (prime * result) + unk_034;
-		result = (prime * result) + (int) (writeTime ^ (writeTime >>> 32));
+		result = (prime * result) + Objects.hash(compressedSize, flags, name, uncompressedSize, unk_034, writeTime);
 		return result;
 	}
 

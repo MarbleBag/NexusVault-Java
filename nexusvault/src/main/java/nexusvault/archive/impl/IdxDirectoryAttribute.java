@@ -1,5 +1,7 @@
 package nexusvault.archive.impl;
 
+import java.util.Objects;
+
 public final class IdxDirectoryAttribute {
 	private String name;
 	private final int directoryIndex;
@@ -22,17 +24,7 @@ public final class IdxDirectoryAttribute {
 			return false;
 		}
 		final IdxDirectoryAttribute other = (IdxDirectoryAttribute) obj;
-		if (directoryIndex != other.directoryIndex) {
-			return false;
-		}
-		if (name == null) {
-			if (other.name != null) {
-				return false;
-			}
-		} else if (!name.equals(other.name)) {
-			return false;
-		}
-		return true;
+		return (directoryIndex == other.directoryIndex) && Objects.equals(name, other.name);
 	}
 
 	public int getDirectoryIndex() {
@@ -45,11 +37,7 @@ public final class IdxDirectoryAttribute {
 
 	@Override
 	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = (prime * result) + directoryIndex;
-		result = (prime * result) + ((name == null) ? 0 : name.hashCode());
-		return result;
+		return Objects.hash(directoryIndex, name);
 	}
 
 	/**

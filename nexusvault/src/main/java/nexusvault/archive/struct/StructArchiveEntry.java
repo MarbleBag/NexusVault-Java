@@ -1,6 +1,7 @@
 package nexusvault.archive.struct;
 
 import java.util.Arrays;
+import java.util.Objects;
 
 import kreed.reflection.struct.DataType;
 import kreed.reflection.struct.Order;
@@ -59,9 +60,8 @@ public final class StructArchiveEntry {
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = (prime * result) + (int) (packIdx ^ (packIdx >>> 32));
 		result = (prime * result) + Arrays.hashCode(hash);
-		result = (prime * result) + (int) (size ^ (size >>> 32));
+		result = (prime * result) + Objects.hash(packIdx, size);
 		return result;
 	}
 
@@ -77,16 +77,7 @@ public final class StructArchiveEntry {
 			return false;
 		}
 		final StructArchiveEntry other = (StructArchiveEntry) obj;
-		if (packIdx != other.packIdx) {
-			return false;
-		}
-		if (!Arrays.equals(hash, other.hash)) {
-			return false;
-		}
-		if (size != other.size) {
-			return false;
-		}
-		return true;
+		return Arrays.equals(hash, other.hash) && (packIdx == other.packIdx) && (size == other.size);
 	}
 
 }

@@ -147,7 +147,7 @@ final class ArchiveMemoryModel {
 	 * A call to this method will result in {@link #getMemoryToUpdate() new pending updates}.
 	 *
 	 * @param requestedSize
-	 * @return
+	 * @return a new memory block
 	 * @see MemoryBlock
 	 * @see #allocateMemory(long)
 	 * @see #freeMemory(MemoryBlock)
@@ -192,6 +192,8 @@ final class ArchiveMemoryModel {
 	 * <p>
 	 * A call to this method may result in {@link #getMemoryToUpdate() new pending updates}.
 	 *
+	 * @param block
+	 *            the block to be freed
 	 * @see #allocateMemory(long)
 	 * @see #getMemoryToUpdate()
 	 */
@@ -212,6 +214,8 @@ final class ArchiveMemoryModel {
 	/**
 	 * Returns a set of {@link MemoryBlock MemoryBlocks} which <b>changed since the last call</b> to {@link #getMemoryToUpdate()}.<br>
 	 * This set includes newly allocated, freed, merged and blocks which are split.
+	 *
+	 * @return a collection of blocks
 	 */
 	public Collection<MemoryBlock> getMemoryToUpdate() {
 		final List<MemoryBlock> list = new ArrayList<>(pendingUpdate);
@@ -225,6 +229,10 @@ final class ArchiveMemoryModel {
 	 * <p>
 	 * While new blocks can be added in any order, it is important to ensure that the whole set of blocks covers a sequentially part of <i>abstract</i> memory,
 	 * without overlapping.
+	 *
+	 * @param blockPosition
+	 * @param blockSize
+	 * @param isFree
 	 *
 	 */
 	public void setInitialBlock(long blockPosition, long blockSize, boolean isFree) {

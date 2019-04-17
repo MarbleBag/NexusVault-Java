@@ -1,5 +1,7 @@
 package nexusvault.archive.struct;
 
+import java.util.Objects;
+
 import kreed.reflection.struct.DataType;
 import kreed.reflection.struct.Order;
 import kreed.reflection.struct.StructField;
@@ -41,11 +43,7 @@ public final class StructPackHeader {
 
 	@Override
 	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = (prime * result) + (int) (offset ^ (offset >>> 32));
-		result = (prime * result) + (int) (size ^ (size >>> 32));
-		return result;
+		return Objects.hash(offset, size);
 	}
 
 	@Override
@@ -60,13 +58,7 @@ public final class StructPackHeader {
 			return false;
 		}
 		final StructPackHeader other = (StructPackHeader) obj;
-		if (offset != other.offset) {
-			return false;
-		}
-		if (size != other.size) {
-			return false;
-		}
-		return true;
+		return (offset == other.offset) && (size == other.size);
 	}
 
 }

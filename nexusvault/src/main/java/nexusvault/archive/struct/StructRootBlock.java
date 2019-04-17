@@ -36,7 +36,7 @@ public class StructRootBlock {
 
 	@Override
 	public String toString() {
-		return "StructRootPackInfo [signature=" + signature + ", version=" + version + ", entryCount=" + entryCount + ", headeridx=" + headerIdx + "]";
+		return "StructRootBlock [signature=" + signature + ", version=" + version + ", entryCount=" + entryCount + ", headeridx=" + headerIdx + "]";
 	}
 
 	@Override
