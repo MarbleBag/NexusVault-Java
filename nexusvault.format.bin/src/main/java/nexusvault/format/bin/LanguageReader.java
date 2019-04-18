@@ -14,26 +14,6 @@ import nexusvault.shared.exception.VersionMismatchException;
 
 public final class LanguageReader {
 
-	public static class LanguageEntry {
-		private final int id;
-		private final String text;
-
-		public LanguageEntry(int id, String text) {
-			super();
-			this.id = id;
-			this.text = text;
-		}
-
-		public int getId() {
-			return id;
-		}
-
-		public String getText() {
-			return text;
-		}
-
-	}
-
 	public LanguageDictionary read(ByteBuffer byteBuffer) {
 		return read(new ByteBufferBinaryReader(byteBuffer));
 	}
@@ -80,7 +60,7 @@ public final class LanguageReader {
 			final StructEntry structEntry = offsetEntries[i];
 			source.seek(Seek.BEGIN, postHeaderPosition + header.textOffset + (structEntry.characterOffset * 2));
 			final String text = TextUtil.extractNullTerminatedUTF16(source);
-			entries[i] = new LanguageEntry(structEntry.id, text);
+			entries[i] = new PreloadedLanguageEntry(structEntry.id, text);
 		}
 
 		return new PreloadedLanguageDictionary((int) header.languageType, languageTagName, languageLongName, languageShortName, entries);

@@ -7,8 +7,6 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import nexusvault.format.bin.LanguageReader.LanguageEntry;
-
 final class PreloadedLanguageDictionary implements LanguageDictionary {
 
 	private final int localeType;

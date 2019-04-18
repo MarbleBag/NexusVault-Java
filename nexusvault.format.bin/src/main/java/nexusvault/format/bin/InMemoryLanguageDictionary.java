@@ -5,7 +5,6 @@ import java.util.Iterator;
 
 import kreed.io.util.BinaryReader;
 import kreed.io.util.Seek;
-import nexusvault.format.bin.LanguageReader.LanguageEntry;
 
 // TODO Lazy loader with cache
 class InMemoryLanguageDictionary implements LanguageDictionary {
