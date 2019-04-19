@@ -1,4 +1,4 @@
-package nexusvault.format.bin;
+package nexusvault.format.bin.struct;
 
 import static kreed.reflection.struct.DataType.BIT_32;
 import static kreed.reflection.struct.DataType.UBIT_64;
@@ -7,7 +7,7 @@ import kreed.reflection.struct.Order;
 import kreed.reflection.struct.StructField;
 import kreed.reflection.struct.StructUtil;
 
-class StructFileHeader {
+public final class StructFileHeader {
 	public static void main(String[] arg) {
 		System.out.println(StructUtil.analyzeStruct(StructFileHeader.class, true));
 	}
@@ -38,7 +38,7 @@ class StructFileHeader {
 	public long languageType;
 
 	/**
-	 * UTF16 encoded, 2 bytes per character
+	 * UTF16 encoded, 2 bytes per character, 0 terminated
 	 */
 	@Order(4)
 	@StructField(UBIT_64)
@@ -49,7 +49,7 @@ class StructFileHeader {
 	public long languageTagNameOffset;
 
 	/**
-	 * UTF16 encoded, 2 bytes per character
+	 * UTF16 encoded, 2 bytes per character, 0 terminated
 	 */
 	@Order(6)
 	@StructField(UBIT_64)
@@ -60,7 +60,7 @@ class StructFileHeader {
 	public long languageShortNameOffset;
 
 	/**
-	 * UTF16 encoded, 2 bytes per character
+	 * UTF16 encoded, 2 bytes per character, 0 terminated
 	 */
 	@Order(8)
 	@StructField(UBIT_64)

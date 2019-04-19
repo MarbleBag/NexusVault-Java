@@ -1,11 +1,11 @@
-package nexusvault.format.bin;
+package nexusvault.format.bin.struct;
 
 import static kreed.reflection.struct.DataType.BIT_32;
 
 import kreed.reflection.struct.StructField;
 import kreed.reflection.struct.StructUtil;
 
-class StructEntry {
+public final class StructEntry {
 
 	public static final int SIZE_IN_BYTES = StructUtil.sizeOf(StructEntry.class);
 
@@ -18,4 +18,14 @@ class StructEntry {
 	 */
 	@StructField(BIT_32)
 	public int characterOffset;
+
+	public StructEntry() {
+
+	}
+
+	public StructEntry(int id, int characterOffset) {
+		this.id = id;
+		this.characterOffset = characterOffset;
+	}
+
 }
