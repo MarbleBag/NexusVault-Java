@@ -18,7 +18,7 @@ import nexusvault.format.tex.unc.RGB565TextureDataDecoder;
 import nexusvault.shared.exception.IntegerOverflowException;
 
 /**
- * Digests <tt>.tex</tt> data and produces a {@link TextureObject}
+ * Digests <code>.tex</code> data and produces a {@link TextureObject}
  */
 public final class TextureReader {
 
@@ -38,7 +38,7 @@ public final class TextureReader {
 	 *
 	 * To create a {@link TextureReader} without any decoder use the default {@link TextureReader#TextureReader() constructor}
 	 *
-	 * @return
+	 * @return A {@link TextureReader} with a set of default decoder
 	 */
 	public static TextureReader buildDefault() {
 		final TextureReader reader = new TextureReader();
@@ -65,6 +65,9 @@ public final class TextureReader {
 
 	/**
 	 * Registers a new decoder. Does not check for duplicates.
+	 *
+	 * @param decoder
+	 *            the decoder to register
 	 */
 	public void registerDecoder(TextureDataDecoder decoder) {
 		if (decoder == null) {

@@ -3,7 +3,7 @@ package nexusvault.format.tex;
 import nexusvault.format.tex.struct.StructTextureFileHeader;
 
 /**
- * Provides the means to digest a set of <tt>.tex</tt> data
+ * Provides the means to digest a set of <code>.tex</code> data
  */
 public interface TextureDataDecoder {
 

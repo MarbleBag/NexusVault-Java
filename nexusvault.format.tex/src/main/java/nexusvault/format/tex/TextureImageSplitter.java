@@ -129,6 +129,13 @@ public class TextureImageSplitter {
 	private static final Splitter jpgType1 = new SplitterJPGType1();
 	private static final Splitter jpgType0And2 = new SplitterJPGType0And2();
 
+	/**
+	 *
+	 * @param header
+	 *            header which belongs to the image
+	 * @return true if the image is splitable
+	 * @see #split(TextureImage, StructTextureFileHeader)
+	 */
 	public boolean isSplitable(StructTextureFileHeader header) {
 		return header.isCompressed && ((header.compressionFormat == 0) || (header.compressionFormat == 1) || (header.compressionFormat == 2));
 	}
@@ -139,8 +146,10 @@ public class TextureImageSplitter {
 	 * something more appropriated.
 	 *
 	 * @param image
+	 *            which should be split
 	 * @param textureHeader
-	 * @return
+	 *            header which belongs to the extracted image
+	 * @return a list which contains the splitted images
 	 */
 	public List<TextureImage> split(TextureImage image, StructTextureFileHeader textureHeader) {
 		if (textureHeader.isCompressed) {
