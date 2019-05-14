@@ -1,8 +1,5 @@
 package nexusvault.format.m3.v100.struct;
 
-import java.util.HashSet;
-import java.util.Set;
-
 import kreed.reflection.struct.DataType;
 import kreed.reflection.struct.Order;
 import kreed.reflection.struct.StructField;
