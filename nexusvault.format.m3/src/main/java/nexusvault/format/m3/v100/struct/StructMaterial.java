@@ -4,7 +4,7 @@ import kreed.reflection.struct.DataType;
 import kreed.reflection.struct.Order;
 import kreed.reflection.struct.StructField;
 import kreed.reflection.struct.StructUtil;
-import nexusvault.format.m3.v100.DataTracker;
+import nexusvault.format.m3.v100.BytePositionTracker;
 import nexusvault.format.m3.v100.StructVisitor;
 import nexusvault.format.m3.v100.VisitableStruct;
 import nexusvault.format.m3.v100.pointer.ATP_MaterialDescriptor;
@@ -34,7 +34,7 @@ public final class StructMaterial implements VisitableStruct {
 	public ATP_MaterialDescriptor materialDescription;
 
 	@Override
-	public void visit(StructVisitor process, DataTracker fileReader, int dataPosition) {
+	public void visit(StructVisitor process, BytePositionTracker fileReader, int dataPosition) {
 		process.process(fileReader, dataPosition, materialDescription);
 	}
 }

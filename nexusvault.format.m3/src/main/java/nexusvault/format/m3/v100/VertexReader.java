@@ -66,7 +66,7 @@ public final class VertexReader {
 
 	}
 
-	public ModelVertex read(DataTracker memory) {
+	public ModelVertex read(BytePositionTracker memory) {
 		final DefaultModelVertex vertex = new DefaultModelVertex();
 		for (final VertexFieldSetter setter : setter) {
 			setter.set(vertex, memory.getData());

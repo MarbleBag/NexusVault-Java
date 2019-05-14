@@ -2,12 +2,12 @@ package nexusvault.format.m3.v100;
 
 import java.nio.ByteBuffer;
 
-public final class DataTracker {
+public final class BytePositionTracker {
 	private final int start;
 	private final int end;
 	private final ByteBuffer buffer;
 
-	public DataTracker(int start, int end, ByteBuffer buffer) {
+	public BytePositionTracker(int start, int end, ByteBuffer buffer) {
 		super();
 		this.start = start;
 		this.end = end;

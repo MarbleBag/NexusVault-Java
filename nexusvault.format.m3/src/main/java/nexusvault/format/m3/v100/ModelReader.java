@@ -23,7 +23,7 @@ public final class ModelReader {
 	}
 
 	public Model read(ByteBuffer buffer) {
-		final DataTracker fileReader = new DataTracker(buffer.position(), buffer.remaining(), buffer);
+		final BytePositionTracker fileReader = new BytePositionTracker(buffer.position(), buffer.position() + buffer.remaining(), buffer);
 
 		final ReferenceUpdater updater = new ReferenceUpdater();
 		final StructM3Header header = updater.start(fileReader, StructM3Header.class);

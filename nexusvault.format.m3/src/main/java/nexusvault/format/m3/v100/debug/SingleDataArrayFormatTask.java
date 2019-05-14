@@ -3,7 +3,7 @@ package nexusvault.format.m3.v100.debug;
 import java.util.ArrayList;
 import java.util.List;
 
-import nexusvault.format.m3.v100.DataTracker;
+import nexusvault.format.m3.v100.BytePositionTracker;
 import nexusvault.format.m3.v100.debug.Table.TableCell;
 import nexusvault.format.m3.v100.debug.Table.TableColumn;
 import nexusvault.format.m3.v100.debug.Table.TableRow;
@@ -25,7 +25,7 @@ public final class SingleDataArrayFormatTask implements Task {
 	@Override
 	public void runTask(DebugInfo debugger) {
 		final Table table = createInitialTable();
-		final DataTracker data = debugger.getDataModel();
+		final BytePositionTracker data = debugger.getDataModel();
 		data.setPosition(offset);
 
 		final byte[][] loadedData = new byte[numberOfElements][sizeOfElement];

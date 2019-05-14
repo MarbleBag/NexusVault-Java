@@ -4,7 +4,7 @@ import kreed.reflection.struct.DataType;
 import kreed.reflection.struct.Order;
 import kreed.reflection.struct.StructField;
 import kreed.reflection.struct.StructUtil;
-import nexusvault.format.m3.v100.DataTracker;
+import nexusvault.format.m3.v100.BytePositionTracker;
 import nexusvault.format.m3.v100.StructVisitor;
 import nexusvault.format.m3.v100.VisitableStruct;
 
@@ -54,7 +54,7 @@ public final class StructMesh implements VisitableStruct {
 	public byte meshGroupId; // 0x1E
 
 	/**
-	 * Seems for most cases 0, if <tt>meshGroupId</tt> -1, then this is also -1.
+	 * Seems for most cases 0, if <code>meshGroupId</code> -1, then this is also -1.
 	 */
 	@Order(9)
 	@StructField(value = DataType.UBIT_8)
@@ -113,12 +113,12 @@ public final class StructMesh implements VisitableStruct {
 
 	/**
 	 * Seems only be used for playable race models. <br>
-	 * It seems that the used <tt>IDs</tt> are identical across all checked occurrences. <br>
-	 * The <tt>IDs</tt> is assigned to meshes, which describe a specific area of a model, for example: left hand, right hand, neck, etc. <br>
-	 * It is reasonable to assume that this <tt>ID</tt> is used to blend out meshes if, for example, the model wears gear. This still needs to be checked. The
-	 * information may be part of a item model or may be found in a .tbl defining said item.
+	 * It seems that the used <code>IDs</code> are identical across all checked occurrences. <br>
+	 * The <code>IDs</code> is assigned to meshes, which describe a specific area of a model, for example: left hand, right hand, neck, etc. <br>
+	 * It is reasonable to assume that this <code>ID</code> is used to blend out meshes if, for example, the model wears gear. This still needs to be checked.
+	 * The information may be part of a item model or may be found in a .tbl defining said item.
 	 * <p>
-	 * TODO: Find a better name this value and define an enum to collect all values
+	 * TODO: Find a better name for this value and define an enum to collect all values
 	 * <ul>
 	 * <li>1 - Left ankle
 	 * <li>2 - right ankle
@@ -158,7 +158,7 @@ public final class StructMesh implements VisitableStruct {
 	 * <li>37 - Midriff
 	 * <li>38 - Left wrist
 	 * <li>39 - Right wrist
-	 * <li><b>40 -&gt; 81 - missing</b>
+	 * <li><b>40 -&gt; 80 - missing</b>
 	 * <li>81 - Head
 	 * <li>85 - Chest
 	 * <li>88 - Tail
@@ -189,7 +189,7 @@ public final class StructMesh implements VisitableStruct {
 	public byte[] gap_060; // 0x060
 
 	@Override
-	public void visit(StructVisitor process, DataTracker fileReader, int dataPosition) {
+	public void visit(StructVisitor process, BytePositionTracker fileReader, int dataPosition) {
 		// System.out.println("[" + (test++) + "] " + StructUtil.toString(this));
 	}
 }

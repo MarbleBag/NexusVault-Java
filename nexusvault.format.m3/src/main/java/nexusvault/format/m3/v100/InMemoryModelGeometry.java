@@ -23,8 +23,8 @@ final class InMemoryModelGeometry implements ModelGeometry {
 
 	public InMemoryModelGeometry(InMemoryModel model, StructGeometry geometry) {
 		this.model = model;
-		this.struct = geometry;
-		this.vertexReader = new VertexReader(getStructGeometry());
+		struct = geometry;
+		vertexReader = new VertexReader(getStructGeometry());
 	}
 
 	protected InMemoryModel getModel() {
@@ -87,7 +87,7 @@ final class InMemoryModelGeometry implements ModelGeometry {
 	}
 
 	protected int[] getIndices(long indexOffset, long count) {
-		final DataTracker memory = model.getMemory();
+		final BytePositionTracker memory = model.getMemory();
 		memory.setPosition(struct.indexData.getOffset() + (indexOffset * 2));
 		final int[] indices = new int[(int) count];
 		for (int i = 0; i < count; ++i) {
@@ -99,7 +99,7 @@ final class InMemoryModelGeometry implements ModelGeometry {
 	protected ModelVertex getVertex(long vertexOffset, long idx) {
 		final long vertexDataOffset = struct.vertexBlockData.getOffset();
 		final long vertexStart = vertexDataOffset + (idx * struct.vertexBlockSizeInBytes);
-		final DataTracker memory = model.getMemory();
+		final BytePositionTracker memory = model.getMemory();
 		if (memory.getPosition() != vertexStart) {
 			memory.setPosition(vertexStart);
 		}
@@ -109,7 +109,7 @@ final class InMemoryModelGeometry implements ModelGeometry {
 	protected List<ModelVertex> getVertices(long startVertex, long vertexCount) {
 		final long vertexDataOffset = struct.vertexBlockData.getOffset();
 		final long vertexStart = vertexDataOffset + (startVertex * struct.vertexBlockSizeInBytes);
-		final DataTracker memory = model.getMemory();
+		final BytePositionTracker memory = model.getMemory();
 		if (memory.getPosition() != vertexStart) {
 			memory.setPosition(vertexStart);
 		}
@@ -158,7 +158,7 @@ final class InMemoryModelGeometry implements ModelGeometry {
 			}
 
 			private ModelVertex getVertex() {
-				final DataTracker memory = model.getMemory();
+				final BytePositionTracker memory = model.getMemory();
 				final long nPos = vertexStart + (idx * vertexSize);
 				if (memory.getPosition() != nPos) {
 					memory.setPosition(nPos);

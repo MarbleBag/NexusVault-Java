@@ -24,7 +24,7 @@ final class ReferenceUpdater implements StructVisitor {
 		structSaver = StructWriter.build(StructFactory.build(), DataWriteDelegator.build(new ByteBufferWriter()), true);
 	}
 
-	public <T extends VisitableStruct> T start(DataTracker fileReader, Class<? extends T> initialStruct) {
+	public <T extends VisitableStruct> T start(BytePositionTracker fileReader, Class<? extends T> initialStruct) {
 		final int nextDataPosition = padPosition(fileReader.getDataStart(), 1, StructUtil.sizeOf(initialStruct));
 
 		fileReader.resetPosition();
@@ -38,7 +38,7 @@ final class ReferenceUpdater implements StructVisitor {
 	}
 
 	@Override
-	public void process(DataTracker fileReader, int dataPosition, ArrayTypePointer<?> pointer) {
+	public void process(BytePositionTracker fileReader, int dataPosition, ArrayTypePointer<?> pointer) {
 		final int totalSize = pointer.getArraySize() * pointer.getElementSize();
 		final int blockStart = (int) (pointer.getOffset() + dataPosition);
 		final int blockEnd = blockStart + totalSize;
@@ -58,7 +58,7 @@ final class ReferenceUpdater implements StructVisitor {
 	}
 
 	@Override
-	public void process(DataTracker fileReader, int dataPosition, DoubleArrayTypePointer<?, ?> pointer) {
+	public void process(BytePositionTracker fileReader, int dataPosition, DoubleArrayTypePointer<?, ?> pointer) {
 		{
 			final int totalSizeA = pointer.getArraySize() * pointer.getElementSizeA();
 			final int blockStartA = (int) (pointer.getOffsetA() + dataPosition);
@@ -100,7 +100,7 @@ final class ReferenceUpdater implements StructVisitor {
 		}
 	}
 
-	private void visitStruct(int structStart, int structSize, int structCount, Class<? extends VisitableStruct> structType, DataTracker data, int dataOffset) {
+	private void visitStruct(int structStart, int structSize, int structCount, Class<? extends VisitableStruct> structType, BytePositionTracker data, int dataOffset) {
 		for (int idx = 0; idx < structCount; ++idx) {
 			final int structPosition = structStart + (idx * structSize);
 			data.setPosition(structPosition);

@@ -19,7 +19,7 @@ final class InMemoryModelMesh implements ModelMesh {
 	public InMemoryModelMesh(int meshNo, StructMesh structMesh, InMemoryModelGeometry inMemoryGeometry) {
 		this.meshNo = meshNo;
 		this.structMesh = structMesh;
-		this.model = inMemoryGeometry;
+		model = inMemoryGeometry;
 	}
 
 	@Override
@@ -57,6 +57,9 @@ final class InMemoryModelMesh implements ModelMesh {
 
 	@Override
 	public ModelVertex getVertex(int idx) {
+		if ((0 < idx) || (getVertexCount() <= idx)) {
+			throw new IndexOutOfBoundsException(String.format("Idx out of range. Allowed range is [0,%d)", getVertexCount()));
+		}
 		return model.getVertex(structMesh.startVertex, idx);
 	}
 

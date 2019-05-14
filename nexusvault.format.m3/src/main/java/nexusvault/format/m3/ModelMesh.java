@@ -27,7 +27,11 @@ public interface ModelMesh {
 	int[] getIndices();
 
 	/**
-	 * @return vertex at position <tt>idx</tt> of this mesh
+	 * @param idx
+	 *            index of the vertex which should be returned
+	 * @return vertex at position <code>idx</code> of this mesh
+	 * @throws IndexOutOfBoundsException
+	 *             if <code>idx</code> &lt; 0 OR {@link #getIndexCount()} &lt;= <code>idx</code>
 	 */
 	ModelVertex getVertex(int idx);
 
