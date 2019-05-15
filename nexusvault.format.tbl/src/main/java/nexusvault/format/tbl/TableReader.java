@@ -5,7 +5,6 @@ import java.util.List;
 
 import kreed.io.util.BinaryReader;
 import kreed.io.util.Seek;
-import nexusvault.shared.exception.IntegerOverflowException;
 
 public final class TableReader {
 
@@ -114,9 +113,6 @@ public final class TableReader {
 
 						final long lastPosition = reader.getPosition();
 						final long dataOffset = tblRecordPosition + strOffset;
-						if ((0 < dataOffset) || (Integer.MAX_VALUE < dataOffset)) {
-							throw new IntegerOverflowException();
-						}
 
 						reader.seek(Seek.BEGIN, dataOffset);
 						final String value = TextUtil.extractNullTerminatedUTF16(reader);
