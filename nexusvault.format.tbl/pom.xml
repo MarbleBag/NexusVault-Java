@@ -5,7 +5,7 @@
 
 	<groupId>nexusvault</groupId>
 	<artifactId>nexusvault.format.tbl</artifactId>
-	<version>1.0.1</version>
+	<version>1.0.2</version>
 
 	<properties>
 		<project.java.version>11</project.java.version>
