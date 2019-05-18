@@ -8,6 +8,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com)
 - Connection between Creature2DisplayInfo.tbl and m3 (See StructM3Header#model2Display and #display2model)
 - Debug: Vertex to CSV
 
+### Fixed
+- ModelMesh#getVertex(index) did not work for index > 0
+
 ### Changed
 - Naming of StructM3Header#unk_offset_200 and #unk_offset_200 -> #model2Display and #display2model
 
