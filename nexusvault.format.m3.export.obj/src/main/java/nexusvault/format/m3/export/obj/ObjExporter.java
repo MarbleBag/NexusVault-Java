@@ -95,7 +95,7 @@ public class ObjExporter {
 				for (final ModelVertex vertex : vertices) {
 					final float u = vertex.getTextureCoordU2();
 					final float v = vertex.getTextureCoordV2();
-					writer.append(String.format(Locale.US, "vt %f %f %f", u, v)).append('\n');
+					writer.append(String.format(Locale.US, "vt %f %f", u, v)).append('\n');
 				}
 			}
 
