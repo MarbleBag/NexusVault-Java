@@ -60,7 +60,7 @@ final class InMemoryModelMesh implements ModelMesh {
 		if ((idx < 0) || (getVertexCount() <= idx)) {
 			throw new IndexOutOfBoundsException(String.format("Idx out of range. Allowed range is [0,%d)", getVertexCount()));
 		}
-		return model.getVertex(structMesh.startVertex, idx);
+		return model.getVertex(structMesh.startVertex + idx);
 	}
 
 	@Override

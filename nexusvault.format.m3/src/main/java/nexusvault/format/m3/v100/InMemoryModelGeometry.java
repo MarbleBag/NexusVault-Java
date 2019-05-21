@@ -96,9 +96,9 @@ final class InMemoryModelGeometry implements ModelGeometry {
 		return indices;
 	}
 
-	protected ModelVertex getVertex(long vertexOffset, long idx) {
+	protected ModelVertex getVertex(long vertexIndex) {
 		final long vertexDataOffset = struct.vertexBlockData.getOffset();
-		final long vertexStart = vertexDataOffset + (idx * struct.vertexBlockSizeInBytes);
+		final long vertexStart = vertexDataOffset + (vertexIndex * struct.vertexBlockSizeInBytes);
 		final BytePositionTracker memory = model.getMemory();
 		if (memory.getPosition() != vertexStart) {
 			memory.setPosition(vertexStart);
@@ -120,11 +120,17 @@ final class InMemoryModelGeometry implements ModelGeometry {
 		return result;
 	}
 
+	private interface ModelVertexIterator extends Iterator<ModelVertex> {
+		boolean hasPrevious();
+
+		ModelVertex previous();
+	}
+
 	@Deprecated
 	protected Iterator<ModelVertex> buildIterator(int startIdx, long startVertex, long vertexCount) {
 		final long vertexDataOffset = struct.vertexBlockData.getOffset();
 
-		return new Iterator<ModelVertex>() {
+		return new ModelVertexIterator() {
 			private final long vertexSize = struct.vertexBlockSizeInBytes;
 			private final long vertexStart = vertexDataOffset + (startVertex * vertexSize);
 
@@ -135,6 +141,7 @@ final class InMemoryModelGeometry implements ModelGeometry {
 				return idx < vertexCount;
 			}
 
+			@Override
 			public boolean hasPrevious() {
 				return idx > 0;
 			}
@@ -149,6 +156,7 @@ final class InMemoryModelGeometry implements ModelGeometry {
 				return vertex;
 			}
 
+			@Override
 			public ModelVertex previous() {
 				if (--idx < 0) {
 					throw new IndexOutOfBoundsException();

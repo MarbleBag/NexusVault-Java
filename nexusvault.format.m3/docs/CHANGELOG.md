@@ -7,9 +7,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com)
 - Support to 'debug' a m3 model, this means to write as many values/structs to a table format, which can, for example, be dumped as csv
 - Connection between Creature2DisplayInfo.tbl and m3 (See StructM3Header#model2Display and #display2model)
 - Debug: Vertex to CSV
+- Equals & Hash for ModelVertex
 
 ### Fixed
 - ModelMesh#getVertex(index) did not work for index > 0
+- A bug in ModelMesh#getVertex(index) where the function did not return the correct vertex for a given index
 
 ### Changed
 - Naming of StructM3Header#unk_offset_200 and #unk_offset_200 -> #model2Display and #display2model

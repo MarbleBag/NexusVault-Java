@@ -16,10 +16,20 @@ public final class StructMesh implements VisitableStruct {
 
 	public static final int SIZE_IN_BYTES = StructUtil.sizeOf(StructMesh.class);
 
+	/**
+	 * This value is an index and defines at which position of {@link StructGeometry#indexData} the indices start, which define this mesh. The number of indices
+	 * which belong to this mesh is given by {@link #indexCount}
+	 */
 	@Order(1)
 	@StructField(value = DataType.UBIT_32)
 	public long startIndex; // 0x000
 
+	/**
+	 * This value is an index and defines at which position of {@link StructGeometry#vertexBlockData} the vertices start, which define this mesh. The number of
+	 * vertices which belong to this mesh is given by {@link #vertexCount}
+	 * <p>
+	 * The index is defined on a per vertex basis, the number of bytes which belongs to a vertex is defined by {@link StructGeometry#vertexBlockSizeInBytes}
+	 */
 	@Order(2)
 	@StructField(value = DataType.UBIT_32)
 	public long startVertex; // 0x004
