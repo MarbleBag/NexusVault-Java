@@ -1,5 +1,8 @@
 package nexusvault.format.m3.v100;
 
+import java.util.Arrays;
+import java.util.Objects;
+
 import nexusvault.format.m3.ModelVertex;
 
 /**
@@ -201,6 +204,41 @@ final class DefaultModelVertex implements ModelVertex {
 		}
 		System.arraycopy(textureCoord, 0, dst, dstOffset, textureCoord.length);
 		return dst;
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = (prime * result) + Arrays.hashCode(boneIndex);
+		result = (prime * result) + Arrays.hashCode(boneWeight);
+		result = (prime * result) + Arrays.hashCode(f3_unk1);
+		result = (prime * result) + Arrays.hashCode(f3_unk2);
+		result = (prime * result) + Arrays.hashCode(f3_unk3);
+		result = (prime * result) + Arrays.hashCode(f4_unk3);
+		result = (prime * result) + Arrays.hashCode(f4_unk4);
+		result = (prime * result) + Arrays.hashCode(textureCoord);
+		result = (prime * result) + Arrays.hashCode(xyz);
+		result = (prime * result) + Objects.hash(f6_unk1);
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (obj == null) {
+			return false;
+		}
+		if (getClass() != obj.getClass()) {
+			return false;
+		}
+		final DefaultModelVertex other = (DefaultModelVertex) obj;
+		return Arrays.equals(boneIndex, other.boneIndex) && Arrays.equals(boneWeight, other.boneWeight) && Arrays.equals(f3_unk1, other.f3_unk1)
+				&& Arrays.equals(f3_unk2, other.f3_unk2) && Arrays.equals(f3_unk3, other.f3_unk3) && Arrays.equals(f4_unk3, other.f4_unk3)
+				&& Arrays.equals(f4_unk4, other.f4_unk4) && (f6_unk1 == other.f6_unk1) && Arrays.equals(textureCoord, other.textureCoord)
+				&& Arrays.equals(xyz, other.xyz);
 	}
 
 }
