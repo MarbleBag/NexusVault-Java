@@ -241,4 +241,31 @@ final class DefaultModelVertex implements ModelVertex {
 				&& Arrays.equals(xyz, other.xyz);
 	}
 
+	@Override
+	public String toString() {
+		final StringBuilder builder = new StringBuilder();
+		builder.append("Vertex [xyz=");
+		builder.append(Arrays.toString(xyz));
+		builder.append(", f3_unk1=");
+		builder.append(Arrays.toString(f3_unk1));
+		builder.append(", f3_unk2=");
+		builder.append(Arrays.toString(f3_unk2));
+		builder.append(", f3_unk3=");
+		builder.append(Arrays.toString(f3_unk3));
+		builder.append(", boneIndex=");
+		builder.append(Arrays.toString(boneIndex));
+		builder.append(", boneWeight=");
+		builder.append(Arrays.toString(boneWeight));
+		builder.append(", f4_unk3=");
+		builder.append(Arrays.toString(f4_unk3));
+		builder.append(", f4_unk4=");
+		builder.append(Arrays.toString(f4_unk4));
+		builder.append(", textureCoord=");
+		builder.append(Arrays.toString(textureCoord));
+		builder.append(", f6_unk1=");
+		builder.append(f6_unk1);
+		builder.append("]");
+		return builder.toString();
+	}
+
 }
