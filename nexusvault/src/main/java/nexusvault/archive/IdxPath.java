@@ -1,6 +1,7 @@
 package nexusvault.archive;
 
 import java.util.Arrays;
+import java.util.Optional;
 import java.util.regex.Pattern;
 
 import nexusvault.archive.impl.BaseIdxPath;
@@ -48,6 +49,9 @@ public interface IdxPath extends Cloneable, Comparable<IdxPath> {
 	 * a {@link IdxFileLink}, thus it is impossible to reach the end of the path, a {@link IdxEntryNotADirectoryException} is thrown.
 	 * <p>
 	 * If this path is a root path, the returned value is the given <code>root</code>.
+	 * <p>
+	 * <b>Note:</b><br>
+	 * This function may become deprecated in favor of {@link #tryToResolve(IdxEntry)}
 	 *
 	 * @param root
 	 *            start point of this path
@@ -60,8 +64,53 @@ public interface IdxPath extends Cloneable, Comparable<IdxPath> {
 	 *             If the path can not reach its end, because of the occurrence of a {@link IdxFileLink}
 	 *
 	 * @see #isResolvable(IdxEntry)
+	 * @see #tryToResolve(IdxEntry)
 	 */
 	IdxEntry resolve(IdxEntry root) throws IdxEntryNotFoundException;
+
+	/**
+	 * Resolves this path against the given <code>root</code>.
+	 * <p>
+	 * This method starts with the given node as its <code>root</code> and checks the name of its children against the first named element of this path. If
+	 * there is a match, the child with the correct name will be now set as <code>root</code> and the algorithm will continue with the second named element of
+	 * this path.
+	 * <p>
+	 * This process continues until all named elements of this path are traversed and the last matching child is returned or until a mismatch happens and
+	 * nothing will be returned.
+	 * <p>
+	 * A mismatch happens if <code>root</code> doesn't contain a correctly named child or if <code>root</code> is a {@link IdxFileLink file} and the last named
+	 * element of this path is not reached yet.
+	 * <p>
+	 * If this path is a root path, the returned value is the given <code>root</code>.
+	 *
+	 * @param root
+	 *            start point of this path
+	 * @return the resolved entry
+	 * @throws IllegalArgumentException
+	 *             If <code>root</code> is null
+	 * @see #findResolveablePath(IdxEntry)
+	 */
+	Optional<IdxEntry> tryToResolve(IdxEntry root);
+
+	/**
+	 * Tries to resolve this path against the given <code>root</code>.<br>
+	 * If this path is {@link #isResolvable(IdxEntry) resolvable}, then the method will return this path itself, otherwise the method will return a path to the
+	 * last resolvable element it could find. This method can also be used to test if this path is resolvable, by doing an {@link #equals(IdxPath) equality}
+	 * check of this path against the returned path.
+	 * <p>
+	 * In case this path was not fully resolvable, the last named element of the returned path may be either a directory or a file.
+	 * <ul>
+	 * <li>Directory - the correctly named child was not found
+	 * <li>File - the path could not be traversed to its end, because one of its named elements referred to a file
+	 * </ul>
+	 *
+	 * @param root
+	 *            the entry to start
+	 * @return this path, if resolvable, or a new path to the last resolvable element
+	 * @see IdxPath#tryToResolve(IdxEntry)
+	 * @see #isResolvable(IdxEntry)
+	 */
+	IdxPath findResolveablePath(IdxEntry root);
 
 	/**
 	 * Tries to resolve this path against the given <code>root</code>.<br>
@@ -78,6 +127,8 @@ public interface IdxPath extends Cloneable, Comparable<IdxPath> {
 	 * @throws IllegalArgumentException
 	 *             If <code>root</code> is null
 	 *
+	 * @see #tryToResolve(IdxEntry)
+	 * @see #findResolveablePath(IdxEntry)
 	 * @see #resolve(IdxEntry)
 	 */
 	boolean isResolvable(IdxEntry root);

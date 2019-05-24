@@ -1,10 +1,10 @@
 package nexusvault.archive.impl;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Optional;
 
 import nexusvault.archive.IdxDirectory;
 import nexusvault.archive.IdxEntry;
@@ -50,25 +50,92 @@ public final class BaseIdxPath implements IdxPath {
 			throw new IdxEntryNotADirectoryException("For a non-empty path the root element needs to be a directory");
 		}
 
-		IdxDirectory cDir = root.asDirectory();
-		final Iterator<String> it = path.iterator();
+		// IdxDirectory cDir = root.asDirectory();
+		// final Iterator<String> it = path.iterator();
+		//
+		// while (it.hasNext()) {
+		// final String nextEntryName = it.next();
+		// final IdxEntry nextEntry = cDir.getEntry(nextEntryName);
+		// if (it.hasNext()) { // path goes deeper
+		// if (nextEntry.isFile()) {
+		// throw new IdxEntryNotADirectoryException(
+		// String.format("'%s' of '%s' is not a directory in the archive.", nextEntryName, Arrays.toString(path.toArray())));
+		// } else {
+		// cDir = nextEntry.asDirectory();
+		// }
+		// } else {
+		// return nextEntry;
+		// }
+		// }
+		//
+		// return root;
 
-		while (it.hasNext()) {
-			final String nextEntryName = it.next();
-			final IdxEntry nextEntry = cDir.getEntry(nextEntryName);
-			if (it.hasNext()) { // path goes deeper
-				if (nextEntry.isFile()) {
-					throw new IdxEntryNotADirectoryException(
-							String.format("'%s' of '%s' is not a directory in the archive.", nextEntryName, Arrays.toString(path.toArray())));
-				} else {
-					cDir = nextEntry.asDirectory();
-				}
-			} else {
-				return nextEntry;
-			}
+		final var result = tryToResolve(root);
+		return result.orElseThrow(() -> {
+			final var reachablePath = findResolveablePath(root);
+			final var unreachablePath = subpath(reachablePath.length(), length());
+			return new IdxEntryNotFoundException(String.format("Resolved path to '%s', unable to reach element '%s'", reachablePath, unreachablePath));
+		});
+	}
+
+	@Override
+	public Optional<IdxEntry> tryToResolve(IdxEntry root) {
+		if (root == null) {
+			throw new IllegalArgumentException("'root' must not be null");
 		}
 
-		return root;
+		if (isRoot()) { // shortcut - always matches
+			return Optional.of(root);
+		}
+
+		if (root.isFile()) { // shortcut - never matches
+			return Optional.empty();
+		}
+
+		IdxEntry entry = root.asDirectory();
+		final Iterator<String> it = path.iterator();
+		while (it.hasNext()) {
+			if (entry.isFile()) { // reached a file, before we reached end of path - mismatch
+				return Optional.empty();
+			}
+			final var namedElement = it.next();
+			final var directory = entry.asDirectory();
+			if (!directory.hasEntry(namedElement)) { // entry not found - mismatch
+				return Optional.empty();
+			}
+			entry = directory.getEntry(namedElement);
+		}
+		return Optional.of(entry);
+	}
+
+	@Override
+	public IdxPath findResolveablePath(IdxEntry root) {
+		if (root == null) {
+			throw new IllegalArgumentException("'root' must not be null");
+		}
+
+		if (isRoot()) { // shortcut
+			return this;
+		}
+
+		if (root.isFile()) { // shortcut
+			return getRoot();
+		}
+
+		IdxEntry entry = root.asDirectory();
+		final Iterator<String> it = path.iterator();
+		while (it.hasNext()) {
+			if (entry.isFile()) { // reached a file, before we reached end of path - mismatch, create path
+				return entry.getPath();
+			}
+			final var namedElement = it.next();
+			final var directory = entry.asDirectory();
+			if (!directory.hasEntry(namedElement)) { // entry not found - mismatch
+				return directory.getPath();
+			}
+			entry = directory.getEntry(namedElement);
+		}
+		return this; // full match
 	}
 
 	@Override

@@ -3,7 +3,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com)
 
 ## [Unreleased] 
-## [3.0.0]
+## [3.0.0 Unreleased]
 ### Added
 - An archive contains now informations about its source
 - NexusArchiveWriter which allows to modify (don't forget to back up!) or create new archive files
@@ -15,6 +15,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com)
 - The structure of an index and archive file is now combined in StructArchiveFile
 - The structure of AARC and AIDX is now bundled in StructRootPackInfo
 - Moved to Java 11
+- IdxPath has two additional methods to resolve paths against index files with less exceptions to catch
 
 
 ## [2.0.0] - 2019-02-06
