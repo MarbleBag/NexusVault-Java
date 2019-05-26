@@ -99,14 +99,21 @@ public final class TextureReader {
 		return decoders.size();
 	}
 
+	public StructTextureFileHeader readHeader(ByteBuffer byteBuffer) {
+		return readHeader(new ByteBufferBinaryReader(byteBuffer));
+	}
+
+	public StructTextureFileHeader readHeader(BinaryReader reader) {
+		return new StructTextureFileHeader(reader);
+	}
+
 	public TextureObject read(ByteBuffer byteBuffer) {
 		return read(new ByteBufferBinaryReader(byteBuffer));
 	}
 
 	public TextureObject read(BinaryReader reader) {
-		final StructTextureFileHeader header = new StructTextureFileHeader(reader);
-
-		final TextureDataDecoder decoder = findInterpreter(header);
+		final StructTextureFileHeader header = readHeader(reader);
+		final TextureDataDecoder decoder = findDecoder(header);
 
 		if (decoder == null) {
 			throw new TextureDataDecoderNotFoundException();
@@ -132,7 +139,7 @@ public final class TextureReader {
 		return data;
 	}
 
-	private TextureDataDecoder findInterpreter(StructTextureFileHeader header) {
+	private TextureDataDecoder findDecoder(StructTextureFileHeader header) {
 		for (final TextureDataDecoder interpreter : decoders) {
 			if (interpreter.accepts(header)) {
 				return interpreter;

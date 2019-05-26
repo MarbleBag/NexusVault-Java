@@ -23,6 +23,18 @@ public class TextureObject {
 		return header.mipMaps;
 	}
 
+	public int getImageWidth() {
+		return header.width;
+	}
+
+	public int getImageHeight() {
+		return header.height;
+	}
+
+	public TextureDataType getTextureDataType() {
+		return TextureDataType.resolve(header);
+	}
+
 	/**
 	 * @param idx
 	 *            - mip map index. 0 referes to level 0 (largest image version)
@@ -33,7 +45,7 @@ public class TextureObject {
 			throw new IndexOutOfBoundsException("Available index range [" + 0 + " and " + (header.mipMaps - 1) + ") was " + idx);
 		}
 		final int inverseIdx = header.mipMaps - 1 - idx;
-		return this.interpreter.getImageData(header, data, inverseIdx);
+		return interpreter.getImageData(header, data, inverseIdx);
 	}
 
 	/**
@@ -46,7 +58,7 @@ public class TextureObject {
 			throw new IndexOutOfBoundsException("Available index range [" + 0 + " and " + (header.mipMaps - 1) + ") was " + idx);
 		}
 		final int inverseIdx = header.mipMaps - 1 - idx;
-		return this.interpreter.getImage(header, data, inverseIdx);
+		return interpreter.getImage(header, data, inverseIdx);
 	}
 
 	public boolean hasImageMultipleComponents() {

@@ -11,6 +11,6 @@ public interface TextureRawData {
 
 	ByteOrder getByteOrder();
 
-	int getSizeOfDataInBytes();
+	int getSizeInBytes();
 
 }

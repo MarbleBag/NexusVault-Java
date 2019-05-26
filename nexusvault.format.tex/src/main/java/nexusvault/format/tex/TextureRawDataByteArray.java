@@ -41,7 +41,7 @@ class TextureRawDataByteArray implements TextureRawData {
 	}
 
 	@Override
-	public int getSizeOfDataInBytes() {
+	public int getSizeInBytes() {
 		return this.data.length;
 	}
 

@@ -13,10 +13,6 @@ import nexusvault.format.tex.struct.StructTextureFileHeader;
 
 abstract class JPGDecoderBase {
 
-	public static interface PixelCompositionProvider {
-		PixelCompositionStrategy getPixelCalculator(StructTextureFileHeader header);
-	}
-
 	// private static final IDCTLookUp IDCT = new IDCTLookUp(Constants.BLOCK_HEIGHT, Constants.BLOCK_WIDTH);
 	private static final HuffmanDecoder decoder = new HuffmanDecoder();
 

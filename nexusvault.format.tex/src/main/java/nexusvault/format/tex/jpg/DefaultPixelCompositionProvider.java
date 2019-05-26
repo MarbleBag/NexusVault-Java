@@ -1,6 +1,5 @@
 package nexusvault.format.tex.jpg;
 
-import nexusvault.format.tex.jpg.JPGDecoderBase.PixelCompositionProvider;
 import nexusvault.format.tex.struct.StructTextureFileHeader;
 
 public final class DefaultPixelCompositionProvider implements PixelCompositionProvider {
