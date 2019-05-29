@@ -4,18 +4,17 @@ package nexusvault.format.m3;
  * This class is work in progress and it's name might change in the future, if its usage is more clear. <br>
  * The values listed in this enum are not complete.
  * <p>
- * Missing values: <b>
+ * Missing values:
  * <ul>
- * <li>15
- * <li>28
- * <li>31
- * <li>32
- * <li>40 -&gt; 80
- * <li>89
- * <li>90
- * <li>93 -&gt; 255
+ * <li><b>15</b>
+ * <li><b>28</b>
+ * <li><b>31</b>
+ * <li><b>32</b>
+ * <li><b>40 -&gt; 80</b>
+ * <li><b>89</b>
+ * <li><b>90</b>
+ * <li><b>93 -&gt; 255 </b>
  * </ul>
- *
  */
 public enum MeshToBodyPart {
 	MISSING(-1),
