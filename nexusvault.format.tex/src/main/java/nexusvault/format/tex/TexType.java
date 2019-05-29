@@ -2,7 +2,7 @@ package nexusvault.format.tex;
 
 import nexusvault.format.tex.struct.StructTextureFileHeader;
 
-public enum TextureDataType {
+public enum TexType {
 	UNKNOWN(null, null, null) {
 		@Override
 		protected boolean matches(int format, boolean isCompressed, int compressionFormat) {
@@ -26,7 +26,7 @@ public enum TextureDataType {
 	private Boolean compressed;
 	private Integer compressionFormat;
 
-	private TextureDataType(Integer format, Boolean compressed, Integer compressionFormat) {
+	private TexType(Integer format, Boolean compressed, Integer compressionFormat) {
 		this.format = format;
 		this.compressed = compressed;
 		this.compressionFormat = compressionFormat;
@@ -39,12 +39,12 @@ public enum TextureDataType {
 		return formatMatch && compressionMatch && compFormatMatch;
 	}
 
-	public static TextureDataType resolve(StructTextureFileHeader header) {
+	public static TexType resolve(StructTextureFileHeader header) {
 		return resolve(header.format, header.isCompressed, header.compressionFormat);
 	}
 
-	private static TextureDataType resolve(int format, boolean isCompressed, int compressionFormat) {
-		for (final TextureDataType f : TextureDataType.values()) {
+	private static TexType resolve(int format, boolean isCompressed, int compressionFormat) {
+		for (final TexType f : TexType.values()) {
 			if (f.matches(format, isCompressed, compressionFormat)) {
 				return f;
 			}
