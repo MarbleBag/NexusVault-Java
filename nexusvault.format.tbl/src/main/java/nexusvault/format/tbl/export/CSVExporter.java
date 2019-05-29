@@ -8,8 +8,8 @@ import nexusvault.format.tbl.RawTable;
 import nexusvault.format.tbl.TableRecord;
 
 /**
- * Simple exporter which is able to convert a {@link RawTable} to csv. The default element delimiter is <tt>;</tt> but can be changed. Each line will end with a
- * <tt>line feed</tt>.
+ * Simple exporter which is able to convert a {@link RawTable} to csv. The default element delimiter is <code>;</code> but can be changed. Each line will end
+ * with a <code>line feed</code>.
  */
 public final class CSVExporter {
 

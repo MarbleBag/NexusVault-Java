@@ -1,16 +1,36 @@
 package nexusvault.format.tbl;
 
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
 import kreed.io.util.BinaryReader;
+import kreed.io.util.ByteBufferBinaryReader;
 import kreed.io.util.Seek;
 
 public final class TableReader {
 
 	/**
+	 * Constructs an untyped table from the given input, which can be used in combination with {@link LazyLoadedTypedTable} or {@link PreloadedTypedTable} and a
+	 * typed entry to create a typed table.
+	 *
+	 * @param buffer
+	 *            contains the data to process
+	 * @return the constructed table from the given input
+	 * @see LazyLoadedTypedTable
+	 * @see PreloadedTypedTable
+	 */
+	public RawTable read(ByteBuffer buffer) {
+		return read(new ByteBufferBinaryReader(buffer));
+	}
+
+	/**
+	 * Constructs an untyped table from the given input, which can be used in combination with {@link LazyLoadedTypedTable} or {@link PreloadedTypedTable} and a
+	 * typed entry to create a typed table.
+	 *
 	 * @param reader
-	 * @return
+	 *            contains the data to process
+	 * @return the constructed table from the given input
 	 * @see LazyLoadedTypedTable
 	 * @see PreloadedTypedTable
 	 */
