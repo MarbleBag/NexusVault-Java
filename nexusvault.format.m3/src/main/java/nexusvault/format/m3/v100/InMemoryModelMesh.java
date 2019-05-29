@@ -32,12 +32,19 @@ final class InMemoryModelMesh implements ModelMesh {
 		return meshNo;
 	}
 
+	@Override
 	public boolean hasMeshGroup() {
 		return structMesh.meshGroupId != -1;
 	}
 
+	@Override
 	public int getMeshGroup() {
-		return structMesh.meshGroupId;
+		return 0xFF & structMesh.meshGroupId;
+	}
+
+	@Override
+	public int getMeshToBodyPart() {
+		return 0xFF & structMesh.meshAnatomyId;
 	}
 
 	@Override

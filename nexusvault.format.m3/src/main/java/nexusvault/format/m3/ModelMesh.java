@@ -11,6 +11,20 @@ public interface ModelMesh {
 
 	int getMaterialReference();
 
+	boolean hasMeshGroup();
+
+	int getMeshGroup();
+
+	/**
+	 * A mesh can be assigned to a specific part of a body. The meaning of some of its values can be looked up in {@link MeshToBodyPart}
+	 * <p>
+	 * It seems this value is only used in models of playable races.
+	 * 
+	 * @return the index of assigned body part
+	 * @see MeshToBodyPart
+	 */
+	int getMeshToBodyPart();
+
 	/**
 	 * @return the number of vertices which are part of this mesh
 	 */

@@ -74,53 +74,6 @@ public final class StructMesh implements VisitableStruct {
 	@StructField(value = DataType.BIT_8, length = 2)
 	public byte[] gap_020; // 0x20
 
-	// TODO
-	private static enum MeshBinding {
-		UNKNOWN(-1),
-		NONE(0),
-		LEFT_ANKLE(1),
-		RIGHT_ANKLE(2),
-		LEFT_UPPER_ARM(3),
-		RIGHT_UPPER_ARM4(4),
-		LEFT_LOWER_LEG(5),
-		RIGHT_LOWER_LEG(6),
-		LEFT_KNEE_BELOW(7),
-		RIGHT_KNEE_BELOW(8),
-		LOWER_CHEST_AND_BACK(9),
-		SHOULDERS_AND_BACK(10),
-		LEFT_EAR(11),
-		RIGHT_EAR(12),
-		LEFT_ELBOW(13),
-		RIGHT_ELBOW(14),
-		LEFT_FINGERS(16),
-		RIGHT_FINGERS(17),
-		LEFT_HEEL(18),
-		RIGHT_HEEL(19),
-		LEFT_LOWER_ARM(20),
-		RIGHT_LOWER_ARM(21),
-		LEFT_PALM(22),
-		RIGHT_PALM(23),
-		LEFT_KNEE(24),
-		RIGHT_KNEE(25),
-		NECK(26),
-		PELVIC(27);
-
-		private final int id;
-
-		private MeshBinding(int id) {
-			this.id = id;
-		}
-
-		public static MeshBinding resolve(int value) {
-			for (final MeshBinding e : MeshBinding.values()) {
-				if (e.id == value) {
-					return e;
-				}
-			}
-			return MeshBinding.UNKNOWN;
-		}
-	}
-
 	/**
 	 * Seems only be used for playable race models. <br>
 	 * It seems that the used <code>IDs</code> are identical across all checked occurrences. <br>

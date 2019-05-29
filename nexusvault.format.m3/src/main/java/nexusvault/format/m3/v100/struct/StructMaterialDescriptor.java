@@ -26,7 +26,13 @@ public final class StructMaterialDescriptor implements VisitableStruct {
 
 	public static final int SIZE_IN_BYTES = StructUtil.sizeOf(StructMaterialDescriptor.class);
 
-	/** points to the texture containing the diffuse, etc */
+	/**
+	 * points to the texture containing the diffuse, etc
+	 * <p>
+	 * The value <code>65535</code> indicates that no texture is set, it is also
+	 * possible that this value is actually signed and <code>-1</code> is used to
+	 * indicate that the value is not set
+	 */
 	@Order(1)
 	@StructField(DataType.UBIT_16)
 	public int textureSelectorA; // 000
