@@ -9,6 +9,10 @@ public interface ModelMesh {
 	 */
 	int getMeshIndex();
 
+	/**
+	 * @return the material reference index used by this mesh
+	 * @see Model#getMaterials()
+	 */
 	int getMaterialReference();
 
 	/**
