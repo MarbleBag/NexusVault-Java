@@ -6,14 +6,12 @@ package nexusvault.format.m3;
  * <p>
  * Missing values:
  * <ul>
- * <li><b>15</b>
  * <li><b>28</b>
- * <li><b>31</b>
- * <li><b>32</b>
+ * <li><b>31, 32</b>
  * <li><b>40 -&gt; 80</b>
- * <li><b>89</b>
- * <li><b>90</b>
- * <li><b>93 -&gt; 255 </b>
+ * <li><b>86, 87, 89</b>
+ * <li><b>90, 93, 94, 95</b>
+ * <li><b>97 -&gt; 255 </b>
  * </ul>
  */
 public enum MeshToBodyPart {
@@ -33,7 +31,8 @@ public enum MeshToBodyPart {
 	RIGHT_EAR(12),
 	LEFT_ELBOW(13),
 	RIGHT_ELBOW(14),
-	// MISSING(15),
+	/** Used for eyes, faces, piercings and sometimes for other facial elements */
+	FACE_ELEMENT(15),
 	LEFT_FINGERS(16),
 	RIGHT_FINGERS(17),
 	LEFT_HEEL(18),
@@ -60,13 +59,23 @@ public enum MeshToBodyPart {
 	RIGHT_WRIST(39),
 	// MISSING(40 - 80),
 	HEAD(81),
+	/** This seems exclusive to chua */
+	LEFT_THIGH_OR_KNEE_FUR(82),
+	/** This seems exclusive to chua */
+	RIGHT_THIGH_OR_KNEE_FUR(83),
+	/** Can be seen on male granok and human, kind of placeholder for the face, but inside of the head */
+	INNER_HEAD(84),
 	CHEST(85),
+	// MISSING(86)
+	// MISSING(87)
 	TAIL(88),
 	// MISSING(89),
 	// MISSING(90),
 	/** May be female specific */
 	UPPERBUST(91),
-	NECK_START(92);
+	NECK_START(92),
+	// MISSING(93 - 95),
+	HORNS(96);
 
 	private final int id;
 
