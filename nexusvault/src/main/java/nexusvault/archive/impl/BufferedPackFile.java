@@ -7,6 +7,7 @@ import java.util.TreeMap;
 
 import kreed.io.util.BinaryReader;
 import kreed.io.util.BinaryWriter;
+import nexusvault.archive.PackIndexOutOfBounds;
 import nexusvault.archive.struct.StructPackHeader;
 import nexusvault.archive.struct.StructRootBlock;
 
@@ -68,7 +69,7 @@ final class BufferedPackFile implements PackFile {
 	}
 
 	@Override
-	public void overwritePack(StructPackHeader pack, long packIdx) throws IOException {
+	public void overwritePack(StructPackHeader pack, long packIdx) throws IOException, PackIndexOutOfBounds {
 		if (isPendingPack(packIdx)) {
 			storePendingPack(pack, packIdx);
 		} else {
@@ -82,7 +83,7 @@ final class BufferedPackFile implements PackFile {
 	}
 
 	@Override
-	public PackIdxSwap deletePack(long packIdx) throws IOException {
+	public PackIdxSwap deletePack(long packIdx) throws IOException, PackIndexOutOfBounds {
 		if (isPendingPack(packIdx) && ((pendingPacks.size() - 1) == packIdx)) {
 			pendingPacks.pollLastEntry();
 			return null;
@@ -96,7 +97,7 @@ final class BufferedPackFile implements PackFile {
 	}
 
 	@Override
-	public StructPackHeader getPack(long packIdx) {
+	public StructPackHeader getPack(long packIdx) throws PackIndexOutOfBounds {
 		if (isPendingPack(packIdx)) {
 			return getPendingPack(packIdx);
 		} else {

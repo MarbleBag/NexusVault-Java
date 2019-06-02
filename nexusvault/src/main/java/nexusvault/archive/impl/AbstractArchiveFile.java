@@ -6,6 +6,7 @@ import java.nio.file.Path;
 
 import kreed.io.util.BinaryReader;
 import kreed.io.util.BinaryWriter;
+import nexusvault.archive.PackIndexOutOfBounds;
 import nexusvault.archive.impl.ArchiveMemoryModel.MemoryBlock;
 import nexusvault.archive.struct.StructPackHeader;
 import nexusvault.archive.struct.StructRootBlock;
@@ -41,12 +42,19 @@ abstract class AbstractArchiveFile {
 		packFile.flushWrite();
 	}
 
-	protected StructPackHeader getPack(long index) {
+	protected StructPackHeader getPack(long index) throws PackIndexOutOfBounds {
 		return packFile.getPack(index);
 	}
 
 	protected boolean isPackAvailable(long index) {
-		return index < packFile.getPackArraySize();
+		return (0 <= index) && (index < packFile.getPackArraySize());
+	}
+
+	protected void checkPackAvailability(long packIdx) {
+		if (!isPackAvailable(packIdx)) {
+			final String error = String.format("Pack index %d invalid. Must be in range of [0,%d).", packIdx, getPackArraySize());
+			throw new PackIndexOutOfBounds(error);
+		}
 	}
 
 	protected int getPackArraySize() {
@@ -61,7 +69,7 @@ abstract class AbstractArchiveFile {
 		return packFile.getFileWriter();
 	}
 
-	protected void overwritePack(StructPackHeader pack, long packIdx) throws IOException {
+	protected void overwritePack(StructPackHeader pack, long packIdx) throws IOException, PackIndexOutOfBounds {
 		packFile.overwritePack(pack, packIdx);
 	}
 
@@ -89,7 +97,7 @@ abstract class AbstractArchiveFile {
 		packFile.enableWriteMode();
 	}
 
-	protected StructPackHeader getRootPack() {
+	protected StructPackHeader getRootPack() throws PackIndexOutOfBounds {
 		return getPack(getRootElement().headerIdx);
 	}
 

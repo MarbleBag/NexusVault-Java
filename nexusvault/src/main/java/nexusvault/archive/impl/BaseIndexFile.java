@@ -12,6 +12,7 @@ import kreed.io.util.BinaryReader;
 import kreed.io.util.BinaryWriter;
 import kreed.io.util.Seek;
 import nexusvault.archive.ArchiveMemoryException;
+import nexusvault.archive.PackIndexOutOfBounds;
 import nexusvault.archive.impl.ArchiveMemoryModel.MemoryBlock;
 import nexusvault.archive.struct.StructAIDX;
 import nexusvault.archive.struct.StructIdxDirectory;
@@ -154,34 +155,26 @@ final class BaseIndexFile extends AbstractArchiveFile implements IndexFile {
 	}
 
 	@Override
-	public long writeDirectoryData(long packIdx, IndexDirectoryData data) throws IOException {
+	public long writeDirectoryData(long packIdx, IndexDirectoryData data) throws IOException, PackIndexOutOfBounds {
 		if (packIdx == -1) { // pack unavailable
 			final StructPackHeader pack = writeNewIndexDirectory(data);
 			packIdx = writeNewPack(pack);
 			return packIdx;
 		}
 
-		if (isPackAvailable(packIdx)) { // pack available
-			StructPackHeader pack = getPack(packIdx);
-			if (pack.offset == 0) { // directory new -> create directory, overwrite pack
-				pack = writeNewIndexDirectory(data);
-				overwritePack(pack, packIdx);
-			} else { // directory old -> overwrite directory & pack
-				pack = overwriteIndexDirectory(pack, data);
-				overwritePack(pack, packIdx);
-			}
-			return packIdx;
-		} else if (packIdx == -1) { // pack unavailable
-			final StructPackHeader pack = writeNewIndexDirectory(data);
-			packIdx = writeNewPack(pack);
-			return packIdx;
-		} else {
-			throw new IllegalArgumentException(""); // TODO
+		StructPackHeader pack = getPack(packIdx);
+		if (pack.offset == 0) { // directory new -> create directory, overwrite pack
+			pack = writeNewIndexDirectory(data);
+			overwritePack(pack, packIdx);
+		} else { // directory old -> overwrite directory & pack
+			pack = overwriteIndexDirectory(pack, data);
+			overwritePack(pack, packIdx);
 		}
+		return packIdx;
 	}
 
 	@Override
-	public void overwriteFileAttribute(long packIdx, int fileIndex, byte[] hash, IdxFileAttribute fileAttribute) throws IOException {
+	public void overwriteFileAttribute(long packIdx, int fileIndex, byte[] hash, IdxFileAttribute fileAttribute) throws IOException, PackIndexOutOfBounds {
 		checkPackAvailability(packIdx);
 
 		final StructPackHeader pack = getPack(packIdx);
@@ -234,12 +227,6 @@ final class BaseIndexFile extends AbstractArchiveFile implements IndexFile {
 			writer.writeInt64(fileAttribute.getCompressedSize());
 			writer.writeInt8(fileAttribute.getHash(), 0, 20);
 			writer.writeInt32(fileAttribute.getUnk_034());
-		}
-	}
-
-	private void checkPackAvailability(long packIdx) {
-		if (!isPackAvailable(packIdx)) {
-			throw new IndexOutOfBoundsException(String.format("Pack with index %d not found", packIdx));
 		}
 	}
 

@@ -19,6 +19,8 @@ import kreed.io.util.Seek;
 import kreed.io.util.SeekableByteChannelBinaryReader;
 import kreed.io.util.SeekableByteChannelBinaryWriter;
 import kreed.reflection.struct.StructUtil;
+import nexusvault.archive.PackIndexOutOfBounds;
+import nexusvault.archive.PackMalformedException;
 import nexusvault.archive.impl.ArchiveMemoryModel.MemoryBlock;
 import nexusvault.archive.struct.StructArchiveFile;
 import nexusvault.archive.struct.StructPackHeader;
@@ -195,13 +197,6 @@ final class BasePackFile implements PackFile {
 		return delegate;
 	}
 
-	/**
-	 *
-	 * @return
-	 * @throws IllegalStateException
-	 *             if this instance is not in write mode
-	 * @see #enableWriteMode()
-	 */
 	@Override
 	public ArchiveMemoryModel getMemoryModel() throws IllegalStateException {
 		checkWriteState();
@@ -209,7 +204,7 @@ final class BasePackFile implements PackFile {
 	}
 
 	@Override
-	public StructPackHeader getPack(long packIdx) {
+	public StructPackHeader getPack(long packIdx) throws PackIndexOutOfBounds {
 		checkIsFileOpen();
 		checkIsPackAvailable(packIdx);
 		return packs.get((int) packIdx);
@@ -231,17 +226,17 @@ final class BasePackFile implements PackFile {
 		return (0 <= packIdx) && (packIdx < getPackArraySize());
 	}
 
-	private void checkIsPackAvailable(long index) {
+	private void checkIsPackAvailable(long index) throws PackIndexOutOfBounds {
 		checkIsPackAvailable(index, null);
 	}
 
-	private void checkIsPackAvailable(long index, String msg) {
+	private void checkIsPackAvailable(long index, String msg) throws PackIndexOutOfBounds {
 		if (!isPackAvailable(index)) {
 			String error = String.format("Pack index %d invalid. Must be in range of [0,%d).", index, getPackArraySize());
 			if (msg != null) {
 				error += " " + msg;
 			}
-			throw new IllegalArgumentException(error);
+			throw new PackIndexOutOfBounds(error);
 		}
 	}
 
@@ -250,7 +245,7 @@ final class BasePackFile implements PackFile {
 	}
 
 	@Override
-	public void overwritePack(StructPackHeader pack, long packIdx) throws IndexOutOfBoundsException, IOException {
+	public void overwritePack(StructPackHeader pack, long packIdx) throws PackIndexOutOfBounds, PackMalformedException, IOException {
 		if (pack == null) {
 			throw new IllegalArgumentException("'pack' must not be null");
 		}
@@ -267,7 +262,11 @@ final class BasePackFile implements PackFile {
 			writer.writeInt64(pack.size);
 		}
 
-		packs.set((int) packIdx, pack);
+		try {
+			packs.set((int) packIdx, pack);
+		} catch (final IndexOutOfBoundsException e) {
+			throw new PackMalformedException(String.format("Unable to set pack at index %d. Dataset might be corrupted", packIdx), e);
+		}
 	}
 
 	@Override
@@ -280,7 +279,8 @@ final class BasePackFile implements PackFile {
 		checkIsPackArrayInitialized();
 
 		if (packs.size() != header.packCount) {
-			throw new IllegalStateException(); // TODO
+			throw new PackMalformedException(String.format(
+					"Number of stored packs [%d] diverges from the number of expected packs [%d]. Dataset might be corrupted", pack.size, header.packCount));
 		}
 
 		if (header.packCount == packArrayCapacity) {
@@ -317,9 +317,9 @@ final class BasePackFile implements PackFile {
 	}
 
 	@Override
-	public PackIdxSwap deletePack(long packIdx) throws IOException {
+	public PackIdxSwap deletePack(long packIdx) throws IOException, PackIndexOutOfBounds {
 		checkIsFileOpen();
-		checkIsPackAvailable(packIdx, "Unable to delete.");
+		checkIsPackAvailable(packIdx, "Unable to delete");
 
 		header.packCount -= 1;
 

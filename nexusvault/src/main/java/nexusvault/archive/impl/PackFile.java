@@ -5,6 +5,7 @@ import java.nio.file.Path;
 
 import kreed.io.util.BinaryReader;
 import kreed.io.util.BinaryWriter;
+import nexusvault.archive.PackIndexOutOfBounds;
 import nexusvault.archive.struct.StructPackHeader;
 import nexusvault.archive.struct.StructRootBlock;
 
@@ -61,10 +62,10 @@ interface PackFile {
 	 *
 	 * @return {@link StructPackHeader} associated with <code>packIdx</code>
 	 *
-	 * @throws IllegalArgumentException
+	 * @throws PackIndexOutOfBounds
 	 *             if <code>packIdx</code> is negative or equal or greater than {@link #getPackArraySize()}
 	 */
-	StructPackHeader getPack(long packIdx);
+	StructPackHeader getPack(long packIdx) throws PackIndexOutOfBounds;
 
 	int getPackArrayCapacity();
 
@@ -83,14 +84,14 @@ interface PackFile {
 	 *
 	 * @throws IllegalArgumentException
 	 *             if <code>pack</code> is null
-	 * @throws IllegalArgumentException
+	 * @throws PackIndexOutOfBounds
 	 *             if <code>packIdx</code> is negative or equal or greater than {@link #getPackArraySize()}
 	 * @throws IOException
 	 *             if an I/O error occurs
-	 * 
+	 *
 	 * @see #getPackArraySize()
 	 */
-	void overwritePack(StructPackHeader pack, long packIdx) throws IOException;
+	void overwritePack(StructPackHeader pack, long packIdx) throws IOException, PackIndexOutOfBounds;
 
 	/**
 	 * Writes a new {@link StructPackHeader}. This function may trigger a resizing of the underlying pack array<br>
@@ -133,13 +134,13 @@ interface PackFile {
 	 * @return
 	 * @throws IOException
 	 *             if an I/O error occurs
-	 * @throws IllegalArgumentException
+	 * @throws PackIndexOutOfBounds
 	 *             if <code>packIdx</code> is negative or equal or greater than {@link #getPackArraySize()}
-	 * 
+	 *
 	 * @see #getPackArraySize()
 	 */
 	// TODO complete javadoc
-	PackIdxSwap deletePack(long packIdx) throws IOException;
+	PackIdxSwap deletePack(long packIdx) throws IOException, PackIndexOutOfBounds;
 
 	void setPackRootIdx(long rootIdx);
 

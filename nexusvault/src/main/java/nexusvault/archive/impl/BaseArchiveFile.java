@@ -11,10 +11,11 @@ import kreed.io.util.BinaryWriter;
 import kreed.io.util.ByteBufferBinaryReader;
 import kreed.io.util.Seek;
 import nexusvault.archive.ArchiveEntryNotFoundException;
+import nexusvault.archive.ArchiveException;
 import nexusvault.archive.ArchiveHashCollisionException;
+import nexusvault.archive.PackIndexOutOfBounds;
 import nexusvault.archive.impl.ArchiveMemoryModel.MemoryBlock;
 import nexusvault.archive.impl.PackFile.PackIdxSwap;
-import nexusvault.archive.struct.StructAARC;
 import nexusvault.archive.struct.StructArchiveEntry;
 import nexusvault.archive.struct.StructPackHeader;
 import nexusvault.archive.struct.StructRootBlock;
@@ -45,7 +46,8 @@ final class BaseArchiveFile extends AbstractArchiveFile implements ArchiveFile {
 			enableWriteMode();
 			packFile.setPackArrayAutoGrowSize(1000);
 
-			final long emptyPack = writeNewPack(new StructPackHeader());
+			@SuppressWarnings("unused")
+			final long emptyPack = writeNewPack(new StructPackHeader()); // will not be used
 			final long archiveEntryPack = writeNewPack(new StructPackHeader());
 
 			final StructRootBlock aarc = new StructRootBlock(StructRootBlock.SIGNATURE_AARC, 1, 0, (int) archiveEntryPack);
@@ -57,10 +59,10 @@ final class BaseArchiveFile extends AbstractArchiveFile implements ArchiveFile {
 		} else {
 			final StructRootBlock aarc = getRootElement();
 			if (aarc == null) {
-				throw new IllegalStateException(); // TODO
+				throw new ArchiveException("No root element found. Archive is incomplete."); // TODO
 			}
-			if (aarc.signature != StructAARC.SIGNATURE_AARC) {
-				throw new SignatureMismatchException("Archive file", StructAARC.SIGNATURE_AARC, aarc.signature);
+			if (aarc.signature != StructRootBlock.SIGNATURE_AARC) {
+				throw new SignatureMismatchException("Archive file", StructRootBlock.SIGNATURE_AARC, aarc.signature);
 			}
 
 			loadArchivEntries();
@@ -69,7 +71,7 @@ final class BaseArchiveFile extends AbstractArchiveFile implements ArchiveFile {
 	}
 
 	@Override
-	public BinaryReader getArchiveData(byte[] hash) throws ArchiveEntryNotFoundException, IOException {
+	public BinaryReader getArchiveData(byte[] hash) throws ArchiveEntryNotFoundException, PackIndexOutOfBounds, IOException {
 		final StructArchiveEntry entry = getArchiveEntry(hash);
 		final StructPackHeader pack = getPack(entry);
 
@@ -105,10 +107,6 @@ final class BaseArchiveFile extends AbstractArchiveFile implements ArchiveFile {
 		return entries.size();
 	}
 
-	public final StructPackHeader getPack(byte[] hash) throws ArchiveEntryNotFoundException {
-		return getPack(getArchiveEntry(hash));
-	}
-
 	@Override
 	public boolean hasArchiveData(byte[] hash) {
 		final String key = ByteUtil.byteToHex(hash);
@@ -116,7 +114,7 @@ final class BaseArchiveFile extends AbstractArchiveFile implements ArchiveFile {
 	}
 
 	@Override
-	public void deleteArchiveData(byte[] hash) throws IOException {
+	public void deleteArchiveData(byte[] hash) throws IOException, PackIndexOutOfBounds {
 		final String key = ByteUtil.byteToHex(hash);
 		final Integer index = queuedEntryLookUp.containsKey(key) ? queuedEntryLookUp.get(key) : entryLookUp.get(key);
 		if (index == null) {
@@ -150,11 +148,11 @@ final class BaseArchiveFile extends AbstractArchiveFile implements ArchiveFile {
 		entries.remove(entries.size() - 1);
 	}
 
-	private StructPackHeader getPack(StructArchiveEntry entry) throws ArchiveEntryNotFoundException {
+	private StructPackHeader getPack(StructArchiveEntry entry) throws PackIndexOutOfBounds {
 		return getPack(entry.packIdx);
 	}
 
-	private StructPackHeader getArchiveEntryRelatedPack(byte[] hash) {
+	public final StructPackHeader getPack(byte[] hash) throws ArchiveEntryNotFoundException, PackIndexOutOfBounds {
 		return getPack(getArchiveEntry(hash));
 	}
 
@@ -221,7 +219,7 @@ final class BaseArchiveFile extends AbstractArchiveFile implements ArchiveFile {
 	}
 
 	@Override
-	public void replaceArchiveData(byte[] oldHash, byte[] newHash, BinaryReader data) throws IOException {
+	public void replaceArchiveData(byte[] oldHash, byte[] newHash, BinaryReader data) throws IOException, ArchiveEntryNotFoundException, PackIndexOutOfBounds {
 		final StructArchiveEntry entry = getArchiveEntry(oldHash);
 		final StructPackHeader pack = getPack(entry);
 		final long dataSize = data.size();

@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com)
 ### Added
 - An archive contains now informations about its source
 - NexusArchiveWriter which allows to modify (don't forget to back up!) or create new archive files
+- Additional error checks and exceptions in case a file can not be found in the archive
 
 ### Changed
 - ArchiveReader was renamed to NexusArchive
