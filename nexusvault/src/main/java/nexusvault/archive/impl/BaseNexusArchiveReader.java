@@ -185,7 +185,7 @@ public final class BaseNexusArchiveReader implements NexusArchive {
 			throw new NexusArchiveDisposedException();
 		}
 
-		final BinaryReader reader = archiveFile.getArchiveData(file.getHash());
+		final BinaryReader reader = getDataFromArchive(file);
 
 		final int compressionType = file.getFlags();
 
@@ -218,6 +218,14 @@ public final class BaseNexusArchiveReader implements NexusArchive {
 
 		result.order(reader.getOrder());
 		return result;
+	}
+
+	private BinaryReader getDataFromArchive(IdxFileLink file) throws IOException {
+		try {
+			return archiveFile.getArchiveData(file.getHash());
+		} catch (final ArchiveEntryNotFoundException e) {
+			throw new ArchiveEntryNotFoundException("Entry from index file can not be located in archive file. Archive or index file might be corrupted", e);
+		}
 	}
 
 }
