@@ -21,7 +21,7 @@ final class ZigZagPatternBuilder {
 	 * element of <b>A</b> can be found in <b>B</b> and vice versa. In this case the returned array <b>R</b> is <b>[0,2,3,1,4,7,5,6,8]</b>, therefore it is
 	 * <b>A[u] = B[R[u]]</b>
 	 */
-	public static int[] calculateColumnFirstZigZagIndices(int rows, int columns) {
+	public static int[] calculateColumnFirstZigZagIndices(final int rows, final int columns) {
 		final int[] indices = new int[rows * columns];
 		int direction = 1;
 		for (int n = 0, i = 0, j = 0; n < (rows * columns); ++n) {
@@ -61,7 +61,7 @@ final class ZigZagPatternBuilder {
 	 * @param columns
 	 * @return
 	 */
-	public static int[] calculateRowFirstZigZagIndices(int rows, int columns) {
+	public static int[] calculateRowFirstZigZagIndices(final int rows, final int columns) {
 		final int[] indices = new int[rows * columns];
 		int direction = 1;
 		for (int n = 0, i = 0, j = 0; n < (rows * columns); ++n) {
@@ -92,41 +92,41 @@ final class ZigZagPatternBuilder {
 		return indices;
 	}
 
-	public static int[] applyColumnFirstZigZag(int[] matrix, int rows, int columns) {
+	public static int[] applyColumnFirstZigZag(final int[] matrix, final int rows, final int columns) {
 		final int[] result = new int[rows * columns];
 		final int[] pattern = calculateColumnFirstZigZagIndices(rows, columns);
 		applyZigZag(matrix, result, pattern);
 		return result;
 	}
 
-	public static int[] applyColumnFirstInverseZigZag(int[] zigzag, int rows, int columns) {
+	public static int[] applyColumnFirstInverseZigZag(final int[] zigzag, final int rows, final int columns) {
 		final int[] result = new int[rows * columns];
 		final int[] pattern = calculateColumnFirstZigZagIndices(rows, columns);
 		applyInverseZigZag(zigzag, result, pattern);
 		return result;
 	}
 
-	public static int[] applyRowFirstZigZag(int[] matrix, int rows, int columns) {
+	public static int[] applyRowFirstZigZag(final int[] matrix, final int rows, final int columns) {
 		final int[] result = new int[rows * columns];
 		final int[] pattern = calculateRowFirstZigZagIndices(rows, columns);
 		applyZigZag(matrix, result, pattern);
 		return result;
 	}
 
-	public static int[] applyRowFirstInverseZigZag(int[] zigzag, int rows, int columns) {
+	public static int[] applyRowFirstInverseZigZag(final int[] zigzag, final int rows, final int columns) {
 		final int[] result = new int[rows * columns];
 		final int[] pattern = calculateRowFirstZigZagIndices(rows, columns);
 		applyInverseZigZag(zigzag, result, pattern);
 		return result;
 	}
 
-	private static void applyZigZag(int[] matrix, final int[] result, final int[] pattern) {
+	private static void applyZigZag(final int[] matrix, final int[] result, final int[] pattern) {
 		for (int p = 0; p < pattern.length; ++p) {
 			result[pattern[p]] = matrix[p];
 		}
 	}
 
-	private static void applyInverseZigZag(int[] zigzag, final int[] result, final int[] pattern) {
+	private static void applyInverseZigZag(final int[] zigzag, final int[] result, final int[] pattern) {
 		for (int p = 0; p < pattern.length; ++p) {
 			result[p] = zigzag[pattern[p]];
 		}

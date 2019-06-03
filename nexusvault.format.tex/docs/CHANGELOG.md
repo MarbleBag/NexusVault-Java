@@ -2,7 +2,9 @@
 All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com)
 
-## [Unreleased]
+## [2.0.0 Unreleased]
+### Changed
+- Additional attributes are available on TextureObject
 
 ## [1.0.1] - 2019-02-09
 ### Fixed 

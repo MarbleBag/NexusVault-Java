@@ -3,9 +3,31 @@ package nexusvault.format.tex.jpg;
 import nexusvault.format.tex.AbstTextureDataDecoder;
 import nexusvault.format.tex.ImageMetaInformation;
 import nexusvault.format.tex.TextureDataDecoder;
+import nexusvault.format.tex.TextureImage;
+import nexusvault.format.tex.TextureImageFormat;
+import nexusvault.format.tex.TextureRawData;
 import nexusvault.format.tex.struct.StructTextureFileHeader;
 
 abstract class JPGTextureDataEncoder extends AbstTextureDataDecoder implements TextureDataDecoder {
+
+	private final JPGDecoderBase decoder;
+
+	public JPGTextureDataEncoder(JPGDecoderBase decoder) {
+		if (decoder == null) {
+			throw new IllegalArgumentException("'decoder' must not be null");
+		}
+		this.decoder = decoder;
+	}
+
+	@Override
+	protected final TextureImage getImage(StructTextureFileHeader header, TextureRawData data, ImageMetaInformation meta, int idx) {
+		return decoder.decodeImage(header, data, meta);
+	}
+
+	@Override
+	public final TextureImageFormat getImageFormat() {
+		return decoder.getImageFormat();
+	}
 
 	@Override
 	protected ImageMetaInformation getImageInformation(StructTextureFileHeader header, int idx) {

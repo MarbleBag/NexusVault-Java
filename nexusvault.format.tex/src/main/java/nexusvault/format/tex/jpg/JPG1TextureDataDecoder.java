@@ -1,8 +1,5 @@
 package nexusvault.format.tex.jpg;
 
-import nexusvault.format.tex.ImageMetaInformation;
-import nexusvault.format.tex.TextureImage;
-import nexusvault.format.tex.TextureRawData;
 import nexusvault.format.tex.struct.StructTextureFileHeader;
 
 /**
@@ -10,24 +7,17 @@ import nexusvault.format.tex.struct.StructTextureFileHeader;
  */
 public final class JPG1TextureDataDecoder extends JPGTextureDataEncoder {
 
-	private final JPGDecoderNoSampling decoder;
-
 	public JPG1TextureDataDecoder() {
-		this(new JPGDecoderNoSampling(new DefaultPixelCompositionProvider()));
+		this(new JPGDecoderNoSampling(new Type1PixelComposition()));
 	}
 
 	public JPG1TextureDataDecoder(JPGDecoderNoSampling decoder) {
-		this.decoder = decoder;
+		super(decoder);
 	}
 
 	@Override
 	public boolean accepts(StructTextureFileHeader header) {
 		return header.isCompressed && (header.compressionFormat == 1);
-	}
-
-	@Override
-	protected TextureImage getImage(StructTextureFileHeader header, TextureRawData data, ImageMetaInformation meta, int idx) {
-		return decoder.decodeImage(header, data, meta);
 	}
 
 }

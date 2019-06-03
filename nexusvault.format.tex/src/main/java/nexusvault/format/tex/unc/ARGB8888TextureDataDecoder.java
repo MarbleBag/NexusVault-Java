@@ -26,4 +26,9 @@ public final class ARGB8888TextureDataDecoder extends AbstUncompressedTextureDat
 		return new TextureImage(meta.width, meta.height, TextureImageFormat.ARGB, imageData);
 	}
 
+	@Override
+	public TextureImageFormat getImageFormat() {
+		return TextureImageFormat.ARGB;
+	}
+
 }

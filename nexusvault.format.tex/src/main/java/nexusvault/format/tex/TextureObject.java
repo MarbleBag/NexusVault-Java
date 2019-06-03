@@ -31,8 +31,12 @@ public class TextureObject {
 		return header.height;
 	}
 
-	public TextureDataType getTextureDataType() {
-		return TextureDataType.resolve(header);
+	public TexType getTextureDataType() {
+		return TexType.resolve(header);
+	}
+
+	public TextureImageFormat getTextureImageFormat() {
+		return interpreter.getImageFormat();
 	}
 
 	/**
@@ -44,7 +48,7 @@ public class TextureObject {
 		if ((idx < 0) || (header.mipMaps < idx)) {
 			throw new IndexOutOfBoundsException("Available index range [" + 0 + " and " + (header.mipMaps - 1) + ") was " + idx);
 		}
-		final int inverseIdx = header.mipMaps - 1 - idx;
+		final int inverseIdx = computeMipIndex(idx);
 		return interpreter.getImageData(header, data, inverseIdx);
 	}
 
@@ -57,7 +61,7 @@ public class TextureObject {
 		if ((idx < 0) || (header.mipMaps < idx)) {
 			throw new IndexOutOfBoundsException("Available index range [" + 0 + " and " + (header.mipMaps - 1) + ") was " + idx);
 		}
-		final int inverseIdx = header.mipMaps - 1 - idx;
+		final int inverseIdx = computeMipIndex(idx);
 		return interpreter.getImage(header, data, inverseIdx);
 	}
 
@@ -70,12 +74,18 @@ public class TextureObject {
 	 * and depend actually on some kind of material property / shader. If this is the case, this function will become deprecated and will replaced with
 	 * something more appropriated.
 	 *
-	 * return A list containing its components. List will be empty for unsplittable images.
+	 * @param image
+	 *            to split
+	 * @return A list containing its components. List will be empty for unsplittable images.
 	 *
 	 * @see #hasImageMultipleComponents()
 	 */
 	public List<TextureImage> splitImageIntoComponents(TextureImage image) {
 		return splitter.split(image, header);
+	}
+
+	private int computeMipIndex(int idx) {
+		return header.mipMaps - 1 - idx;
 	}
 
 }

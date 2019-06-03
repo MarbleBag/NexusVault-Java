@@ -52,7 +52,7 @@ public final class StructTextureFileHeader {
 
 	/**
 	 * <ul>
-	 * <li>0 = uncompressed ( BGRA8 )
+	 * <li>0 = uncompressed ( A8 R8 G8 B8 )
 	 * <li>1 = uncompressed ( A8 R8 G8 B8 )
 	 * <li>13=dxt1
 	 * <li>14=dxt3
@@ -133,7 +133,7 @@ public final class StructTextureFileHeader {
 			imageSizes[i] = reader.readInt32();
 		}
 
-		this.unk_06C = reader.readInt32();
+		unk_06C = reader.readInt32();
 
 		if (reader.getPosition() != headerEnd) {
 			throw new IllegalStateException("Expected number of bytes " + SIZE_IN_BYTES + " read bytes: " + (reader.getPosition() - headerStart));

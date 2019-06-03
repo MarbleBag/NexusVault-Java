@@ -46,10 +46,15 @@ final class Constants {
 	public final static int BLOCK_SIZE = BLOCK_WIDTH * BLOCK_HEIGHT;
 
 	public final static int NUMBER_OF_LAYERS = 4;
+
 	public final static int[][] DECODES_PER_LAYER_TYPE = { { 4, 1, 1, 4 }, { 1, 1, 1, 1 }, { 1, 1, 1, 1 } };
+
 	public final static LayerType[][] TYPE_PER_LAYER = { { LayerType.LUMINANCE, LayerType.CHROMA, LayerType.CHROMA, LayerType.LUMINANCE },
 			{ LayerType.LUMINANCE, LayerType.LUMINANCE, LayerType.LUMINANCE, LayerType.LUMINANCE },
 			{ LayerType.LUMINANCE, LayerType.CHROMA, LayerType.CHROMA, LayerType.LUMINANCE } };
+
+	public final static boolean[][] LAYER_WITH_POSSIBLE_DEFAULT_VALUES = { { false, false, false, false }, { false, false, true, true },
+			{ false, false, false, true } };
 
 	public final static int[] ZIGZAG = ZigZagPatternBuilder.calculateRowFirstZigZagIndices(BLOCK_WIDTH, BLOCK_HEIGHT);
 

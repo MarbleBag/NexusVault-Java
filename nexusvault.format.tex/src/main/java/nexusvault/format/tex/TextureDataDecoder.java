@@ -7,9 +7,11 @@ import nexusvault.format.tex.struct.StructTextureFileHeader;
  */
 public interface TextureDataDecoder {
 
-	long calculateTotalTextureDataSize(StructTextureFileHeader header);
+	TextureImageFormat getImageFormat();
 
 	boolean accepts(StructTextureFileHeader header);
+
+	long calculateTotalTextureDataSize(StructTextureFileHeader header);
 
 	byte[] getImageData(StructTextureFileHeader header, TextureRawData data, int idx);
 

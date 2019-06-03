@@ -17,8 +17,8 @@ public final class JPGDecoderChromaSubsampling extends JPGDecoderBase {
 	private int imageStacksPerRow;
 	private int imageStacksPerColumn;
 
-	public JPGDecoderChromaSubsampling(PixelCompositionProvider pixelCalculatorProvider) {
-		super(pixelCalculatorProvider);
+	public JPGDecoderChromaSubsampling(PixelCompositionStrategy pixelCompositor) {
+		super(pixelCompositor);
 	}
 
 	@Override
@@ -67,7 +67,7 @@ public final class JPGDecoderChromaSubsampling extends JPGDecoderBase {
 	@Override
 	void processStack(StackSet stack) {
 		// threadsafe version, a bit heavy on the continues resource allocation?
-		processBlockStack(stack, new int[Constants.BLOCK_SIZE]);
+		processBlockStack(stack, null);
 	}
 
 	private void processBlockStack(StackSet stack, int[] tmpIDCTBuffer) {

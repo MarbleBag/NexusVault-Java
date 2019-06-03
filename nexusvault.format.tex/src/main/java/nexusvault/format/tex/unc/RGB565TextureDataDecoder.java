@@ -44,4 +44,9 @@ public final class RGB565TextureDataDecoder extends AbstUncompressedTextureDataD
 		return new TextureImage(meta.width, meta.height, TextureImageFormat.RGB, imageData);
 	}
 
+	@Override
+	public TextureImageFormat getImageFormat() {
+		return TextureImageFormat.RGB;
+	}
+
 }

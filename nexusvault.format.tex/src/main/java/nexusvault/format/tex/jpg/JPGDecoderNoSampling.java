@@ -13,15 +13,15 @@ public final class JPGDecoderNoSampling extends JPGDecoderBase {
 	private int stacksPerColumn;
 	private int numberOfDecodes;
 
-	public JPGDecoderNoSampling(PixelCompositionProvider pixelCalculatorProvider) {
-		super(pixelCalculatorProvider);
+	public JPGDecoderNoSampling(PixelCompositionStrategy pixelCompositor) {
+		super(pixelCompositor);
 	}
 
 	@Override
 	protected final void loadFormatSpecificConfig(StructTextureFileHeader header, ImageMetaInformation meta) {
-		this.stacksPerRow = ((meta.width + Constants.BLOCK_WIDTH) - 1) / Constants.BLOCK_WIDTH;
-		this.stacksPerColumn = ((meta.height + Constants.BLOCK_HEIGHT) - 1) / Constants.BLOCK_HEIGHT;
-		this.numberOfDecodes = stacksPerRow * stacksPerColumn;
+		stacksPerRow = ((meta.width + Constants.BLOCK_WIDTH) - 1) / Constants.BLOCK_WIDTH;
+		stacksPerColumn = ((meta.height + Constants.BLOCK_HEIGHT) - 1) / Constants.BLOCK_HEIGHT;
+		numberOfDecodes = stacksPerRow * stacksPerColumn;
 	}
 
 	@Override
@@ -62,7 +62,7 @@ public final class JPGDecoderNoSampling extends JPGDecoderBase {
 	@Override
 	final void processStack(StackSet stack) {
 		// threadsafe version, a bit heavy on the continues ressource allocation?
-		processBlockStack(stack, new int[Constants.BLOCK_SIZE]);
+		processBlockStack(stack, null);
 	}
 
 	private void processBlockStack(StackSet stack, int[] tmpIDCTBuffer) {
