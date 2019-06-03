@@ -106,7 +106,8 @@ public class ObjExporter {
 				final int indexA = indices[i + 0] + 1 + startIndex;
 				final int indexB = indices[i + 1] + 1 + startIndex;
 				final int indexC = indices[i + 2] + 1 + startIndex;
-				writer.append(String.format(Locale.US, "f %1$d/%1$d/%1$d %2$d/%2$d/%2$d %3$d/%3$d/%3$d", indexA, indexB, indexC));
+				// writer.append(String.format(Locale.US, "f %1$d/%1$d/%1$d %2$d/%2$d/%2$d %3$d/%3$d/%3$d", indexA, indexB, indexC));
+				writer.append(String.format(Locale.US, "f %1$d/%1$d %2$d/%2$d %3$d/%3$d", indexA, indexB, indexC)); // no normals
 				writer.append('\n');
 			}
 			startIndex += modelMesh.getVertexCount();
