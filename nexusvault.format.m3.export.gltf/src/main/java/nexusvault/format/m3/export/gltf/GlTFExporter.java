@@ -49,7 +49,7 @@ import nexusvault.format.m3.export.gltf.Bi2NiLookUp.Bi2NiEntry;
 import nexusvault.shared.exception.IntegerOverflowException;
 
 /**
- * Exports {@link nexusvault.format.m3.Model m3-models} as <tt>gltf</tt> <br>
+ * Exports {@link nexusvault.format.m3.Model m3-models} as <code>gltf</code> <br>
  * Set up a {@link GlTFExportMonitor} to provide the exported model with textures and to monitor each file this exporter creates.
  *
  * @see #exportModel(Path, String, Model)
@@ -132,6 +132,7 @@ public final class GlTFExporter {
 	 * @param model
 	 *            model to export
 	 * @throws IOException
+	 *             if an I/O error occurs
 	 */
 	public void exportModel(Path directory, String fileName, Model model) throws IOException {
 		try {
@@ -304,18 +305,18 @@ public final class GlTFExporter {
 	}
 
 	private void clearExportModel() {
-		this.model = null;
+		model = null;
 	}
 
 	private void clearGltf() {
-		this.gltf = null;
+		gltf = null;
 	}
 
 	private void addTextures() throws IOException {
 		// TODO what a mess
 		final String textureDirName = outputFileName + "_textures";
 		final Path textureDir = outputDirectory.resolve(textureDirName);
-		Files.createDirectories(textureDir);
+		boolean textureDirCreated = Files.isDirectory(textureDir);
 
 		int counter = 0;
 		for (final ModelTexture textures : model.getTextures()) {
@@ -325,6 +326,11 @@ public final class GlTFExporter {
 			String imageName = texturePath;
 			if (imageName.lastIndexOf('\\') >= 0) {
 				imageName = imageName.substring(imageName.lastIndexOf('\\') + 1);
+			}
+
+			if (!textureDirCreated && !bundle.getTextureResources().isEmpty()) {
+				Files.createDirectories(textureDir);
+				textureDirCreated = true;
 			}
 
 			for (final TextureResource texResource : bundle.getTextureResources()) {
@@ -540,14 +546,14 @@ public final class GlTFExporter {
 		if (fileName == null) {
 			throw new IllegalArgumentException("'fileName' must not be null");
 		}
-		this.outputFileName = fileName;
+		outputFileName = fileName;
 	}
 
 	private void setOutputDirectory(Path directory) {
 		if (directory == null) {
 			throw new IllegalArgumentException("'directory' must not be null");
 		}
-		this.outputDirectory = directory;
+		outputDirectory = directory;
 	}
 
 	private int getOffsetWithinVertex(LinkedList<VertexField> vertexFields) {
@@ -594,10 +600,10 @@ public final class GlTFExporter {
 			vertexFields.add(field);
 		}
 
-		this.fieldAccessors = vertexFields.toArray(new VertexField[vertexFields.size()]);
-		this.vertexSizeInBytes = 0;
-		for (final VertexField vertexField : this.fieldAccessors) {
-			this.vertexSizeInBytes += vertexField.getSizeInBytes();
+		fieldAccessors = vertexFields.toArray(new VertexField[vertexFields.size()]);
+		vertexSizeInBytes = 0;
+		for (final VertexField vertexField : fieldAccessors) {
+			vertexSizeInBytes += vertexField.getSizeInBytes();
 		}
 	}
 
@@ -750,7 +756,7 @@ public final class GlTFExporter {
 	}
 
 	private void prepareGltf() {
-		this.gltf = new GlTF();
+		gltf = new GlTF();
 
 		final Asset asset = new Asset();
 		asset.setVersion("2.0");
