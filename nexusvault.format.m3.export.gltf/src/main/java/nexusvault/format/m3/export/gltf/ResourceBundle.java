@@ -13,6 +13,9 @@ public final class ResourceBundle {
 
 	/**
 	 * See {@link TextureResource} for a list of possible resource types
+	 * 
+	 * @param resource
+	 *            a list of possible resources
 	 */
 	public void addTextureResource(List<TextureResource> resource) {
 		if (resource == null) {
@@ -23,6 +26,9 @@ public final class ResourceBundle {
 
 	/**
 	 * See {@link TextureResource} for a list of possible resource types
+	 * 
+	 * @param resource
+	 *            a possible resource
 	 */
 	public void addTextureResource(TextureResource resource) {
 		if (resource == null) {
