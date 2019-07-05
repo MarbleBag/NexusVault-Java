@@ -30,7 +30,7 @@
 				<artifactId>maven-jar-plugin</artifactId>
 				<configuration>
 					<archive>
-						<addMavenDescriptor>false</addMavenDescriptor>
+						<addMavenDescriptor>true</addMavenDescriptor>
 						<manifest>
 							<addClasspath>true</addClasspath>
 						</manifest>
@@ -53,7 +53,7 @@
 				</executions>
 				<configuration>
 					<archive>
-						<addMavenDescriptor>false</addMavenDescriptor>
+						<addMavenDescriptor>true</addMavenDescriptor>
 						<manifest>
 							<addClasspath>true</addClasspath>
 						</manifest>
@@ -76,7 +76,7 @@
 				</executions>
 				<configuration>
 					<archive>
-						<addMavenDescriptor>false</addMavenDescriptor>
+						<addMavenDescriptor>true</addMavenDescriptor>
 						<manifest>
 							<addClasspath>true</addClasspath>
 						</manifest>
@@ -87,6 +87,14 @@
 				</configuration>
 			</plugin>
 		</plugins>
+
+		<resources>
+			<resource>
+				<directory>docs</directory>
+				<targetPath>docs</targetPath>
+				<filtering>false</filtering>
+			</resource>
+		</resources>
 	</build>
 
 </project>
