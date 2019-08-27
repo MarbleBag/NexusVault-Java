@@ -8,7 +8,7 @@ import nexusvault.format.m3.ModelVertex;
 /**
  * Internal implementation. May change without notice.
  */
-final class DefaultModelVertex implements ModelVertex {
+public final class DefaultModelVertex implements ModelVertex {
 
 	protected float[] xyz;
 	protected int[] f3_unk1;
@@ -36,49 +36,34 @@ final class DefaultModelVertex implements ModelVertex {
 		return xyz[2];
 	}
 
-	@Deprecated
-	public int getF3_Unk1_1() {
+	@Override
+	public int getUnknownData1_1() {
 		return f3_unk1[0];
 	}
 
-	@Deprecated
-	public int getF3_Unk1_2() {
+	@Override
+	public int getUnknownData1_2() {
 		return f3_unk1[1];
 	}
 
-	@Deprecated
-	public int getF3_Unk1_3() {
-		return f3_unk1[2];
-	}
-
-	@Deprecated
-	public int getF3_Unk2_1() {
+	@Override
+	public int getUnknownData2_1() {
 		return f3_unk2[0];
 	}
 
-	@Deprecated
-	public int getF3_Unk2_2() {
+	@Override
+	public int getUnknownData2_2() {
 		return f3_unk2[1];
 	}
 
-	@Deprecated
-	public int getF3_Unk2_3() {
-		return f3_unk2[2];
-	}
-
-	@Deprecated
-	public int getF3_Unk3_1() {
+	@Override
+	public int getUnknownData3_1() {
 		return f3_unk3[0];
 	}
 
-	@Deprecated
-	public int getF3_Unk3_2() {
+	@Override
+	public int getUnknownData3_2() {
 		return f3_unk3[1];
-	}
-
-	@Deprecated
-	public int getF3_Unk3_3() {
-		return f3_unk3[2];
 	}
 
 	@Override
@@ -121,43 +106,43 @@ final class DefaultModelVertex implements ModelVertex {
 		return boneWeight[3];
 	}
 
-	@Deprecated
-	public int getF4_Unk3_1() {
+	@Override
+	public int getUnknownData4_1() {
 		return f4_unk3[0];
 	}
 
-	@Deprecated
-	public int getF4_Unk3_2() {
+	@Override
+	public int getUnknownData4_2() {
 		return f4_unk3[1];
 	}
 
-	@Deprecated
-	public int getF4_Unk3_3() {
+	@Override
+	public int getUnknownData4_3() {
 		return f4_unk3[2];
 	}
 
-	@Deprecated
-	public int getF4_Unk3_4() {
+	@Override
+	public int getUnknownData4_4() {
 		return f4_unk3[3];
 	}
 
-	@Deprecated
-	public int getF4_Unk4_1() {
+	@Override
+	public int getUnknownData5_1() {
 		return f4_unk4[0];
 	}
 
-	@Deprecated
-	public int getF4_Unk4_2() {
+	@Override
+	public int getUnknownData5_2() {
 		return f4_unk4[1];
 	}
 
-	@Deprecated
-	public int getF4_Unk4_3() {
+	@Override
+	public int getUnknownData5_3() {
 		return f4_unk4[2];
 	}
 
-	@Deprecated
-	public int getF4_Unk4_4() {
+	@Override
+	public int getUnknownData5_4() {
 		return f4_unk4[3];
 	}
 
@@ -181,8 +166,8 @@ final class DefaultModelVertex implements ModelVertex {
 		return textureCoord[3];
 	}
 
-	@Deprecated
-	public int getF6_Unk1() {
+	@Override
+	public int getUnknownData6_1() {
 		return f6_unk1;
 	}
 
@@ -203,6 +188,26 @@ final class DefaultModelVertex implements ModelVertex {
 			dstOffset = 0;
 		}
 		System.arraycopy(textureCoord, 0, dst, dstOffset, textureCoord.length);
+		return dst;
+	}
+
+	@Override
+	public int[] getBoneIndex(int[] dst, int dstOffset) {
+		if (dst == null) {
+			dst = new int[boneIndex.length];
+			dstOffset = 0;
+		}
+		System.arraycopy(boneIndex, 0, dst, dstOffset, boneIndex.length);
+		return null;
+	}
+
+	@Override
+	public int[] getBoneWeight(int[] dst, int dstOffset) {
+		if (dst == null) {
+			dst = new int[boneWeight.length];
+			dstOffset = 0;
+		}
+		System.arraycopy(boneWeight, 0, dst, dstOffset, boneWeight.length);
 		return dst;
 	}
 

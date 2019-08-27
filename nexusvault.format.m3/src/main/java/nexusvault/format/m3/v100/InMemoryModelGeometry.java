@@ -57,13 +57,18 @@ final class InMemoryModelGeometry implements ModelGeometry {
 	}
 
 	@Override
-	public boolean hasVertex1TextureCoords() {
-		return getStructGeometry().isVertexFieldAvailable(VertexField.UV_MAP_1) && !getStructGeometry().isVertexFieldAvailable(VertexField.UV_MAP_2);
+	public boolean hasVertexUnknownData1() {
+		return getStructGeometry().isVertexFieldAvailable(VertexField.FIELD_3_UNK_1);
 	}
 
 	@Override
-	public boolean hasVertex2TextureCoords() {
-		return getStructGeometry().isVertexFieldAvailable(VertexField.UV_MAP_2);
+	public boolean hasVertexUnknownData2() {
+		return getStructGeometry().isVertexFieldAvailable(VertexField.FIELD_3_UNK_2);
+	}
+
+	@Override
+	public boolean hasVertexUnknownData3() {
+		return getStructGeometry().isVertexFieldAvailable(VertexField.FIELD_3_UNK_3);
 	}
 
 	@Override
@@ -74,6 +79,31 @@ final class InMemoryModelGeometry implements ModelGeometry {
 	@Override
 	public boolean hasVertexBoneWeights() {
 		return getStructGeometry().isVertexFieldAvailable(VertexField.BONE_WEIGHTS);
+	}
+
+	@Override
+	public boolean hasVertexUnknownData4() {
+		return getStructGeometry().isVertexFieldAvailable(VertexField.FIELD_4_UNK_1);
+	}
+
+	@Override
+	public boolean hasVertexUnknownData5() {
+		return getStructGeometry().isVertexFieldAvailable(VertexField.FIELD_4_UNK_2);
+	}
+
+	@Override
+	public boolean hasVertex1TextureCoords() {
+		return getStructGeometry().isVertexFieldAvailable(VertexField.UV_MAP_1) && !getStructGeometry().isVertexFieldAvailable(VertexField.UV_MAP_2);
+	}
+
+	@Override
+	public boolean hasVertex2TextureCoords() {
+		return getStructGeometry().isVertexFieldAvailable(VertexField.UV_MAP_2);
+	}
+
+	@Override
+	public boolean hasVertexUnknownData6() {
+		return getStructGeometry().isVertexFieldAvailable(VertexField.FIELD_6_UNK_1);
 	}
 
 	@Override

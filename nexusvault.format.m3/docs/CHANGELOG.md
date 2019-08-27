@@ -2,7 +2,7 @@
 All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com)
 
-## [0.7.0 Unreleased]
+## [0.7.0] - 2019-08-27
 ### Added
 - Support to 'debug' a m3 model, this means to write as many values/structs to a table format, which can, for example, be dumped as csv
 - Connection between Creature2DisplayInfo.tbl and m3 (See StructM3Header#model2Display and #display2model)
@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com)
 - Equals & Hash for ModelVertex
 - Groups for meshes. Certain meshes are bundled together to a group. See ModelMesh#getMeshGroup
 - Some meshes are assigned to specific body parts. See ModelMesh#getMeshToBodyPart
+- Access to still unknown vertex fields for ModelGeometry and ModelVertex
 
 ### Fixed
 - ModelMesh#getVertex(index) did not work for index > 0
