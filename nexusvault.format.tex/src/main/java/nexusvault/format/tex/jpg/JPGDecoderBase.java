@@ -13,15 +13,13 @@ import nexusvault.format.tex.struct.StructTextureFileHeader;
 
 abstract class JPGDecoderBase {
 
-	public static interface PixelCompositionProvider {
-		PixelCompositionStrategy getPixelCalculator(StructTextureFileHeader header);
-	}
-
 	// private static final IDCTLookUp IDCT = new IDCTLookUp(Constants.BLOCK_HEIGHT, Constants.BLOCK_WIDTH);
 	private static final HuffmanDecoder decoder = new HuffmanDecoder();
 
 	private final int[] decoderOutput = new int[Constants.BLOCK_SIZE];
 	private final int[] dcValues = new int[Constants.NUMBER_OF_LAYERS];
+
+	private final PixelCompositionStrategy pixelCompositor;
 
 	private LayerType[] typePerLayer;
 	private float[][] quantTables;
@@ -29,18 +27,14 @@ abstract class JPGDecoderBase {
 	private StructTextureFileHeader textureHeader;
 	private BitSupply source;
 
-	private final PixelCompositionProvider pixelCompositionProvider;
-
-	private PixelCompositionStrategy pixelCompositor;
-
 	protected TextureImage image;
 	private int lastStackId;
 
-	protected JPGDecoderBase(PixelCompositionProvider pixelCompositionProvider) {
-		if (pixelCompositionProvider == null) {
-			throw new IllegalArgumentException("'pixelCompositionProvider' must not be null");
+	protected JPGDecoderBase(PixelCompositionStrategy pixelCompositor) {
+		if (pixelCompositor == null) {
+			throw new IllegalArgumentException("'pixelCompositor' must not be null");
 		}
-		this.pixelCompositionProvider = pixelCompositionProvider;
+		this.pixelCompositor = pixelCompositor;
 	}
 
 	public final TextureImage decodeImage(StructTextureFileHeader header, TextureRawData data, ImageMetaInformation meta) {
@@ -59,12 +53,8 @@ abstract class JPGDecoderBase {
 
 	private void initializeConstants(StructTextureFileHeader header) {
 		final int format = header.compressionFormat;
-		this.typePerLayer = Constants.TYPE_PER_LAYER[format];
-		this.pixelCompositor = pixelCompositionProvider.getPixelCalculator(header);
-		if (pixelCompositor == null) {
-			throw new IllegalStateException("'pixelCompositor' is null");
-		}
-		this.lastStackId = 0;
+		typePerLayer = Constants.TYPE_PER_LAYER[format];
+		lastStackId = 0;
 	}
 
 	protected final void initializeData(StructTextureFileHeader header, ImageMetaInformation meta, TextureRawData data) {
@@ -76,6 +66,10 @@ abstract class JPGDecoderBase {
 		final TextureImageFormat imageFormat = TextureImageFormat.ARGB;
 		final byte[] imageData = new byte[meta.height * meta.width * imageFormat.getBytesPerPixel()];
 		image = new TextureImage(meta.width, meta.height, imageFormat, imageData);
+	}
+
+	public TextureImageFormat getImageFormat() {
+		return TextureImageFormat.ARGB;
 	}
 
 	protected final void initializeQuantTables() {
@@ -93,17 +87,6 @@ abstract class JPGDecoderBase {
 
 	private final void startDecoding() {
 		// TODO needs to be replaced with a proper ServiceExecutor, so it can work in a resource sensible way.
-
-		// while(numberOfStacksToDecode>0){
-		// while(isFreeStackAvailable()){
-		// StackSet stackSet = getNextStack();
-		// decodeStack(stackSet);
-		// queueForProcessing(stackSet);
-		// numberOfStacksToDecode += -1;
-		// }
-		//
-		// }
-		//
 
 		final List<StackSet> intermediate = Stream.generate(this::getNextStack).peek(this::decodeStack).limit(getNumberOfDecodableStacks())
 				.collect(Collectors.toList());
@@ -150,17 +133,7 @@ abstract class JPGDecoderBase {
 		}
 	}
 
-	// TODO this should be further optimized. This is the most time consuming part of decoding
 	protected final void inverseDCT(int[] data, int dataOffset, int[] inverseDCTBuffer) {
-		// for (int y0 = 0; y0 < Constants.BLOCK_HEIGHT; ++y0) {
-		// for (int x0 = 0; x0 < Constants.BLOCK_WIDTH; ++x0) {
-		// final double value = IDCT.IDCT(x0, y0, data, dataOffset, Constants.BLOCK_WIDTH, Constants.BLOCK_HEIGHT);
-		// inverseDCTBuffer[x0 + (y0 * Constants.BLOCK_WIDTH)] = (int) Math.round(value);
-		// }
-		// }
-		// System.arraycopy(inverseDCTBuffer, 0, data, dataOffset, Constants.BLOCK_SIZE);
-
-		// TODO faster, but doesn't work yet
 		FastIntegerIDCT.idct(data, dataOffset);
 	}
 

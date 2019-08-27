@@ -30,9 +30,9 @@ final class InMemoryModel implements Model {
 			false);
 
 	protected final StructM3Header header;
-	protected final DataTracker modelData;
+	protected final BytePositionTracker modelData;
 
-	public InMemoryModel(StructM3Header header, DataTracker data) {
+	public InMemoryModel(StructM3Header header, BytePositionTracker data) {
 		this.header = header;
 		this.modelData = data;
 	}
@@ -76,7 +76,7 @@ final class InMemoryModel implements Model {
 		return result;
 	}
 
-	protected DataTracker getMemory() {
+	protected BytePositionTracker getMemory() {
 		return modelData;
 	}
 

@@ -1,6 +1,6 @@
 package nexusvault.format.m3.v100.pointer;
 
-import nexusvault.format.m3.v100.DataTracker;
+import nexusvault.format.m3.v100.BytePositionTracker;
 import nexusvault.format.m3.v100.StructVisitor;
 import nexusvault.format.m3.v100.VisitableStruct;
 
@@ -10,7 +10,7 @@ import nexusvault.format.m3.v100.VisitableStruct;
 public final class NoType implements VisitableStruct {
 
 	@Override
-	public void visit(StructVisitor process, DataTracker fileReader, int dataPosition) {
+	public void visit(StructVisitor process, BytePositionTracker fileReader, int dataPosition) {
 	}
 
 }

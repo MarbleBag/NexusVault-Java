@@ -19,7 +19,7 @@ final class InMemoryModelMesh implements ModelMesh {
 	public InMemoryModelMesh(int meshNo, StructMesh structMesh, InMemoryModelGeometry inMemoryGeometry) {
 		this.meshNo = meshNo;
 		this.structMesh = structMesh;
-		this.model = inMemoryGeometry;
+		model = inMemoryGeometry;
 	}
 
 	@Override
@@ -32,12 +32,19 @@ final class InMemoryModelMesh implements ModelMesh {
 		return meshNo;
 	}
 
+	@Override
 	public boolean hasMeshGroup() {
 		return structMesh.meshGroupId != -1;
 	}
 
+	@Override
 	public int getMeshGroup() {
-		return structMesh.meshGroupId;
+		return 0xFF & structMesh.meshGroupId;
+	}
+
+	@Override
+	public int getMeshToBodyPart() {
+		return 0xFF & structMesh.meshAnatomyId;
 	}
 
 	@Override
@@ -57,7 +64,10 @@ final class InMemoryModelMesh implements ModelMesh {
 
 	@Override
 	public ModelVertex getVertex(int idx) {
-		return model.getVertex(structMesh.startVertex, idx);
+		if ((idx < 0) || (getVertexCount() <= idx)) {
+			throw new IndexOutOfBoundsException(String.format("Idx out of range. Allowed range is [0,%d)", getVertexCount()));
+		}
+		return model.getVertex(structMesh.startVertex + idx);
 	}
 
 	@Override

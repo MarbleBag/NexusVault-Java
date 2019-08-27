@@ -23,8 +23,8 @@ final class InMemoryModelGeometry implements ModelGeometry {
 
 	public InMemoryModelGeometry(InMemoryModel model, StructGeometry geometry) {
 		this.model = model;
-		this.struct = geometry;
-		this.vertexReader = new VertexReader(getStructGeometry());
+		struct = geometry;
+		vertexReader = new VertexReader(getStructGeometry());
 	}
 
 	protected InMemoryModel getModel() {
@@ -57,13 +57,18 @@ final class InMemoryModelGeometry implements ModelGeometry {
 	}
 
 	@Override
-	public boolean hasVertex1TextureCoords() {
-		return getStructGeometry().isVertexFieldAvailable(VertexField.UV_MAP_1) && !getStructGeometry().isVertexFieldAvailable(VertexField.UV_MAP_2);
+	public boolean hasVertexUnknownData1() {
+		return getStructGeometry().isVertexFieldAvailable(VertexField.FIELD_3_UNK_1);
 	}
 
 	@Override
-	public boolean hasVertex2TextureCoords() {
-		return getStructGeometry().isVertexFieldAvailable(VertexField.UV_MAP_2);
+	public boolean hasVertexUnknownData2() {
+		return getStructGeometry().isVertexFieldAvailable(VertexField.FIELD_3_UNK_2);
+	}
+
+	@Override
+	public boolean hasVertexUnknownData3() {
+		return getStructGeometry().isVertexFieldAvailable(VertexField.FIELD_3_UNK_3);
 	}
 
 	@Override
@@ -77,6 +82,31 @@ final class InMemoryModelGeometry implements ModelGeometry {
 	}
 
 	@Override
+	public boolean hasVertexUnknownData4() {
+		return getStructGeometry().isVertexFieldAvailable(VertexField.FIELD_4_UNK_1);
+	}
+
+	@Override
+	public boolean hasVertexUnknownData5() {
+		return getStructGeometry().isVertexFieldAvailable(VertexField.FIELD_4_UNK_2);
+	}
+
+	@Override
+	public boolean hasVertex1TextureCoords() {
+		return getStructGeometry().isVertexFieldAvailable(VertexField.UV_MAP_1) && !getStructGeometry().isVertexFieldAvailable(VertexField.UV_MAP_2);
+	}
+
+	@Override
+	public boolean hasVertex2TextureCoords() {
+		return getStructGeometry().isVertexFieldAvailable(VertexField.UV_MAP_2);
+	}
+
+	@Override
+	public boolean hasVertexUnknownData6() {
+		return getStructGeometry().isVertexFieldAvailable(VertexField.FIELD_6_UNK_1);
+	}
+
+	@Override
 	public long getVertexCount() {
 		return getStructGeometry().vertexBlockCount;
 	}
@@ -87,7 +117,7 @@ final class InMemoryModelGeometry implements ModelGeometry {
 	}
 
 	protected int[] getIndices(long indexOffset, long count) {
-		final DataTracker memory = model.getMemory();
+		final BytePositionTracker memory = model.getMemory();
 		memory.setPosition(struct.indexData.getOffset() + (indexOffset * 2));
 		final int[] indices = new int[(int) count];
 		for (int i = 0; i < count; ++i) {
@@ -96,10 +126,10 @@ final class InMemoryModelGeometry implements ModelGeometry {
 		return indices;
 	}
 
-	protected ModelVertex getVertex(long vertexOffset, long idx) {
+	protected ModelVertex getVertex(long vertexIndex) {
 		final long vertexDataOffset = struct.vertexBlockData.getOffset();
-		final long vertexStart = vertexDataOffset + (idx * struct.vertexBlockSizeInBytes);
-		final DataTracker memory = model.getMemory();
+		final long vertexStart = vertexDataOffset + (vertexIndex * struct.vertexBlockSizeInBytes);
+		final BytePositionTracker memory = model.getMemory();
 		if (memory.getPosition() != vertexStart) {
 			memory.setPosition(vertexStart);
 		}
@@ -109,7 +139,7 @@ final class InMemoryModelGeometry implements ModelGeometry {
 	protected List<ModelVertex> getVertices(long startVertex, long vertexCount) {
 		final long vertexDataOffset = struct.vertexBlockData.getOffset();
 		final long vertexStart = vertexDataOffset + (startVertex * struct.vertexBlockSizeInBytes);
-		final DataTracker memory = model.getMemory();
+		final BytePositionTracker memory = model.getMemory();
 		if (memory.getPosition() != vertexStart) {
 			memory.setPosition(vertexStart);
 		}
@@ -120,11 +150,17 @@ final class InMemoryModelGeometry implements ModelGeometry {
 		return result;
 	}
 
+	private interface ModelVertexIterator extends Iterator<ModelVertex> {
+		boolean hasPrevious();
+
+		ModelVertex previous();
+	}
+
 	@Deprecated
 	protected Iterator<ModelVertex> buildIterator(int startIdx, long startVertex, long vertexCount) {
 		final long vertexDataOffset = struct.vertexBlockData.getOffset();
 
-		return new Iterator<ModelVertex>() {
+		return new ModelVertexIterator() {
 			private final long vertexSize = struct.vertexBlockSizeInBytes;
 			private final long vertexStart = vertexDataOffset + (startVertex * vertexSize);
 
@@ -135,6 +171,7 @@ final class InMemoryModelGeometry implements ModelGeometry {
 				return idx < vertexCount;
 			}
 
+			@Override
 			public boolean hasPrevious() {
 				return idx > 0;
 			}
@@ -149,6 +186,7 @@ final class InMemoryModelGeometry implements ModelGeometry {
 				return vertex;
 			}
 
+			@Override
 			public ModelVertex previous() {
 				if (--idx < 0) {
 					throw new IndexOutOfBoundsException();
@@ -158,7 +196,7 @@ final class InMemoryModelGeometry implements ModelGeometry {
 			}
 
 			private ModelVertex getVertex() {
-				final DataTracker memory = model.getMemory();
+				final BytePositionTracker memory = model.getMemory();
 				final long nPos = vertexStart + (idx * vertexSize);
 				if (memory.getPosition() != nPos) {
 					memory.setPosition(nPos);

@@ -1,77 +1,80 @@
 package nexusvault.archive.impl;
 
-import java.io.File;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import nexusvault.archive.IdxDirectory;
 import nexusvault.archive.IdxEntry;
-import nexusvault.archive.IdxEntryNotAFile;
-import nexusvault.archive.IdxEntryNotFound;
+import nexusvault.archive.IdxEntryNotADirectoryException;
+import nexusvault.archive.IdxEntryNotAFileException;
+import nexusvault.archive.IdxEntryNotFoundException;
 import nexusvault.archive.IdxFileLink;
+import nexusvault.archive.IdxPath;
 
-class BaseIdxDirectory extends BaseIdxEntry implements IdxDirectory {
+abstract class BaseIdxDirectory extends BaseIdxEntry implements IdxDirectory {
 
-	protected final long packHeaderIdx;
-	protected List<BaseIdxEntry> childs;
+	private final long headerIndex;
 
-	protected BaseIdxDirectory(BaseIdxDirectory parent, String name, long subDirectoryHeaderIdx) {
+	/**
+	 *
+	 * @throws IllegalArgumentException
+	 *             if <code>name</code> is null or contains an {@link IdxPath#SEPARATOR illegal character}
+	 */
+	protected BaseIdxDirectory(BaseIdxDirectory parent, String name, long headerIndex) {
 		super(parent, name);
-		this.packHeaderIdx = subDirectoryHeaderIdx;
+		this.headerIndex = headerIndex;
+	}
+
+	protected final long getDirectoryPackIndex() {
+		return headerIndex;
 	}
 
 	@Override
-	public List<IdxEntry> getChilds() {
-		if (this.childs == null) {
-			return Collections.emptyList();
-		}
-		return Collections.unmodifiableList(childs);
-	}
-
-	public void setChilds(List<BaseIdxEntry> childs) {
-		this.childs = childs;
+	public final List<IdxEntry> getChilds() {
+		return Collections.unmodifiableList(getChildsInternal());
 	}
 
 	@Override
-	public int getChildCount() {
-		return this.childs != null ? this.childs.size() : 0;
+	public final int getChildCount() {
+		return getChildsInternal().size();
 	}
 
 	@Override
-	public List<IdxEntry> getChildsDeep() {
+	public final List<IdxEntry> getChildsDeep() {
 		final List<IdxEntry> results = new LinkedList<>();
 		final Deque<IdxDirectory> fringe = new LinkedList<>();
 		fringe.add(this);
-
 		while (!fringe.isEmpty()) {
 			final IdxDirectory dir = fringe.pollFirst();
 			results.add(dir);
 			for (final IdxEntry child : dir.getChilds()) {
 				if (child instanceof IdxDirectory) {
-					fringe.addFirst((IdxDirectory) child);
+					fringe.addLast((IdxDirectory) child);
 				} else {
 					results.add(child);
 				}
 			}
 		}
-
 		return results;
 	}
 
 	@Override
-	public int countSubTree() {
+	public final int countSubTree() {
 		final Deque<IdxDirectory> fringe = new LinkedList<>();
 		fringe.add(this);
 		int result = 1;
 		while (!fringe.isEmpty()) {
 			final IdxDirectory dir = fringe.pollFirst();
-			for (final IdxEntry child : dir.getChilds()) {
-				result += 1;
+			final List<IdxEntry> childs = dir.getChilds();
+			result += childs.size();
+			for (final IdxEntry child : childs) {
 				if (child instanceof IdxDirectory) {
-					fringe.addFirst((IdxDirectory) child);
+					fringe.addLast((IdxDirectory) child);
 				}
 			}
 		}
@@ -79,106 +82,92 @@ class BaseIdxDirectory extends BaseIdxEntry implements IdxDirectory {
 	}
 
 	@Override
-	public String fullName() {
-		if (this.parent != null) {
-			final String parentName = this.parent.fullName();
-			if (parentName.isEmpty()) {
-				return name;
-			} else {
-				return parentName + File.separator + name;
-			}
-		} else {
-			return name;
-		}
+	public final List<IdxDirectory> getDirectories() {
+		return getChildsInternal().stream().filter(f -> f instanceof IdxDirectory).map(f -> (IdxDirectory) f).collect(Collectors.toList());
 	}
 
 	@Override
-	public List<IdxDirectory> getSubDirectories() {
-		if (childs == null) {
-			return Collections.emptyList();
-		}
-		return getChilds().parallelStream().filter(f -> f instanceof IdxDirectory).map(f -> (IdxDirectory) f).collect(Collectors.toList());
+	public final List<IdxFileLink> getFiles() {
+		return getChildsInternal().stream().filter(f -> f instanceof IdxFileLink).map(f -> (IdxFileLink) f).collect(Collectors.toList());
 	}
 
 	@Override
-	public List<IdxFileLink> getFiles() {
-		if (childs == null) {
-			return Collections.emptyList();
-		}
-		return getChilds().parallelStream().filter(f -> f instanceof IdxFileLink).map(f -> (IdxFileLink) f).collect(Collectors.toList());
+	public final boolean hasEntry(String entryName) {
+		return getChildsInternal().stream().anyMatch(f -> f.getName().equalsIgnoreCase(entryName));
 	}
 
 	@Override
-	public BaseIdxEntry getEntry(String path) throws IdxEntryNotFound {
-		if (childs == null) {
-			throw new IdxEntryNotFound(path);
+	public final BaseIdxEntry getEntry(String entryName) throws IdxEntryNotFoundException {
+		final Optional<BaseIdxEntry> entry = getChildsInternal().stream().filter(f -> f.getName().equalsIgnoreCase(entryName)).findFirst();
+		if (!entry.isPresent()) {
+			throw new IdxEntryNotFoundException(entryName);
 		}
-
-		final int sepIdx = path.indexOf(File.separator);
-		if (sepIdx < 0) {
-			for (final IdxEntry child : getChilds()) {
-				if (child.getName().equalsIgnoreCase(path)) {
-					return (BaseIdxEntry) child;
-				}
-			}
-			throw new IdxEntryNotFound(path);
-		}
-
-		final String dir = path.substring(0, sepIdx);
-		path = path.substring(sepIdx + 1);
-		for (final IdxEntry child : getChilds()) {
-			if (child instanceof IdxDirectory) {
-				if (dir.equalsIgnoreCase(child.getName())) {
-					return ((BaseIdxDirectory) child).getEntry(path);
-				}
-			}
-		}
-		throw new IdxEntryNotFound(path);
+		return entry.get();
 	}
 
 	@Override
-	public BaseIdxFileLink getFile(String path) throws IdxEntryNotFound, IdxEntryNotAFile {
-		final IdxEntry entry = getEntry(path);
-		if (!(entry instanceof IdxFileLink)) {
-			throw new IdxEntryNotAFile(path);
-		}
-		return (BaseIdxFileLink) entry;
+	public final IdxDirectory getDirectory(String directoryName) throws IdxEntryNotFoundException, IdxEntryNotADirectoryException {
+		return getEntry(directoryName).asDirectory();
+	}
+
+	@Override
+	public final BaseIdxFileLink getFileLink(String fileLinkName) throws IdxEntryNotFoundException, IdxEntryNotAFileException {
+		return getEntry(fileLinkName).asFile();
 	}
 
 	@Override
 	public String toString() {
 		final StringBuilder builder = new StringBuilder("IdxDirectory [");
-		builder.append("packHeaderIdx=").append(packHeaderIdx);
-		builder.append(", name=").append(fullName());
+		builder.append("headerIdx=").append(getDirectoryPackIndex());
+		builder.append(", name=").append(getFullName());
 		builder.append(", #childs=").append(getChilds().size());
 		builder.append("]");
 		return builder.toString();
 	}
 
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = super.hashCode();
-		result = (prime * result) + (int) (packHeaderIdx ^ (packHeaderIdx >>> 32));
-		return result;
+	protected abstract List<BaseIdxEntry> getChildsInternal();
+
+}
+
+class BaseLoadedIdxDirectory extends BaseIdxDirectory {
+
+	protected List<BaseIdxEntry> childs;
+
+	protected BaseLoadedIdxDirectory(BaseIdxDirectory parent, String directoryName, long headerIndex) {
+		super(parent, directoryName, headerIndex);
+		childs = Collections.emptyList();
 	}
 
 	@Override
-	public boolean equals(Object obj) {
-		if (this == obj) {
-			return true;
+	protected List<BaseIdxEntry> getChildsInternal() {
+		return childs;
+	}
+
+	protected void setChildsInternal(List<BaseIdxEntry> childs) {
+		this.childs = childs;
+	}
+
+}
+
+class BaseLazyIdxDirectory extends BaseIdxDirectory {
+
+	protected List<BaseIdxEntry> childs;
+
+	protected BaseLazyIdxDirectory(BaseIdxDirectory parent, String directoryName, long headerIndex) {
+		super(parent, directoryName, headerIndex);
+	}
+
+	@Override
+	protected List<BaseIdxEntry> getChildsInternal() {
+		if (childs == null) {
+			initializeChilds();
 		}
-		if (!super.equals(obj)) {
-			return false;
-		}
-		if (getClass() != obj.getClass()) {
-			return false;
-		}
-		final BaseIdxDirectory other = (BaseIdxDirectory) obj;
-		if (packHeaderIdx != other.packHeaderIdx) {
-			return false;
-		}
-		return true;
+		return childs;
+	}
+
+	private void initializeChilds() {
+		final List<BaseIdxEntry> childs = getArchive().loadDirectory(this);
+		this.childs = new ArrayList<>(childs);
 	}
 
 }

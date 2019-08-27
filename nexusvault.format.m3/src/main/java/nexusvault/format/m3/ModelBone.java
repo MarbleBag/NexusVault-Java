@@ -22,7 +22,7 @@ public interface ModelBone {
 	boolean hasParentBone();
 
 	/**
-	 * This method may return <tt>-1</tt> in case {@link #hasParentBone()} returned <tt>false</tt>.
+	 * This method may return <code>-1</code> in case {@link #hasParentBone()} returned <code>false</code>.
 	 *
 	 * @return index to find its parent bone in {@link Model#getBones()}
 	 */

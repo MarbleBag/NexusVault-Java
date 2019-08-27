@@ -1,8 +1,6 @@
 package nexusvault.archive.impl;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -10,18 +8,38 @@ import java.nio.file.StandardOpenOption;
 import java.util.EnumSet;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-
-import kreed.io.util.BinaryReader;
-import kreed.io.util.SeekableByteChannelBinaryReader;
+import java.util.concurrent.atomic.AtomicInteger;
 
 final class FileAccessCache {
 
+	static class DefaultThreadFactory implements ThreadFactory {
+		private static final AtomicInteger poolNumber = new AtomicInteger(1);
+		private final ThreadGroup group;
+		private final AtomicInteger threadNumber = new AtomicInteger(1);
+		private final String namePrefix;
+
+		DefaultThreadFactory() {
+			final SecurityManager s = System.getSecurityManager();
+			group = (s != null) ? s.getThreadGroup() : Thread.currentThread().getThreadGroup();
+			namePrefix = "pool-" + poolNumber.getAndIncrement() + "-thread-";
+		}
+
+		@Override
+		public Thread newThread(Runnable r) {
+			final Thread t = new Thread(group, r, namePrefix + threadNumber.getAndIncrement(), 0);
+			t.setDaemon(true);
+			if (t.getPriority() != Thread.NORM_PRIORITY) {
+				t.setPriority(Thread.NORM_PRIORITY);
+			}
+			return t;
+		}
+	}
+
 	private final long cacheTime;
 	private final Path filePath;
-	private final int bufferSize;
-	private final ByteOrder byteOrder;
 
 	private final ExecutorService executor;
 
@@ -32,14 +50,13 @@ final class FileAccessCache {
 	private final Object lock = new Object();
 
 	private SeekableByteChannel stream;
-	private BinaryReader reader;
+	private final EnumSet<StandardOpenOption> fileAccessOption;
 
-	public FileAccessCache(long cacheTime, Path filePath, int bufferSize, ByteOrder byteOrder) {
+	public FileAccessCache(long cacheTime, Path filePath, EnumSet<StandardOpenOption> fileAccessOption) {
 		this.cacheTime = cacheTime;
 		this.filePath = filePath;
-		this.bufferSize = bufferSize;
-		this.byteOrder = byteOrder;
-		this.executor = new ThreadPoolExecutor(0, 1, 15L, TimeUnit.SECONDS, new SynchronousQueue<Runnable>());
+		this.fileAccessOption = fileAccessOption;
+		this.executor = new ThreadPoolExecutor(0, 1, 15L, TimeUnit.SECONDS, new SynchronousQueue<Runnable>(), new DefaultThreadFactory());
 		this.taskShutdown = true;
 	}
 
@@ -47,19 +64,23 @@ final class FileAccessCache {
 		executor.shutdownNow();
 	}
 
-	public BinaryReader getChannel() throws IOException {
+	public boolean isShutDown() {
+		return executor.isShutdown();
+	}
+
+	public SeekableByteChannel getFileAccess() throws IOException {
 		synchronized (lock) {
 			this.lastUsed = System.currentTimeMillis();
 			this.expiring = false;
-			if ((reader == null) || !reader.isOpen()) {
-				if ((stream == null) || !stream.isOpen()) {
-					stream = Files.newByteChannel(filePath, EnumSet.of(StandardOpenOption.READ));
-				}
-				final ByteBuffer fileBuffer = ByteBuffer.allocateDirect(bufferSize).order(byteOrder);
-				this.reader = new SeekableByteChannelBinaryReader(stream, fileBuffer);
+			if ((stream == null) || !stream.isOpen()) {
+				stream = Files.newByteChannel(filePath, fileAccessOption);
 			}
 		}
-		return reader;
+		return stream;
+	}
+
+	public Path getSource() {
+		return filePath;
 	}
 
 	private boolean tryToCloseChannel() {
@@ -71,7 +92,7 @@ final class FileAccessCache {
 				return false;
 			}
 			try {
-				reader.close();
+				stream.close();
 			} catch (final RuntimeException e) {
 				e.printStackTrace();
 			} catch (final Exception e) {

@@ -1,6 +1,6 @@
 package nexusvault.shared.exception;
 
-public class IntegerOverflowException extends RuntimeException {
+public class IntegerOverflowException extends NexusVaultException {
 
 	private static final long serialVersionUID = -8602843792483449030L;
 

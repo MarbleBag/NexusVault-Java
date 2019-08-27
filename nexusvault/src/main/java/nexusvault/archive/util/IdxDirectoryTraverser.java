@@ -7,7 +7,14 @@ import nexusvault.archive.IdxDirectory;
 import nexusvault.archive.IdxFileLink;
 import nexusvault.archive.util.IdxEntryVisitor.EntryFilterResult;
 
-public class IdxDirectoryTraverser {
+/**
+ * Traverses a given file structure, calling for each {@link IdxDirectory directory} or {@link IdxFileLink file} it encounters the respective method on the
+ * given {@link IdxEntryVisitor visitor} and acts accordingly to its return {@link EntryFilterResult value}.
+ *
+ * @see EntryFilterResult
+ * @see IdxEntryVisitor
+ */
+public final class IdxDirectoryTraverser {
 
 	public static <T extends IdxEntryVisitor> T visitEntries(IdxDirectory start, T visitor) {
 		if (start == null) {
@@ -61,7 +68,7 @@ public class IdxDirectoryTraverser {
 			}
 
 			if (!skipDirs) {
-				for (final IdxDirectory child : dir.getSubDirectories()) {
+				for (final IdxDirectory child : dir.getDirectories()) {
 					unvisited.addLast(child);
 				}
 			}

@@ -2,6 +2,6 @@ package nexusvault.format.m3.v100;
 
 public interface VisitableStruct {
 
-	void visit(StructVisitor process, DataTracker fileReader, int dataPosition);
+	void visit(StructVisitor process, BytePositionTracker fileReader, int dataPosition);
 
 }

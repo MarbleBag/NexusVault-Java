@@ -17,19 +17,19 @@ public final class JPGDecoderChromaSubsampling extends JPGDecoderBase {
 	private int imageStacksPerRow;
 	private int imageStacksPerColumn;
 
-	public JPGDecoderChromaSubsampling(PixelCompositionProvider pixelCalculatorProvider) {
-		super(pixelCalculatorProvider);
+	public JPGDecoderChromaSubsampling(PixelCompositionStrategy pixelCompositor) {
+		super(pixelCompositor);
 	}
 
 	@Override
 	void loadFormatSpecificConfig(StructTextureFileHeader header, ImageMetaInformation meta) {
 		final int imageBlocksPerRow = ((meta.width + Constants.BLOCK_WIDTH) - 1) / Constants.BLOCK_WIDTH;
 		final int imageBlocksPerColumn = ((meta.height + Constants.BLOCK_HEIGHT) - 1) / Constants.BLOCK_HEIGHT;
-		this.layerBlocksPerRow = MathUtil.sqrtInteger(this.maxLayerBlockCount);
-		this.layerBlocksPerColumn = layerBlocksPerRow;
-		this.imageStacksPerRow = imageBlocksPerRow / layerBlocksPerRow;
-		this.imageStacksPerColumn = imageBlocksPerColumn / layerBlocksPerColumn;
-		this.numberOfDecodes = imageStacksPerRow * imageStacksPerColumn;
+		layerBlocksPerRow = MathUtil.sqrtInteger(maxLayerBlockCount);
+		layerBlocksPerColumn = layerBlocksPerRow;
+		imageStacksPerRow = imageBlocksPerRow / layerBlocksPerRow;
+		imageStacksPerColumn = imageBlocksPerColumn / layerBlocksPerColumn;
+		numberOfDecodes = imageStacksPerRow * imageStacksPerColumn;
 	}
 
 	@Override
@@ -66,15 +66,14 @@ public final class JPGDecoderChromaSubsampling extends JPGDecoderBase {
 
 	@Override
 	void processStack(StackSet stack) {
-		// threadsafe version, a bit heavy on the continues ressource allocation?
-		processBlockStack(stack, new int[Constants.BLOCK_SIZE]);
+		// threadsafe version, a bit heavy on the continues resource allocation?
+		processBlockStack(stack, null);
 	}
 
 	private void processBlockStack(StackSet stack, int[] tmpIDCTBuffer) {
 		dequantizate(stack);
 		inverseDCT(stack, tmpIDCTBuffer);
 		shiftAndClamp(stack);
-		// upsambling(stack);
 	}
 
 	private void dequantizate(StackSet stack) {
@@ -143,10 +142,13 @@ public final class JPGDecoderChromaSubsampling extends JPGDecoderBase {
 							break; // do not compute pixels outside of the image.
 						}
 
-						final int pixelLayerA = stack.data[layerOffsets[0] + blockOffsets[0] + x + (y * Constants.BLOCK_WIDTH)];
-						final int pixelLayerB = stack.data[layerOffsets[1] + blockOffsets[1] + (x / 2) + ((y / 2) * Constants.BLOCK_WIDTH)];
-						final int pixelLayerC = stack.data[layerOffsets[2] + blockOffsets[2] + (x / 2) + ((y / 2) * Constants.BLOCK_WIDTH)];
-						final int pixelLayerD = stack.data[layerOffsets[3] + blockOffsets[3] + x + (y * Constants.BLOCK_WIDTH)];
+						final int indexOffset = x + (y * Constants.BLOCK_WIDTH);
+						final int subsampledIndexOffset = (x / 2) + ((y / 2) * Constants.BLOCK_WIDTH);
+
+						final int pixelLayerA = stack.data[layerOffsets[0] + blockOffsets[0] + indexOffset];
+						final int pixelLayerB = stack.data[layerOffsets[1] + blockOffsets[1] + subsampledIndexOffset];
+						final int pixelLayerC = stack.data[layerOffsets[2] + blockOffsets[2] + subsampledIndexOffset];
+						final int pixelLayerD = stack.data[layerOffsets[3] + blockOffsets[3] + indexOffset];
 
 						getPixelCompositor().composite(image.getImageData(), imageXY * 4, pixelLayerA, pixelLayerB, pixelLayerC, pixelLayerD);
 					}
@@ -154,7 +156,7 @@ public final class JPGDecoderChromaSubsampling extends JPGDecoderBase {
 				}
 				blockOffsets[0] += Constants.BLOCK_SIZE;
 				blockOffsets[1] += Constants.BLOCK_WIDTH / 2; // because of chroma subsampling, each value needs to be read 4 times
-				blockOffsets[2] += Constants.BLOCK_WIDTH / 2; // to do so, each each subsampled block gets divided into 4 smaller blocks
+				blockOffsets[2] += Constants.BLOCK_WIDTH / 2; // to do so, each subsampled block gets divided into 4 smaller blocks
 				blockOffsets[3] += Constants.BLOCK_SIZE;
 				imageBlockColumnOffset += Constants.BLOCK_WIDTH;
 			}

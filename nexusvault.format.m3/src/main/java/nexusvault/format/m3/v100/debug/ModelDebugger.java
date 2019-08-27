@@ -12,21 +12,21 @@ import kreed.reflection.struct.StructFactory;
 import kreed.reflection.struct.StructReader;
 import kreed.reflection.struct.reader.ByteBufferReader;
 import nexusvault.format.m3.Model;
-import nexusvault.format.m3.v100.DataTracker;
+import nexusvault.format.m3.v100.BytePositionTracker;
 import nexusvault.format.m3.v100.struct.StructGeometry;
 import nexusvault.format.m3.v100.struct.StructM3Header;
 import nexusvault.format.m3.v100.struct.StructTexture;
 
 public final class ModelDebugger {
 
-	private static DataTracker extractDataFromModel(Model m3) {
+	private static BytePositionTracker extractDataFromModel(Model m3) {
 		final Field[] fields = m3.getClass().getDeclaredFields();
 		for (final Field field : fields) {
 			if (field.getName().equals("modelData")) {
 				final boolean accessible = field.isAccessible();
 				field.setAccessible(true);
 				try {
-					final DataTracker tracker = (DataTracker) field.get(m3);
+					final BytePositionTracker tracker = (BytePositionTracker) field.get(m3);
 					return tracker;
 				} catch (final IllegalAccessException e) {
 
@@ -40,7 +40,7 @@ public final class ModelDebugger {
 	}
 
 	public static ByteBuffer getByteBuffer(Model m3) {
-		final DataTracker modelData = extractDataFromModel(m3);
+		final BytePositionTracker modelData = extractDataFromModel(m3);
 		modelData.resetPosition();
 		final ByteBuffer buffer = modelData.getData();
 		return buffer;
@@ -83,24 +83,24 @@ public final class ModelDebugger {
 	private final Class2ObjectLookup<StructFormater> sturctFormaters;
 
 	private Queue<Task> taskQueue;
-	private DataTracker modelData;
+	private BytePositionTracker modelData;
 
 	public ModelDebugger() {
 		sturctFormaters = new Class2ObjectLookup<>(null);
 		sturctFormaters.setLookUp(Object.class, new BasicStructFormater());
 	}
 
-	protected DataTracker getDataModel() {
+	protected BytePositionTracker getDataModel() {
 		return this.modelData;
 	}
 
 	protected List<Object> loadStructs(int dataOffset, Class<?> structClass, int structCount) {
-		final DataTracker data = getDataModel();
+		final BytePositionTracker data = getDataModel();
 		data.setPosition(dataOffset);
 		return loadStructs(structClass, structCount, getDataModel());
 	}
 
-	protected List<Object> loadStructs(Class<?> structClass, int structCount, DataTracker data) {
+	protected List<Object> loadStructs(Class<?> structClass, int structCount, BytePositionTracker data) {
 		final List<Object> structs = new ArrayList<>(structCount);
 		for (int i = 0; i < structCount; ++i) {
 			structs.add(structBuilder.read(structClass, data.getData()));
@@ -122,12 +122,12 @@ public final class ModelDebugger {
 	}
 
 	public Table debugModel(Model m3) {
-		final DataTracker modelData = extractDataFromModel(m3);
+		final BytePositionTracker modelData = extractDataFromModel(m3);
 		modelData.resetPosition();
 		return debugModel(modelData, StructM3Header.class, 1);
 	}
 
-	public Table debugModel(DataTracker modelData, Class<?> structClass, int structCount) {
+	public Table debugModel(BytePositionTracker modelData, Class<?> structClass, int structCount) {
 		this.modelData = modelData;
 		this.taskQueue = new LinkedList<>();
 
@@ -155,7 +155,7 @@ public final class ModelDebugger {
 		final DebugInfo debugger = new DebugInfo() {
 
 			@Override
-			public DataTracker getDataModel() {
+			public BytePositionTracker getDataModel() {
 				return ModelDebugger.this.getDataModel();
 			}
 

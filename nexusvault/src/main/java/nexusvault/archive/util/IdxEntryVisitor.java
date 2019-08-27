@@ -3,6 +3,9 @@ package nexusvault.archive.util;
 import nexusvault.archive.IdxDirectory;
 import nexusvault.archive.IdxFileLink;
 
+/**
+ * @see IdxDirectoryTraverser
+ */
 public interface IdxEntryVisitor {
 	public enum EntryFilterResult {
 		/** proceed */

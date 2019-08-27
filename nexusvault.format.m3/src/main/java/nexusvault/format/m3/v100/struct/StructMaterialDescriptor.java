@@ -4,7 +4,7 @@ import kreed.reflection.struct.DataType;
 import kreed.reflection.struct.Order;
 import kreed.reflection.struct.StructField;
 import kreed.reflection.struct.StructUtil;
-import nexusvault.format.m3.v100.DataTracker;
+import nexusvault.format.m3.v100.BytePositionTracker;
 import nexusvault.format.m3.v100.StructVisitor;
 import nexusvault.format.m3.v100.VisitableStruct;
 import nexusvault.format.m3.v100.pointer.DATP_S4_S12;
@@ -26,7 +26,13 @@ public final class StructMaterialDescriptor implements VisitableStruct {
 
 	public static final int SIZE_IN_BYTES = StructUtil.sizeOf(StructMaterialDescriptor.class);
 
-	/** points to the texture containing the diffuse, etc */
+	/**
+	 * points to the texture containing the diffuse, etc
+	 * <p>
+	 * The value <code>65535</code> indicates that no texture is set, it is also
+	 * possible that this value is actually signed and <code>-1</code> is used to
+	 * indicate that the value is not set
+	 */
 	@Order(1)
 	@StructField(DataType.UBIT_16)
 	public int textureSelectorA; // 000
@@ -89,7 +95,7 @@ public final class StructMaterialDescriptor implements VisitableStruct {
 	public int[] gap_120;
 
 	@Override
-	public void visit(StructVisitor process, DataTracker fileReader, int dataPosition) {
+	public void visit(StructVisitor process, BytePositionTracker fileReader, int dataPosition) {
 		process.process(fileReader, dataPosition, unk_offset_018);
 		process.process(fileReader, dataPosition, unk_offset_030);
 		process.process(fileReader, dataPosition, unk_offset_048);

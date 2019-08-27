@@ -3,7 +3,7 @@ package nexusvault.format.m3.v100.debug;
 import java.util.ArrayList;
 import java.util.List;
 
-import nexusvault.format.m3.v100.DataTracker;
+import nexusvault.format.m3.v100.BytePositionTracker;
 import nexusvault.format.m3.v100.debug.Table.TableCell;
 import nexusvault.format.m3.v100.debug.Table.TableColumn;
 import nexusvault.format.m3.v100.debug.Table.TableRow;
@@ -64,7 +64,7 @@ public final class DoubleDataArrayFormatTask implements Task {
 		return new Table(columns);
 	}
 
-	private byte[][] loadData(final DataTracker data, long offset, int sizeOfElement) {
+	private byte[][] loadData(final BytePositionTracker data, long offset, int sizeOfElement) {
 		data.setPosition(offset);
 		final byte[][] loadedData = new byte[numberOfElements][sizeOfElement];
 		for (final byte[] line : loadedData) {

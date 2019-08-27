@@ -116,21 +116,19 @@ public class TextureImageSplitter {
 
 	}
 
-	private static final class SplitterOther implements Splitter {
-
-		@Override
-		public List<TextureImage> split(TextureImage original) {
-			return Collections.emptyList();
-		}
-
-	}
-
-	private static final Splitter other = new SplitterOther();
 	private static final Splitter jpgType1 = new SplitterJPGType1();
 	private static final Splitter jpgType0And2 = new SplitterJPGType0And2();
 
+	/**
+	 *
+	 * @param header
+	 *            header which belongs to the image
+	 * @return true if the image is splitable
+	 * @see #split(TextureImage, StructTextureFileHeader)
+	 */
 	public boolean isSplitable(StructTextureFileHeader header) {
-		return header.isCompressed && ((header.compressionFormat == 0) || (header.compressionFormat == 1) || (header.compressionFormat == 2));
+		final TexType type = TexType.resolve(header);
+		return (type == TexType.JPEG_TYPE_1) || (type == TexType.JPEG_TYPE_2) || (type == TexType.JPEG_TYPE_3);
 	}
 
 	/**
@@ -139,23 +137,21 @@ public class TextureImageSplitter {
 	 * something more appropriated.
 	 *
 	 * @param image
+	 *            which should be split
 	 * @param textureHeader
-	 * @return
+	 *            header which belongs to the extracted image
+	 * @return a list which contains the splitted images - empty, if not splitable
 	 */
 	public List<TextureImage> split(TextureImage image, StructTextureFileHeader textureHeader) {
-		if (textureHeader.isCompressed) {
-			if (!image.getImageFormat().equals(TextureImageFormat.ARGB)) {
-				throw new IllegalStateException("Split is only implemented for ARGB");
-			}
-
-			if ((textureHeader.compressionFormat == 0) || (textureHeader.compressionFormat == 2)) {
+		switch (TexType.resolve(textureHeader)) {
+			case JPEG_TYPE_1:
+			case JPEG_TYPE_3:
 				return jpgType0And2.split(image);
-			}
-			if (textureHeader.compressionFormat == 1) {
+			case JPEG_TYPE_2:
 				return jpgType1.split(image);
-			}
+			default:
+				return Collections.emptyList();
 		}
-		return other.split(image);
 	}
 
 }

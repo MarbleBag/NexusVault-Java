@@ -7,7 +7,16 @@ import kreed.reflection.struct.StructUtil;
 
 public final class StructArchiveFile {
 
-	public final int SIZE_IN_BYTES = StructUtil.sizeOf(StructArchiveFile.class);
+	public static void main(String[] arg) {
+		System.out.println(StructUtil.analyzeStruct(StructArchiveFile.class, true));
+		if (StructUtil.sizeOf(StructArchiveFile.class) != 0x230) {
+			throw new IllegalStateException();
+		}
+	}
+
+	public final static int FILE_SIGNATURE = ('P' << 24) | ('A' << 16) | ('C' << 8) | 'K';
+
+	public final static int SIZE_IN_BYTES = StructUtil.sizeOf(StructArchiveFile.class);
 
 	@Order(1)
 	@StructField(DataType.BIT_32)
@@ -31,11 +40,11 @@ public final class StructArchiveFile {
 
 	@Order(6)
 	@StructField(DataType.UBIT_64)
-	public long offsetPackHeaders; // 0x218
+	public long packOffset; // 0x218
 
 	@Order(7)
 	@StructField(DataType.UBIT_32)
-	public long packHeaderCount; // 0x220
+	public long packCount; // 0x220
 
 	@Order(8)
 	@StructField(DataType.BIT_32)
@@ -43,10 +52,10 @@ public final class StructArchiveFile {
 
 	@Order(9)
 	@StructField(DataType.UBIT_64)
-	public long rootPackHeaderIndex; // 0x228
+	public long packRootIdx; // 0x228
 
-	@Order(10)
-	@StructField(value = DataType.BIT_8, length = 16)
-	private byte[] unknown_230; // 0x230
+	// @Order(10)
+	// @StructField(value = DataType.BIT_64, length = 2)
+	// private long[] blockGuardStop; // 0x230 //used for blockguards. First value needs to be 0, second value is equal to the next block.
 
 }

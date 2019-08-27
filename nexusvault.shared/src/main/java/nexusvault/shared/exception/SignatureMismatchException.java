@@ -1,6 +1,6 @@
 package nexusvault.shared.exception;
 
-public class SignatureMismatchException extends RuntimeException {
+public class SignatureMismatchException extends NexusVaultException {
 
 	private static final long serialVersionUID = -7254283632187562387L;
 

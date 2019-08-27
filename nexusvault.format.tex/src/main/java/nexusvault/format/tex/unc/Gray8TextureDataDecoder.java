@@ -26,4 +26,9 @@ public final class Gray8TextureDataDecoder extends AbstUncompressedTextureDataDe
 		return new TextureImage(meta.width, meta.height, TextureImageFormat.GRAYSCALE, imageData);
 	}
 
+	@Override
+	public TextureImageFormat getImageFormat() {
+		return TextureImageFormat.GRAYSCALE;
+	}
+
 }

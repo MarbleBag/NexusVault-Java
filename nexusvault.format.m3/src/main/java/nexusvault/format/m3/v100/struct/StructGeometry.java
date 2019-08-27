@@ -11,7 +11,7 @@ import static kreed.reflection.struct.DataType.UBIT_8;
 import kreed.reflection.struct.Order;
 import kreed.reflection.struct.StructField;
 import kreed.reflection.struct.StructUtil;
-import nexusvault.format.m3.v100.DataTracker;
+import nexusvault.format.m3.v100.BytePositionTracker;
 import nexusvault.format.m3.v100.StructVisitor;
 import nexusvault.format.m3.v100.VisitableStruct;
 import nexusvault.format.m3.v100.pointer.ATP_Mesh;
@@ -180,7 +180,7 @@ public final class StructGeometry implements VisitableStruct {
 	public ATP_UInt32 unk_offset_0B8; // 4b //0x0B8
 
 	@Override
-	public void visit(StructVisitor process, DataTracker fileReader, int dataPosition) {
+	public void visit(StructVisitor process, BytePositionTracker fileReader, int dataPosition) {
 		process.process(fileReader, dataPosition, unk_offset_008);
 
 		process.process(fileReader, dataPosition, vertexBlockData);

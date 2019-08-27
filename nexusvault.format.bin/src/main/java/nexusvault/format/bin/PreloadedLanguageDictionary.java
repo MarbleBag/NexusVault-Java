@@ -7,8 +7,6 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import nexusvault.format.bin.LanguageReader.LanguageEntry;
-
 final class PreloadedLanguageDictionary implements LanguageDictionary {
 
 	private final int localeType;
@@ -17,12 +15,12 @@ final class PreloadedLanguageDictionary implements LanguageDictionary {
 	private final String localeShort;
 	private final Map<Integer, LanguageEntry> map;
 
-	public PreloadedLanguageDictionary(int localeType, String localeTag, String localeLong, String localeShort, LanguageEntry[] entries) {
+	public PreloadedLanguageDictionary(int localeType, String localeTag, String localeShort, String localeLong, LanguageEntry[] entries) {
 		this.localeType = localeType;
 		this.localeTag = localeTag;
 		this.localeLong = localeLong;
 		this.localeShort = localeShort;
-		this.map = Collections.unmodifiableMap(Arrays.stream(entries).collect(Collectors.toMap(e -> e.getId(), e -> e)));
+		map = Collections.unmodifiableMap(Arrays.stream(entries).collect(Collectors.toMap(e -> e.getId(), e -> e)));
 	}
 
 	@Override

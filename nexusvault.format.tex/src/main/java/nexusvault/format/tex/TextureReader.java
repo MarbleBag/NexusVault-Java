@@ -18,7 +18,7 @@ import nexusvault.format.tex.unc.RGB565TextureDataDecoder;
 import nexusvault.shared.exception.IntegerOverflowException;
 
 /**
- * Digests <tt>.tex</tt> data and produces a {@link TextureObject}
+ * Digests <code>.tex</code> data and produces a {@link TextureObject}
  */
 public final class TextureReader {
 
@@ -38,7 +38,7 @@ public final class TextureReader {
 	 *
 	 * To create a {@link TextureReader} without any decoder use the default {@link TextureReader#TextureReader() constructor}
 	 *
-	 * @return
+	 * @return A {@link TextureReader} with a set of default decoder
 	 */
 	public static TextureReader buildDefault() {
 		final TextureReader reader = new TextureReader();
@@ -65,6 +65,9 @@ public final class TextureReader {
 
 	/**
 	 * Registers a new decoder. Does not check for duplicates.
+	 *
+	 * @param decoder
+	 *            the decoder to register
 	 */
 	public void registerDecoder(TextureDataDecoder decoder) {
 		if (decoder == null) {
@@ -96,14 +99,21 @@ public final class TextureReader {
 		return decoders.size();
 	}
 
+	public StructTextureFileHeader readHeader(ByteBuffer byteBuffer) {
+		return readHeader(new ByteBufferBinaryReader(byteBuffer));
+	}
+
+	public StructTextureFileHeader readHeader(BinaryReader reader) {
+		return new StructTextureFileHeader(reader);
+	}
+
 	public TextureObject read(ByteBuffer byteBuffer) {
 		return read(new ByteBufferBinaryReader(byteBuffer));
 	}
 
 	public TextureObject read(BinaryReader reader) {
-		final StructTextureFileHeader header = new StructTextureFileHeader(reader);
-
-		final TextureDataDecoder decoder = findInterpreter(header);
+		final StructTextureFileHeader header = readHeader(reader);
+		final TextureDataDecoder decoder = findDecoder(header);
 
 		if (decoder == null) {
 			throw new TextureDataDecoderNotFoundException();
@@ -129,7 +139,7 @@ public final class TextureReader {
 		return data;
 	}
 
-	private TextureDataDecoder findInterpreter(StructTextureFileHeader header) {
+	private TextureDataDecoder findDecoder(StructTextureFileHeader header) {
 		for (final TextureDataDecoder interpreter : decoders) {
 			if (interpreter.accepts(header)) {
 				return interpreter;

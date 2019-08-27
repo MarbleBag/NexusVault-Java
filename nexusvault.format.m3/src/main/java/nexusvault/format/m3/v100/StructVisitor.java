@@ -5,8 +5,8 @@ import nexusvault.format.m3.v100.pointer.DoubleArrayTypePointer;
 
 public interface StructVisitor {
 
-	void process(DataTracker fileReader, int dataPosition, ArrayTypePointer<?> pointer);
+	void process(BytePositionTracker fileReader, int dataPosition, ArrayTypePointer<?> pointer);
 
-	void process(DataTracker fileReader, int dataPosition, DoubleArrayTypePointer<?, ?> pointer);
+	void process(BytePositionTracker fileReader, int dataPosition, DoubleArrayTypePointer<?, ?> pointer);
 
 }

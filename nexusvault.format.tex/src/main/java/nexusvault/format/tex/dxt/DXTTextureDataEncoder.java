@@ -83,4 +83,9 @@ public final class DXTTextureDataEncoder extends AbstTextureDataDecoder implemen
 		return new TextureImage(meta.width, meta.height, TextureImageFormat.ARGB, imageData);
 	}
 
+	@Override
+	public TextureImageFormat getImageFormat() {
+		return TextureImageFormat.ARGB;
+	}
+
 }

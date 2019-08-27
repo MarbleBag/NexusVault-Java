@@ -1,108 +1,49 @@
 package nexusvault.archive.impl;
 
-import java.util.Arrays;
+import java.io.IOException;
+import java.nio.ByteBuffer;
 
 import nexusvault.archive.IdxFileLink;
+import nexusvault.archive.IdxPath;
 
 final class BaseIdxFileLink extends BaseIdxEntry implements IdxFileLink {
 
 	protected final int flags;
-	protected final long time;
+	protected final long writeTime;
 	protected final long uncompressedSize;
 	protected final long compressedSize;
-	protected final byte[] shaHash;
+	protected final byte[] hash;
 	protected final int unk1;
 
-	protected BaseIdxFileLink(BaseIdxDirectory parent, String name, int flags, long time, long uncompressedSize, long compressedSize, byte[] shaHash,
-			int unk1) {
+	/**
+	 *
+	 * @throws IllegalArgumentException
+	 *             if <code>parent</code> or <code>hash</code> is null
+	 * @throws IllegalArgumentException
+	 *             if <code>name</code> is null or contains an {@link IdxPath#SEPARATOR illegal character}
+	 */
+	public BaseIdxFileLink(BaseIdxDirectory parent, String name, int flags, long writeTime, long uncompressedSize, long compressedSize, byte[] hash, int unk1) {
 		super(parent, name);
+
 		if (parent == null) {
-			throw new IllegalArgumentException("'parent' must not be null.");
+			throw new IllegalArgumentException("'parent' must not be null");
 		}
-		if (shaHash == null) {
-			throw new IllegalArgumentException("'shaHash' must not be null.");
+
+		if (hash == null) {
+			throw new IllegalArgumentException("'hash' must not be null");
 		}
 
 		this.flags = flags;
-		this.time = time;
+		this.writeTime = writeTime;
 		this.uncompressedSize = uncompressedSize;
 		this.compressedSize = compressedSize;
-		this.shaHash = new byte[shaHash.length];
-		System.arraycopy(shaHash, 0, this.shaHash, 0, shaHash.length);
+		this.hash = hash;
 		this.unk1 = unk1;
 	}
 
 	@Override
-	public String toString() {
-		final StringBuilder builder = new StringBuilder();
-		builder.append("IdxFileLink [");
-		builder.append("name=");
-		builder.append(fullName());
-		builder.append(", flags=");
-		builder.append(flags);
-		builder.append(", time=");
-		builder.append(time);
-		builder.append(", uncompressedSize=");
-		builder.append(uncompressedSize);
-		builder.append(", compressedSize=");
-		builder.append(compressedSize);
-		builder.append(", shaHash=");
-		builder.append(ByteUtil.byteToHex(shaHash));
-		builder.append(", unk1=");
-		builder.append(unk1);
-		builder.append("]");
-		return builder.toString();
-	}
-
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = super.hashCode();
-		result = (prime * result) + (int) (compressedSize ^ (compressedSize >>> 32));
-		result = (prime * result) + flags;
-		result = (prime * result) + Arrays.hashCode(shaHash);
-		result = (prime * result) + (int) (time ^ (time >>> 32));
-		result = (prime * result) + (int) (uncompressedSize ^ (uncompressedSize >>> 32));
-		result = (prime * result) + unk1;
-		return result;
-	}
-
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj) {
-			return true;
-		}
-		if (!super.equals(obj)) {
-			return false;
-		}
-		if (getClass() != obj.getClass()) {
-			return false;
-		}
-		final BaseIdxFileLink other = (BaseIdxFileLink) obj;
-		if (compressedSize != other.compressedSize) {
-			return false;
-		}
-		if (flags != other.flags) {
-			return false;
-		}
-		if (!Arrays.equals(shaHash, other.shaHash)) {
-			return false;
-		}
-		if (time != other.time) {
-			return false;
-		}
-		if (uncompressedSize != other.uncompressedSize) {
-			return false;
-		}
-		if (unk1 != other.unk1) {
-			return false;
-		}
-		return true;
-	}
-
-	@Override
-	public byte[] getShaHash() {
-		return shaHash;
+	public byte[] getHash() {
+		return hash;
 	}
 
 	@Override
@@ -120,6 +61,10 @@ final class BaseIdxFileLink extends BaseIdxEntry implements IdxFileLink {
 		return compressedSize;
 	}
 
+	public long getWriteTime() {
+		return writeTime;
+	}
+
 	@Override
 	public String getFileEnding() {
 		final int fileExtStart = getName().lastIndexOf(".");
@@ -131,7 +76,7 @@ final class BaseIdxFileLink extends BaseIdxEntry implements IdxFileLink {
 	}
 
 	@Override
-	public String getNameWithoutFileEnding() {
+	public String getNameWithoutFileExtension() {
 		final String name = getName();
 		final int ext = name.lastIndexOf('.');
 		if (ext < 0) {
@@ -139,6 +84,30 @@ final class BaseIdxFileLink extends BaseIdxEntry implements IdxFileLink {
 		} else {
 			return name.substring(0, ext);
 		}
+	}
+
+	@Override
+	public ByteBuffer getData() throws IOException {
+		return getArchive().getData(this);
+	}
+
+	@Override
+	public String toString() {
+		final StringBuilder builder = new StringBuilder();
+		builder.append("IdxFileLink [flags=");
+		builder.append(flags);
+		builder.append(", writeTime=");
+		builder.append(writeTime);
+		builder.append(", uncompressedSize=");
+		builder.append(uncompressedSize);
+		builder.append(", compressedSize=");
+		builder.append(compressedSize);
+		builder.append(", shaHash=");
+		builder.append(ByteUtil.byteToHex(hash));
+		builder.append(", unk1=");
+		builder.append(unk1);
+		builder.append("]");
+		return builder.toString();
 	}
 
 }

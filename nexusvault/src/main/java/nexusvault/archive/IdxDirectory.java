@@ -12,15 +12,16 @@ public interface IdxDirectory extends IdxEntry {
 
 	int countSubTree();
 
-	@Override
-	String fullName();
-
-	List<IdxDirectory> getSubDirectories();
+	List<IdxDirectory> getDirectories();
 
 	List<IdxFileLink> getFiles();
 
-	IdxEntry getEntry(String path) throws IdxEntryNotFound;
+	boolean hasEntry(String entryName);
 
-	IdxFileLink getFile(String path) throws IdxEntryNotFound, IdxEntryNotAFile;
+	IdxEntry getEntry(String entryName) throws IdxEntryNotFoundException;
+
+	IdxDirectory getDirectory(String directoryName) throws IdxEntryNotFoundException, IdxEntryNotADirectoryException;
+
+	IdxFileLink getFileLink(String fileLinkName) throws IdxEntryNotFoundException, IdxEntryNotAFileException;
 
 }

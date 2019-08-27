@@ -7,6 +7,16 @@ import java.util.function.Predicate;
 
 import nexusvault.archive.IdxFileLink;
 
+/**
+ * A utility class that provides a mean to collect a number of {@link IdxFileLink} for a given {@link Predicate predicate}
+ * <p>
+ * If a {@link IdxFileLink} fulfills a {@link Predicate predicate}, the file will be added to the result, which can be retrieved with
+ * {@link #getAndClearResult()}
+ * <p>
+ * This collector implements {@link IdxEntryVisitor} interface and thus can be used in combination with {@link IdxDirectoryTraverser}
+ *
+ * @see ReportingIdxFileCollector
+ */
 public class IdxFileCollector implements IdxEntryVisitor, IdxCollector<IdxFileLink> {
 
 	protected final int maxNumberOfResults;
