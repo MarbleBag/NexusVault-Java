@@ -6,7 +6,7 @@
 
 	<groupId>nexusvault</groupId>
 	<artifactId>nexusvault.format.m3.export.gltf</artifactId>
-	<version>0.5.3</version>
+	<version>0.5.2</version>
 
 	<properties>
 		<project.java.version>11</project.java.version>

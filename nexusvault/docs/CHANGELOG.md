@@ -2,8 +2,7 @@
 All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com)
 
-## [Unreleased] 
-## [3.0.0 Unreleased]
+## [3.0.0] - 2019-08-27
 ### Added
 - An archive contains now informations about its source
 - NexusArchiveWriter which allows to modify (don't forget to back up!) or create new archive files
