@@ -8,7 +8,7 @@ import nexusvault.format.m3.ModelVertex;
 /**
  * Internal implementation. May change without notice.
  */
-public final class DefaultModelVertex implements ModelVertex {
+final class DefaultModelVertex implements ModelVertex {
 
 	protected float[] xyz;
 	protected int[] f3_unk1;

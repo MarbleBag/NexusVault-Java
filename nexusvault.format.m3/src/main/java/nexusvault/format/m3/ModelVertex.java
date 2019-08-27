@@ -25,7 +25,7 @@ public interface ModelVertex {
 	 *            array to store data
 	 * @param dstOffset
 	 *            index at which the data should be added
-	 * @return <code>dst</code> or a new array if <code>dst</dst> was null
+	 * @return <code>dst</code> or a new array if <code>dst</code> was null
 	 */
 	int[] getBoneIndex(int[] dst, int dstOffset);
 
