@@ -37,8 +37,16 @@ final class RGB565Encoder implements UncompressedEncoder {
 	}
 
 	private void encodeARGB(BinaryReader source, int width, int height, BinaryWriter destination) {
-		// TODO Auto-generated method stub
-
+		final int numberOfPixels = width * height;
+		for (int i = 0; i < numberOfPixels; ++i) {
+			final var a = source.readInt8();
+			final var r = source.readInt8();
+			final var g = source.readInt8();
+			final var b = source.readInt8();
+			destination.writeInt8(r);
+			destination.writeInt8(g);
+			destination.writeInt8(b);
+		}
 	}
 
 	public void encodeRGB(BinaryReader source, int width, int height, BinaryWriter destination) {
@@ -50,8 +58,13 @@ final class RGB565Encoder implements UncompressedEncoder {
 	}
 
 	private void encodeGray(BinaryReader source, int width, int height, BinaryWriter destination) {
-		// TODO Auto-generated method stub
-
+		final int numberOfPixels = width * height;
+		for (int i = 0; i < numberOfPixels; ++i) {
+			final var gray = source.readInt8();
+			destination.writeInt8(gray);
+			destination.writeInt8(gray);
+			destination.writeInt8(gray);
+		}
 	}
 
 }

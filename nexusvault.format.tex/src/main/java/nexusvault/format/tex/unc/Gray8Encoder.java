@@ -37,13 +37,26 @@ final class Gray8Encoder implements UncompressedEncoder {
 	}
 
 	private void encodeARGB(BinaryReader source, int width, int height, BinaryWriter destination) {
-		// TODO Auto-generated method stub
-
+		final int sourceLength = width * height;
+		for (int i = 0; i < sourceLength; ++i) {
+			final var a = source.readUInt8();
+			final var r = source.readUInt8();
+			final var g = source.readUInt8();
+			final var b = source.readUInt8();
+			final var luminosity = Math.min(255, Math.max(0, Math.round((0.21f * r) + (0.72f * g) + (0.07f * b))));
+			destination.writeInt8(luminosity);
+		}
 	}
 
 	private void encodeRGB(BinaryReader source, int width, int height, BinaryWriter destination) {
-		// TODO Auto-generated method stub
-
+		final int sourceLength = width * height;
+		for (int i = 0; i < sourceLength; ++i) {
+			final var r = source.readUInt8();
+			final var g = source.readUInt8();
+			final var b = source.readUInt8();
+			final var luminosity = Math.min(255, Math.max(0, Math.round((0.21f * r) + (0.72f * g) + (0.07f * b))));
+			destination.writeInt8(luminosity);
+		}
 	}
 
 	public void encodeGray(BinaryReader source, int width, int height, BinaryWriter destination) {
