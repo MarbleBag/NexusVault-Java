@@ -9,7 +9,7 @@ import java.util.Arrays;
 
 public final class TextureImage {
 
-	public final TextureImageFormat format;
+	private final TextureImageFormat format;
 	private final int width;
 	private final int height;
 	private final byte[] data;

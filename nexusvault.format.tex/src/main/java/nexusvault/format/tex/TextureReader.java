@@ -2,19 +2,18 @@ package nexusvault.format.tex;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 import kreed.io.util.BinaryReader;
+import kreed.io.util.ByteArrayBinaryReader;
 import kreed.io.util.ByteBufferBinaryReader;
-import nexusvault.format.tex.dxt.DXTTextureDataEncoder;
-import nexusvault.format.tex.jpg.JPG0TextureDataDecoder;
-import nexusvault.format.tex.jpg.JPG1TextureDataDecoder;
-import nexusvault.format.tex.jpg.JPG2TextureDataDecoder;
+import nexusvault.format.tex.dxt.DXTTextureImageReader;
+import nexusvault.format.tex.jpg.JPGTextureImageReader;
 import nexusvault.format.tex.struct.StructTextureFileHeader;
-import nexusvault.format.tex.unc.ARGB8888TextureDataDecoder;
-import nexusvault.format.tex.unc.Gray8TextureDataDecoder;
-import nexusvault.format.tex.unc.RGB565TextureDataDecoder;
+import nexusvault.format.tex.unc.ARGB8888TextureImageReader;
+import nexusvault.format.tex.unc.Gray8TextureImageReader;
+import nexusvault.format.tex.unc.RGB565TextureImageReader;
 import nexusvault.shared.exception.IntegerOverflowException;
 
 /**
@@ -23,44 +22,40 @@ import nexusvault.shared.exception.IntegerOverflowException;
 public final class TextureReader {
 
 	/**
-	 * Builds a {@link TextureReader} and registers the default set of decoders which should be able to decode any texture formats.
+	 * Builds a {@link TextureReader} and registers the default set of image readers which should be able to read any texture formats.
 	 * <p>
-	 * Registered decoders are:
+	 * Registered readers are:
 	 * <ul>
-	 * <li>{@link JPG0TextureDataDecoder}
-	 * <li>{@link JPG1TextureDataDecoder}
-	 * <li>{@link JPG2TextureDataDecoder}
-	 * <li>{@link DXTTextureDataEncoder}
-	 * <li>{@link ARGB8888TextureDataDecoder}
-	 * <li>{@link RGB565TextureDataDecoder}
-	 * <li>{@link Gray8TextureDataDecoder}
+	 * <li>{@link Gray8TextureImageReader}
+	 * <li>{@link RGB565TextureImageReader}
+	 * <li>{@link ARGB8888TextureImageReader}
+	 * <li>{@link DXTTextureImageReader}
+	 * <li>{@link JPGTextureImageReader}
 	 * </ul>
 	 *
-	 * To create a {@link TextureReader} without any decoder use the default {@link TextureReader#TextureReader() constructor}
+	 * To create a {@link TextureReader} without any readers use the default {@link TextureReader#TextureReader() constructor}
 	 *
-	 * @return A {@link TextureReader} with a set of default decoder
+	 * @return A {@link TextureReader} with a set of default readers
 	 */
 	public static TextureReader buildDefault() {
 		final TextureReader reader = new TextureReader();
-		reader.registerDecoder(new JPG0TextureDataDecoder());
-		reader.registerDecoder(new JPG1TextureDataDecoder());
-		reader.registerDecoder(new JPG2TextureDataDecoder());
-		reader.registerDecoder(new DXTTextureDataEncoder());
-		reader.registerDecoder(new ARGB8888TextureDataDecoder());
-		reader.registerDecoder(new RGB565TextureDataDecoder());
-		reader.registerDecoder(new Gray8TextureDataDecoder());
+		reader.registerImageReader(new Gray8TextureImageReader());
+		reader.registerImageReader(new RGB565TextureImageReader());
+		reader.registerImageReader(new ARGB8888TextureImageReader());
+		reader.registerImageReader(new DXTTextureImageReader());
+		reader.registerImageReader(new JPGTextureImageReader());
 		return reader;
 	}
 
-	private final List<TextureDataDecoder> decoders;
+	private final Map<TexType, TextureImageReader> readerByType = new HashMap<>();
 
 	/**
 	 * Creates a {@link TextureReader} without any registered decoder. By default, this reader can not read any texture formats. To retrieve a reader with the
 	 * default set of decoder use {@link #buildDefault()}. <br>
-	 * To make a decoder useable it is necessary to {@link #registerDecoder(TextureDataDecoder) register} it.
+	 * To make a decoder useable it is necessary to {@link #registerImageReader(TextureDataDecoder) register} it.
 	 */
 	public TextureReader() {
-		decoders = new ArrayList<>();
+
 	}
 
 	/**
@@ -69,34 +64,24 @@ public final class TextureReader {
 	 * @param decoder
 	 *            the decoder to register
 	 */
-	public void registerDecoder(TextureDataDecoder decoder) {
-		if (decoder == null) {
+	public void registerImageReader(TextureImageReader reader) {
+		if (reader == null) {
 			throw new IllegalArgumentException("'decoder' must not be null");
 		}
-		decoders.add(decoder);
+		final var types = reader.getAcceptedTexTypes();
+		types.forEach(t -> readerByType.put(t, reader));
 	}
 
-	public void registerDecoder(int idx, TextureDataDecoder decoder) {
-		if (decoder == null) {
-			throw new IllegalArgumentException("'decoder' must not be null");
-		}
-		if (idx >= getDecoderCount()) {
-			decoders.add(decoder);
-		} else {
-			decoders.add(idx, decoder);
-		}
+	public TextureImageReader getImageReader(TexType type) {
+		return readerByType.get(type);
 	}
 
-	public TextureDataDecoder getDecoder(int idx) {
-		return decoders.get(idx);
+	public void removeImageReader(TexType type) {
+		readerByType.remove(type);
 	}
 
-	public void removeDecoder(int idx) {
-		decoders.remove(idx);
-	}
-
-	public int getDecoderCount() {
-		return decoders.size();
+	public int getImageReaderCount() {
+		return readerByType.size();
 	}
 
 	public StructTextureFileHeader readHeader(ByteBuffer byteBuffer) {
@@ -111,22 +96,22 @@ public final class TextureReader {
 		return read(new ByteBufferBinaryReader(byteBuffer));
 	}
 
-	public TextureObject read(BinaryReader reader) {
-		final StructTextureFileHeader header = readHeader(reader);
-		final TextureDataDecoder decoder = findDecoder(header);
+	public TextureObject read(BinaryReader source) {
+		final StructTextureFileHeader header = readHeader(source);
+		final TextureImageReader reader = findImageReader(header);
 
-		if (decoder == null) {
+		if (reader == null) {
 			throw new TextureDataDecoderNotFoundException();
 		}
 
-		final long textureDataSize = decoder.calculateTotalTextureDataSize(header);
-		final TextureRawData data = loadTextureData(reader, textureDataSize);
+		final long textureDataSize = reader.calculateExpectedTextureImageSize(header);
+		final BinaryReader data = loadTextureData(source, textureDataSize);
 
-		final TextureObject texture = new TextureObject(header, data, decoder);
+		final TextureObject texture = new DecodeableTextureObject(header, data, reader);
 		return texture;
 	}
 
-	private TextureRawData loadTextureData(BinaryReader reader, long textureDataSize) {
+	private BinaryReader loadTextureData(BinaryReader reader, long textureDataSize) {
 
 		if ((textureDataSize < 0) || (textureDataSize > Integer.MAX_VALUE)) {
 			throw new IntegerOverflowException();
@@ -134,18 +119,14 @@ public final class TextureReader {
 
 		final byte[] bytes = new byte[(int) textureDataSize];
 		reader.readInt8(bytes, 0, bytes.length);
-		final TextureRawData data = new TextureRawDataByteArray(bytes, ByteOrder.LITTLE_ENDIAN);
-
+		final BinaryReader data = new ByteArrayBinaryReader(bytes, ByteOrder.LITTLE_ENDIAN);
+		// final TextureRawData data = new TextureRawDataByteArray(bytes, ByteOrder.LITTLE_ENDIAN);
 		return data;
 	}
 
-	private TextureDataDecoder findDecoder(StructTextureFileHeader header) {
-		for (final TextureDataDecoder interpreter : decoders) {
-			if (interpreter.accepts(header)) {
-				return interpreter;
-			}
-		}
-		return null;
+	private TextureImageReader findImageReader(StructTextureFileHeader header) {
+		final var texType = TexType.resolve(header);
+		return readerByType.get(texType);
 	}
 
 	public int getFileSignature() {

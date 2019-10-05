@@ -1,6 +1,6 @@
 # Nexusvault .tex format
 
-Provides a reader to convert WS .tex files into a more accessible format
+Provides a reader and writer to convert WS .tex files into a more accessible format or create WS .tex files
 
 ### Currently supported
 

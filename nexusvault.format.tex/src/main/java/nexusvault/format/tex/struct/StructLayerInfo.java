@@ -2,6 +2,8 @@ package nexusvault.format.tex.struct;
 
 import static kreed.reflection.struct.DataType.BIT_8;
 
+import java.util.Objects;
+
 import kreed.reflection.struct.Order;
 import kreed.reflection.struct.StructField;
 import kreed.reflection.struct.StructUtil;
@@ -63,12 +65,7 @@ public final class StructLayerInfo {
 
 	@Override
 	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = (prime * result) + hasReplacement;
-		result = (prime * result) + quality;
-		result = (prime * result) + replacement;
-		return result;
+		return Objects.hash(hasReplacement, quality, replacement);
 	}
 
 	@Override
@@ -83,16 +80,7 @@ public final class StructLayerInfo {
 			return false;
 		}
 		final StructLayerInfo other = (StructLayerInfo) obj;
-		if (hasReplacement != other.hasReplacement) {
-			return false;
-		}
-		if (quality != other.quality) {
-			return false;
-		}
-		if (replacement != other.replacement) {
-			return false;
-		}
-		return true;
+		return (hasReplacement == other.hasReplacement) && (quality == other.quality) && (replacement == other.replacement);
 	}
 
 }

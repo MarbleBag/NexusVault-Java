@@ -1,6 +1,8 @@
 package nexusvault.format.tex;
 
-public class ImageMetaInformation {
+import java.util.Objects;
+
+public final class ImageMetaInformation {
 	public final int offset;
 	public final int length;
 	public final int width;
@@ -27,6 +29,26 @@ public class ImageMetaInformation {
 		builder.append(height);
 		builder.append("]");
 		return builder.toString();
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(height, length, offset, width);
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (obj == null) {
+			return false;
+		}
+		if (getClass() != obj.getClass()) {
+			return false;
+		}
+		final ImageMetaInformation other = (ImageMetaInformation) obj;
+		return (height == other.height) && (length == other.length) && (offset == other.offset) && (width == other.width);
 	}
 
 }

@@ -4,6 +4,7 @@ import static kreed.reflection.struct.DataType.BIT_32;
 import static kreed.reflection.struct.DataType.STRUCT;
 
 import java.util.Arrays;
+import java.util.Objects;
 
 import kreed.io.util.BinaryReader;
 import kreed.reflection.struct.Order;
@@ -183,20 +184,10 @@ public final class StructTextureFileHeader {
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = (prime * result) + compressionFormat;
-		result = (prime * result) + depth;
-		result = (prime * result) + format;
-		result = (prime * result) + height;
 		result = (prime * result) + Arrays.hashCode(imageSizes);
-		result = (prime * result) + imageSizesCount;
-		result = (prime * result) + (isCompressed ? 1231 : 1237);
 		result = (prime * result) + Arrays.hashCode(layerInfos);
-		result = (prime * result) + mipMaps;
-		result = (prime * result) + sides;
-		result = (prime * result) + signature;
-		result = (prime * result) + unk_06C;
-		result = (prime * result) + version;
-		result = (prime * result) + width;
+		result = (prime * result)
+				+ Objects.hash(compressionFormat, depth, format, height, imageSizesCount, isCompressed, mipMaps, sides, signature, unk_06C, version, width);
 		return result;
 	}
 
@@ -212,49 +203,10 @@ public final class StructTextureFileHeader {
 			return false;
 		}
 		final StructTextureFileHeader other = (StructTextureFileHeader) obj;
-		if (compressionFormat != other.compressionFormat) {
-			return false;
-		}
-		if (depth != other.depth) {
-			return false;
-		}
-		if (format != other.format) {
-			return false;
-		}
-		if (height != other.height) {
-			return false;
-		}
-		if (!Arrays.equals(imageSizes, other.imageSizes)) {
-			return false;
-		}
-		if (imageSizesCount != other.imageSizesCount) {
-			return false;
-		}
-		if (isCompressed != other.isCompressed) {
-			return false;
-		}
-		if (!Arrays.equals(layerInfos, other.layerInfos)) {
-			return false;
-		}
-		if (mipMaps != other.mipMaps) {
-			return false;
-		}
-		if (sides != other.sides) {
-			return false;
-		}
-		if (signature != other.signature) {
-			return false;
-		}
-		if (unk_06C != other.unk_06C) {
-			return false;
-		}
-		if (version != other.version) {
-			return false;
-		}
-		if (width != other.width) {
-			return false;
-		}
-		return true;
+		return (compressionFormat == other.compressionFormat) && (depth == other.depth) && (format == other.format) && (height == other.height)
+				&& Arrays.equals(imageSizes, other.imageSizes) && (imageSizesCount == other.imageSizesCount) && (isCompressed == other.isCompressed)
+				&& Arrays.equals(layerInfos, other.layerInfos) && (mipMaps == other.mipMaps) && (sides == other.sides) && (signature == other.signature)
+				&& (unk_06C == other.unk_06C) && (version == other.version) && (width == other.width);
 	}
 
 }

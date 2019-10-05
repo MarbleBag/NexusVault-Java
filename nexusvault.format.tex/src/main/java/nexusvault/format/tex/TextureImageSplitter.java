@@ -6,6 +6,11 @@ import java.util.List;
 
 import nexusvault.format.tex.struct.StructTextureFileHeader;
 
+/**
+ * Splits an image into its core components. Some textures are composed of different types of images. It is possible, that the components are not uniform and
+ * depend actually on some kind of material property / shader. If this is the case, this function will become deprecated and will replaced with something more
+ * appropriated.
+ */
 public class TextureImageSplitter {
 
 	private static interface Splitter {
@@ -120,15 +125,40 @@ public class TextureImageSplitter {
 	private static final Splitter jpgType0And2 = new SplitterJPGType0And2();
 
 	/**
-	 *
 	 * @param header
 	 *            header which belongs to the image
 	 * @return true if the image is splitable
 	 * @see #split(TextureImage, StructTextureFileHeader)
 	 */
 	public boolean isSplitable(StructTextureFileHeader header) {
-		final TexType type = TexType.resolve(header);
-		return (type == TexType.JPEG_TYPE_1) || (type == TexType.JPEG_TYPE_2) || (type == TexType.JPEG_TYPE_3);
+		return isSplitable(TexType.resolve(header));
+	}
+
+	/**
+	 * @param obj
+	 *            which should be checked
+	 * @return true if the images returned by the texture object is splitable
+	 * @see #split(TextureImage, StructTextureFileHeader)
+	 */
+	public boolean isSplitable(TextureObject obj) {
+		return isSplitable(obj.getTextureDataType());
+	}
+
+	/**
+	 * @param texType
+	 *            texType which belongs to the texture object a image is created from
+	 * @return true if the images returned by the texture object is splitable
+	 * @see #split(TextureImage, StructTextureFileHeader)
+	 */
+	public boolean isSplitable(TexType texType) {
+		switch (texType) {
+			case JPEG_TYPE_1:
+			case JPEG_TYPE_2:
+			case JPEG_TYPE_3:
+				return true;
+			default:
+				return false;
+		}
 	}
 
 	/**
@@ -137,13 +167,13 @@ public class TextureImageSplitter {
 	 * something more appropriated.
 	 *
 	 * @param image
-	 *            which should be split
-	 * @param textureHeader
-	 *            header which belongs to the extracted image
-	 * @return a list which contains the splitted images - empty, if not splitable
+	 *            to split
+	 * @param texType
+	 *            type which belongs to the extracted image
+	 * @return A list containing its components. List will be empty for unsplittable images.
 	 */
-	public List<TextureImage> split(TextureImage image, StructTextureFileHeader textureHeader) {
-		switch (TexType.resolve(textureHeader)) {
+	public List<TextureImage> split(TextureImage image, TexType texType) {
+		switch (texType) {
 			case JPEG_TYPE_1:
 			case JPEG_TYPE_3:
 				return jpgType0And2.split(image);

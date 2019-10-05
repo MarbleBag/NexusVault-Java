@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com)
 
+## [3.0.0] - Unreleased
+### Added
+- Texture image writer. It's now possible to create texture images with TextureImageWriter. Only jpg is not supported yet.
+
+### Changed
+- Large parts of the library are rewritten to improve code organization and maintainability
+
+
 ## [2.0.0] - 2019-08-27
 ### Changed
 - Additional attributes are available on TextureObject

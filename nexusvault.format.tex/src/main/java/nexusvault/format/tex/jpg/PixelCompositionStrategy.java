@@ -1,6 +1,6 @@
 package nexusvault.format.tex.jpg;
 
-public interface PixelCompositionStrategy {
+interface PixelCompositionStrategy {
 
 	/**
 	 * @param imageData

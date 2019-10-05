@@ -1,6 +1,8 @@
 package nexusvault.format.tex.jpg;
 
-public final class Type0And2PixelComposition implements PixelCompositionStrategy {
+import nexusvault.format.tex.jpg.tool.MathUtil;
+
+final class Type0And2PixelComposition implements PixelCompositionStrategy {
 	@Override
 	public void composite(byte[] imageData, int imageDataPixelOffset, int pixelLayer1, int pixelLayer2, int pixelLayer3, int pixelLayer4) {
 		final int alpha = (pixelLayer1 - (pixelLayer3 >> 1));
