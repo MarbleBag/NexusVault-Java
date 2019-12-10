@@ -19,22 +19,6 @@ import nexusvault.format.tex.struct.StructTextureFileHeader;
 
 final class AllInOneJPGDecoder implements JPGDecoder {
 
-	private static class StackResourceHandler {
-		private final int sizeInBlocks;
-
-		public StackResourceHandler(int sizeInBlocks) {
-			this.sizeInBlocks = sizeInBlocks;
-		}
-
-		public StackSet getFreeStack() {
-			return new StackSet(sizeInBlocks);
-		}
-
-		public void returnStack(StackSet stack) {
-
-		}
-	}
-
 	private static final HuffmanDecoder decoder = new HuffmanDecoder();
 
 	private final int[] decoderOutput = new int[Constants.BLOCK_SIZE];
@@ -67,7 +51,6 @@ final class AllInOneJPGDecoder implements JPGDecoder {
 		final int constantIdx = Constants.getArrayIndexForType(texType);
 		typePerLayer = Constants.TYPE_PER_LAYER[constantIdx];
 		blocksPerLayer = Constants.BLOCKS_PER_LAYER[constantIdx];
-		final var defaultsPerLayer = Constants.LAYER_WITH_POSSIBLE_DEFAULT_VALUES[constantIdx];
 		offsetsPerLayer = Constants.OFFSETS_PER_LAYER[constantIdx];
 		quantTables = new float[Constants.NUMBER_OF_LAYERS][];
 
