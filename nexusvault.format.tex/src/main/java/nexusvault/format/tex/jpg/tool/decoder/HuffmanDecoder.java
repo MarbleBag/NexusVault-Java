@@ -33,7 +33,7 @@ public final class HuffmanDecoder {
 			return;
 		} else {
 			final int dcDiff = supplier.supply(dcBits);
-			dst[dstOffset] = extend(dcDiff, dcBits);
+			dst[dstOffset] = convertToSigned(dcDiff, dcBits);
 		}
 
 		for (int i = 1; i < dstLength;) {
@@ -75,7 +75,7 @@ public final class HuffmanDecoder {
 			}
 
 			final int acValue = supplier.supply(lsbAC);
-			dst[i++ + dstOffset] = extend(acValue, lsbAC);
+			dst[i++ + dstOffset] = convertToSigned(acValue, lsbAC);
 		}
 
 		return;
@@ -125,7 +125,7 @@ public final class HuffmanDecoder {
 		return 0;
 	}
 
-	protected int extend(int data, int nBits) {
+	protected int convertToSigned(int data, int nBits) {
 		int exData = 1 << (nBits - 1);
 		if (data < exData) {
 			exData = (-1 << nBits) + 1;

@@ -66,7 +66,7 @@ public final class TextureReader {
 	 */
 	public void registerImageReader(TextureImageReader reader) {
 		if (reader == null) {
-			throw new IllegalArgumentException("'decoder' must not be null");
+			throw new IllegalArgumentException("'reader' must not be null");
 		}
 		final var types = reader.getAcceptedTexTypes();
 		types.forEach(t -> readerByType.put(t, reader));
