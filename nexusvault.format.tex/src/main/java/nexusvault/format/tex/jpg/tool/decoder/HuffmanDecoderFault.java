@@ -1,6 +1,6 @@
 package nexusvault.format.tex.jpg.tool.decoder;
 
-public class HuffmanDecoderFault extends RuntimeException {
+public final class HuffmanDecoderFault extends RuntimeException {
 
 	private static final long serialVersionUID = -716158335534284967L;
 

@@ -1,6 +1,6 @@
-package nexusvault.format.tex.jpg.tool.decoder;
+package nexusvault.format.tex.jpg.tool;
 
-final class BitQueue {
+public final class BitQueue {
 	private long bitQueue;
 	private int pos;
 

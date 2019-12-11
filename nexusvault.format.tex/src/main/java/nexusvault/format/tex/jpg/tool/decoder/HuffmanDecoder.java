@@ -82,8 +82,8 @@ public final class HuffmanDecoder {
 	}
 
 	protected int decode(HuffmanTable decoder, BitSupply supplier) {
-		final int maxLength = decoder.getMaxLength();
-		final int minLength = decoder.getMinLength();
+		final int maxLength = decoder.getDecodeMaxLength();
+		final int minLength = decoder.getDecodeMinLength();
 
 		if ((minLength == 0) || (maxLength == 0)) {
 			return 0;
@@ -94,7 +94,7 @@ public final class HuffmanDecoder {
 		int nBits = minLength;
 
 		do {
-			if (!decoder.hasWordOfLength(nBits)) {
+			if (!decoder.hasDecodingForWordOfLength(nBits)) {
 				nBits += 1;
 				continue;
 			}
@@ -116,10 +116,10 @@ public final class HuffmanDecoder {
 		} while (nBits <= maxLength);
 
 		if (nBits > maxLength) {
-			final String decoderName = String.format("(%d,%d)", decoder.getDHT().destinationId, decoder.getDHT().tableClass);
+			final String tableName = String.format("(%d,%d)", decoder.getDHT().destinationId, decoder.getDHT().tableClass);
 			final String encodedWordName = String.format("%" + wordLength + "s", Integer.toBinaryString(word)).replaceAll(" ", "0");
-			throw new HuffmanDecoderFault("Encoded word not found",
-					String.format("Decoder %s decodes words between %d and %d bits. Word %s with length %d has no match.", decoderName, minLength, maxLength,
+			throw new HuffmanDecoderFault("Decoding not found",
+					String.format("Decoder %s decodes words between %d and %d bits. Word %s with length %d has no match.", tableName, minLength, maxLength,
 							encodedWordName, wordLength));
 		}
 		return 0;

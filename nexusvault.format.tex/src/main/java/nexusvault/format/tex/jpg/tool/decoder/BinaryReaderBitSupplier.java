@@ -2,6 +2,7 @@ package nexusvault.format.tex.jpg.tool.decoder;
 
 import kreed.io.util.BinaryReader;
 import kreed.io.util.BinaryUnderflowException;
+import nexusvault.format.tex.jpg.tool.BitQueue;
 
 public final class BinaryReaderBitSupplier implements BitSupply {
 

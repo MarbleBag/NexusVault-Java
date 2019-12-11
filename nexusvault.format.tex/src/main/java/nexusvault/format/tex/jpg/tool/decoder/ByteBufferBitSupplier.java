@@ -2,6 +2,8 @@ package nexusvault.format.tex.jpg.tool.decoder;
 
 import java.nio.ByteBuffer;
 
+import nexusvault.format.tex.jpg.tool.BitQueue;
+
 public final class ByteBufferBitSupplier implements BitSupply {
 
 	private final ByteBuffer input;
