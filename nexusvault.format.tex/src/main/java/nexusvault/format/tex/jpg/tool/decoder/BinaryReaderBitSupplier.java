@@ -16,26 +16,26 @@ public final class BinaryReaderBitSupplier implements BitSupply {
 		}
 		this.input = input;
 		this.limit = limit;
-		queue = new BitQueue();
+		this.queue = new BitQueue();
 	}
 
-	public int getMaximumNumberOfBits() {
-		return queue.getAvailable() + (limit * Byte.SIZE);
+	public long getMaximumNumberOfBits() {
+		return this.queue.getAvailable() + this.limit * (long) Byte.SIZE;
 	}
 
 	@Override
 	public boolean canSupply(int nRequestedBits) {
-		int nMissingBits = nRequestedBits - queue.getAvailable();
-		while ((nMissingBits > 0) && !input.isEndOfData() && (limit > 0)) {
+		int nMissingBits = nRequestedBits - this.queue.getAvailable();
+		while (nMissingBits > 0 && !this.input.isEndOfData() && this.limit > 0) {
 			try {
-				queue.push(input.readInt8() & 0xFF, Byte.SIZE);
+				this.queue.push(this.input.readInt8() & 0xFF, Byte.SIZE);
 				nMissingBits -= Byte.SIZE;
-				limit -= 1;
+				this.limit -= 1;
 			} catch (final BinaryUnderflowException e) {
 				return false;
 			}
 		}
-		return nRequestedBits <= queue.getAvailable();
+		return nRequestedBits <= this.queue.getAvailable();
 	}
 
 	@Override
@@ -44,16 +44,16 @@ public final class BinaryReaderBitSupplier implements BitSupply {
 			throw new IndexOutOfBoundsException();
 		}
 
-		if (queue.getAvailable() < nRequestedBits) {
+		if (this.queue.getAvailable() < nRequestedBits) {
 			throw new IndexOutOfBoundsException();
 		}
 
-		return queue.pop(nRequestedBits);
+		return this.queue.pop(nRequestedBits);
 	}
 
 	@Override
 	public String toString() {
-		return "[BitSupply: Remaining bits=" + getMaximumNumberOfBits() + " Queue: " + queue + " + BinaryReader: " + input + "]";
+		return "[BitSupply: Remaining bits=" + getMaximumNumberOfBits() + " Queue: " + this.queue + " + BinaryReader: " + this.input + "]";
 	}
 
 }

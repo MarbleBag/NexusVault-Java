@@ -14,11 +14,11 @@ public final class ByteBufferBitSupplier implements BitSupply {
 			throw new IllegalArgumentException("'input' must not be null");
 		}
 		this.input = input;
-		queue = new BitQueue();
+		this.queue = new BitQueue();
 	}
 
-	public int getRemainingBits() {
-		return queue.getAvailable() + (input.remaining() * Byte.SIZE);
+	public long getRemainingBits() {
+		return this.queue.getAvailable() + this.input.remaining() * Byte.SIZE;
 	}
 
 	@Override
@@ -31,23 +31,23 @@ public final class ByteBufferBitSupplier implements BitSupply {
 		if (nRequestedBits > Integer.SIZE) {
 			throw new IndexOutOfBoundsException();
 		}
-		if (queue.getAvailable() < nRequestedBits) {
-			int diff = nRequestedBits - queue.getAvailable();
-			if (diff > queue.getSpace()) {
+		if (this.queue.getAvailable() < nRequestedBits) {
+			int diff = nRequestedBits - this.queue.getAvailable();
+			if (diff > this.queue.getSpace()) {
 				throw new IndexOutOfBoundsException();
 			}
 			while (diff > 0) {
-				queue.push(input.get() & 0xFF, Byte.SIZE);
+				this.queue.push(this.input.get() & 0xFF, Byte.SIZE);
 				diff -= Byte.SIZE;
 			}
 		}
-		final int request = queue.pop(nRequestedBits);
+		final int request = this.queue.pop(nRequestedBits);
 		return request;
 	}
 
 	@Override
 	public String toString() {
-		return "[BitSupply: Remaining bits=" + getRemainingBits() + " Queue: " + queue + "]";
+		return "[BitSupply: Remaining bits=" + getRemainingBits() + " Queue: " + this.queue + "]";
 	}
 
 }
