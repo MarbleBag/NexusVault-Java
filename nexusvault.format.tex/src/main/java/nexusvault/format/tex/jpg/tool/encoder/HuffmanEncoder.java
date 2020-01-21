@@ -82,8 +82,6 @@ public final class HuffmanEncoder {
 			final int acValueConverted = convertToUnsigned(acValue, acValueBits);
 			consumer.consume(acValueConverted, acValueBits);
 		}
-
-		consumer.endOfData();
 	}
 
 	private int calculateBitLength(int value) {

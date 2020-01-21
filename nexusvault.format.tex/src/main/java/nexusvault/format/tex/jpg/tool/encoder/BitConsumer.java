@@ -4,6 +4,4 @@ public interface BitConsumer {
 
 	void consume(int data, int numberOfBits);
 
-	void endOfData();
-
 }

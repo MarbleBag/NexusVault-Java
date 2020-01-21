@@ -22,8 +22,7 @@ public final class BinaryWriterBitConsumer implements BitConsumer {
 		flushBytes();
 	}
 
-	@Override
-	public void endOfData() {
+	public void flush() {
 		flushBytes();
 		final var dataSize = queue.getAvailable();
 		if (dataSize > 0) {
