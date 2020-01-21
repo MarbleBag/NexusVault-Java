@@ -8,6 +8,7 @@ import nexusvault.format.tex.TexType;
 import nexusvault.format.tex.jpg.tool.Constants;
 import nexusvault.format.tex.jpg.tool.Constants.LayerType;
 import nexusvault.format.tex.jpg.tool.DCTLookup;
+import nexusvault.format.tex.jpg.tool.FastDCT;
 import nexusvault.format.tex.jpg.tool.HuffmanTable;
 import nexusvault.format.tex.jpg.tool.ImageRegion;
 import nexusvault.format.tex.jpg.tool.MathUtil;
@@ -274,13 +275,14 @@ public final class JPGImageEncoder {
 	}
 
 	private void DCT(int[] data, int dataOffset, int[] buffer) {
-		for (int y0 = 0; y0 < Constants.BLOCK_HEIGHT; ++y0) {
-			for (int x0 = 0; x0 < Constants.BLOCK_WIDTH; ++x0) {
-				final double value = this.DCT.DCT(x0, y0, data, dataOffset, Constants.BLOCK_WIDTH, Constants.BLOCK_HEIGHT);
-				buffer[x0 + y0 * Constants.BLOCK_WIDTH] = (int) Math.round(value);
-			}
-		}
-		System.arraycopy(buffer, 0, data, dataOffset, Constants.BLOCK_SIZE);
+		// for (int y0 = 0; y0 < Constants.BLOCK_HEIGHT; ++y0) {
+		// for (int x0 = 0; x0 < Constants.BLOCK_WIDTH; ++x0) {
+		// final double value = this.DCT.DCT(x0, y0, data, dataOffset, Constants.BLOCK_WIDTH, Constants.BLOCK_HEIGHT);
+		// buffer[x0 + y0 * Constants.BLOCK_WIDTH] = (int) Math.round(value);
+		// }
+		// }
+		// System.arraycopy(buffer, 0, data, dataOffset, Constants.BLOCK_SIZE);
+		FastDCT.dct(data, dataOffset);
 	}
 
 	private void quantizate(int layerIdx, int[] arr, int arrOffset) {
