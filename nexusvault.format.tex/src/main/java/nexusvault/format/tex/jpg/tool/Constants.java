@@ -50,16 +50,26 @@ public final class Constants {
 	public final static int NUMBER_OF_LAYERS = 4;
 
 	public final static int[][] BLOCKS_PER_LAYER = { { 4, 1, 1, 4 }, { 1, 1, 1, 1 }, { 1, 1, 1, 1 } };
+	public final static int[] MAX_BLOCKS_PER_LAYER = { 4, 1, 1 };
+	public final static boolean[][] LAYER_IS_SUBSAMPLED = { { false, true, true, false }, { false, false, false, false }, { false, false, false, false } };
 
-	public final static LayerType[][] TYPE_PER_LAYER = { { LayerType.LUMINANCE, LayerType.CHROMA, LayerType.CHROMA, LayerType.LUMINANCE },
-			{ LayerType.LUMINANCE, LayerType.LUMINANCE, LayerType.LUMINANCE, LayerType.LUMINANCE },
+	public final static LayerType[][] TYPE_PER_LAYER = { //
+			{ LayerType.LUMINANCE, LayerType.CHROMA, LayerType.CHROMA, LayerType.LUMINANCE }, //
+			{ LayerType.LUMINANCE, LayerType.LUMINANCE, LayerType.LUMINANCE, LayerType.LUMINANCE }, //
 			{ LayerType.LUMINANCE, LayerType.CHROMA, LayerType.CHROMA, LayerType.LUMINANCE } };
 
-	public final static boolean[][] LAYER_WITH_POSSIBLE_DEFAULT_VALUES = { { false, false, false, false }, { false, false, true, true },
+	public final static boolean[][] LAYER_WITH_POSSIBLE_DEFAULT_VALUES = { //
+			{ false, false, false, false }, //
+			{ false, false, true, true }, //
 			{ false, false, false, true } };
 
 	public final static int[][] OFFSETS_PER_LAYER = {
 			{ 0, 4 * Constants.BLOCK_SIZE, 5 * Constants.BLOCK_SIZE, 6 * Constants.BLOCK_SIZE, 10 * Constants.BLOCK_SIZE },
+			{ 0, 1 * Constants.BLOCK_SIZE, 2 * Constants.BLOCK_SIZE, 3 * Constants.BLOCK_SIZE, 4 * Constants.BLOCK_SIZE },
+			{ 0, 1 * Constants.BLOCK_SIZE, 2 * Constants.BLOCK_SIZE, 3 * Constants.BLOCK_SIZE, 4 * Constants.BLOCK_SIZE } };
+
+	public final static int[][] OFFSETS_PER_LAYER2 = {
+			{ 0, 4 * Constants.BLOCK_SIZE, 8 * Constants.BLOCK_SIZE, 12 * Constants.BLOCK_SIZE, 16 * Constants.BLOCK_SIZE },
 			{ 0, 1 * Constants.BLOCK_SIZE, 2 * Constants.BLOCK_SIZE, 3 * Constants.BLOCK_SIZE, 4 * Constants.BLOCK_SIZE },
 			{ 0, 1 * Constants.BLOCK_SIZE, 2 * Constants.BLOCK_SIZE, 3 * Constants.BLOCK_SIZE, 4 * Constants.BLOCK_SIZE } };
 
@@ -104,7 +114,7 @@ public final class Constants {
 	}
 
 	public static float[] adjustQuantTable(int[] quantTable, int factor) {
-		final float cof = (200 - (factor * 2)) * 0.01f;
+		final float cof = (200 - factor * 2) * 0.01f;
 		final float[] adjustedQuantTable = new float[quantTable.length];
 		for (int i = 0; i < adjustedQuantTable.length; ++i) {
 			final float val = quantTable[i] * cof;
