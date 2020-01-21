@@ -74,7 +74,7 @@ final class ARGB8888Encoder implements UncompressedEncoder {
 	private void encodeGray(BinaryReader source, int width, int height, BinaryWriter destination) {
 		final int length = width * height;
 		final byte[] imageData = new byte[TextureImageFormat.ARGB.getBytesPerPixel() * length];
-		for (int i = 0; i < imageData.length; i += 4) { // turns RGB into WS's BGRA
+		for (int i = 0; i < imageData.length; i += 4) { // turns gray into WS's BGRA
 			final byte shade = source.readInt8();
 			imageData[i + 0] = shade;
 			imageData[i + 1] = shade;

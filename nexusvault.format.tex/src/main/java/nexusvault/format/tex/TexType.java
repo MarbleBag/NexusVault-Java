@@ -9,8 +9,17 @@ public enum TexType {
 			return false;
 		}
 	},
+	/**
+	 * Chroma subsampling & typical jpg color space transformation with one additional color channel
+	 */
 	JPEG_TYPE_1(null, true, 0),
+	/**
+	 * Four color channels and no color space transformation
+	 */
 	JPEG_TYPE_2(null, true, 1),
+	/**
+	 * typical jpg color space transformation with one additional color channel
+	 */
 	JPEG_TYPE_3(null, true, 2),
 	/** identical to {@link #ARGB_2} */
 	ARGB_1(0, false, null),
@@ -30,6 +39,18 @@ public enum TexType {
 		this.format = format;
 		this.compressed = compressed;
 		this.compressionFormat = compressionFormat;
+	}
+
+	public int getFormat() {
+		return format == 0 ? 0 : format.intValue();
+	}
+
+	public boolean isCompressed() {
+		return compressed == null ? false : compressed.booleanValue();
+	}
+
+	public int getCompressionFormat() {
+		return compressionFormat == 0 ? 0 : compressionFormat.intValue();
 	}
 
 	protected boolean matches(int format, boolean isCompressed, int compressionFormat) {
