@@ -12,12 +12,13 @@ import nexusvault.format.tex.TexType;
 import nexusvault.format.tex.TextureImage;
 import nexusvault.format.tex.TextureImageFormat;
 import nexusvault.format.tex.TextureImageReader;
+import nexusvault.format.tex.jpg.old.AllInOneJPGDecoder;
 import nexusvault.format.tex.struct.StructTextureFileHeader;
 
 public final class JPGTextureImageReader extends AbstractTextureImageReader implements TextureImageReader {
 
 	private final Set<TexType> acceptedTypes = Collections.unmodifiableSet(EnumSet.of(TexType.JPEG_TYPE_1, TexType.JPEG_TYPE_2, TexType.JPEG_TYPE_3));
-	private final JPGDecoder decoder = new AllInOneJPGDecoder();
+	private final AllInOneJPGDecoder decoder = new AllInOneJPGDecoder();
 
 	public JPGTextureImageReader() {
 		super(new JPGImageMetaCalculator());
@@ -28,7 +29,7 @@ public final class JPGTextureImageReader extends AbstractTextureImageReader impl
 		final ImageMetaInformation meta = getImageInformation(header, imageIdx);
 
 		source.seek(Seek.BEGIN, meta.offset);
-		final byte[] data = decoder.decode(header, source, meta.length, meta.width, meta.height);
+		final byte[] data = this.decoder.decode(header, source, meta.length, meta.width, meta.height);
 
 		return new TextureImage(meta.width, meta.height, TextureImageFormat.ARGB, data);
 	}
@@ -40,7 +41,7 @@ public final class JPGTextureImageReader extends AbstractTextureImageReader impl
 
 	@Override
 	public Set<TexType> getAcceptedTexTypes() {
-		return acceptedTypes;
+		return this.acceptedTypes;
 	}
 
 }

@@ -57,7 +57,6 @@ public final class FastIntegerIDCT {
 	 * @param dataOffset
 	 */
 	public static void idct(int[] data, int dataOffset) {
-
 		for (int i = 0; i < 8; ++i) {
 			idctRow(data, dataOffset + (8 * i));
 		}
@@ -65,7 +64,6 @@ public final class FastIntegerIDCT {
 		for (int i = 0; i < 8; ++i) {
 			idctColumn(data, dataOffset + i);
 		}
-
 	}
 
 	private static void idctRow(int[] data, int i) {
