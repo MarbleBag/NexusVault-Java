@@ -291,9 +291,9 @@ public final class JPGImageDecoder {
 	private void copyDefaultValue(int layerIdx, int[] dst) {
 		final var startIdx = this.layerOffset[layerIdx];
 		final var endIdx = this.layerOffset[layerIdx + 1];
-		dst[startIdx] = this.layerDefault[layerIdx];
-		for (int i = startIdx + 1; i < endIdx; i += i) {
-			System.arraycopy(dst, startIdx, dst, i, endIdx - i < i ? endIdx - i : i);
+		dst[startIdx] = this.layerDefault[layerIdx] & 0xFF;
+		for (int dstPos = startIdx + 1, length = 1; dstPos < endIdx; dstPos += length, length += length) {
+			System.arraycopy(dst, startIdx, dst, dstPos, dstPos + length > endIdx ? endIdx - dstPos : length);
 		}
 	}
 

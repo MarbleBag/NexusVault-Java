@@ -133,11 +133,11 @@ public final class AllInOneJPGDecoder {
 	}
 
 	private void copyDefaultToLayer(StackSet stack, int layerIdx) {
-		final int layerStart = this.offsetsPerLayer[layerIdx];
-		final int layerEnd = this.offsetsPerLayer[layerIdx + 1];
-		stack.data[layerStart] = this.defaultForLayer[layerIdx];
-		for (int i = layerStart + 1; i < layerEnd; i += i) {
-			System.arraycopy(stack.data, layerStart, stack.data, i, layerEnd - i < i ? layerEnd - i : i);
+		final int startIdx = this.offsetsPerLayer[layerIdx];
+		final int endIdx = this.offsetsPerLayer[layerIdx + 1];
+		stack.data[startIdx] = this.defaultForLayer[layerIdx];
+		for (int dstPos = startIdx + 1, length = 1; dstPos < endIdx; dstPos += length, length += length) {
+			System.arraycopy(stack.data, startIdx, stack.data, dstPos, dstPos + length > endIdx ? endIdx - dstPos : length);
 		}
 	}
 
