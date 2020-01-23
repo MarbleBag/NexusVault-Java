@@ -13,35 +13,39 @@ public final class BinaryWriterBitConsumer implements BitConsumer {
 			throw new IllegalArgumentException("'input' must not be null");
 		}
 		this.output = output;
-		queue = new BitQueue();
+		this.queue = new BitQueue();
 	}
 
 	@Override
 	public void consume(int data, int numberOfBits) {
-		queue.push(data, numberOfBits);
+		this.queue.push(data, numberOfBits);
 		flushBytes();
+	}
+
+	public int remainingUnflushedBits() {
+		return this.queue.getAvailable();
 	}
 
 	public void flush() {
 		flushBytes();
-		final var dataSize = queue.getAvailable();
+		final var dataSize = this.queue.getAvailable();
 		if (dataSize > 0) {
-			var data = queue.pop(dataSize);
-			data = data << (Byte.SIZE - dataSize);
-			output.writeInt8(data);
+			var data = this.queue.pop(dataSize);
+			data = data << Byte.SIZE - dataSize;
+			this.output.writeInt8(data);
 		}
 	}
 
 	private void flushBytes() {
-		while (queue.getAvailable() > Byte.SIZE) {
-			final var data = queue.pop(Byte.SIZE);
-			output.writeInt8(data);
+		while (this.queue.getAvailable() >= Byte.SIZE) {
+			final var data = this.queue.pop(Byte.SIZE);
+			this.output.writeInt8(data);
 		}
 	}
 
 	@Override
 	public String toString() {
-		return "[BitConsumer: Queue: " + queue + " + BinaryWriter: " + output + "]";
+		return "[BitConsumer: Queue: " + this.queue + " + BinaryWriter: " + this.output + "]";
 	}
 
 }
