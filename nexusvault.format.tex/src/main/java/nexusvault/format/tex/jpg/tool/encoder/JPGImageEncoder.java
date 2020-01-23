@@ -7,7 +7,6 @@ import kreed.io.util.BinaryWriter;
 import nexusvault.format.tex.TexType;
 import nexusvault.format.tex.jpg.tool.Constants;
 import nexusvault.format.tex.jpg.tool.Constants.LayerType;
-import nexusvault.format.tex.jpg.tool.DCTLookup;
 import nexusvault.format.tex.jpg.tool.FastDCT;
 import nexusvault.format.tex.jpg.tool.HuffmanTable;
 import nexusvault.format.tex.jpg.tool.ImageRegion;
@@ -180,8 +179,6 @@ public final class JPGImageEncoder {
 	private BinaryWriterBitConsumer encoderOutput;
 	private ImageRegionReader imageReader;
 
-	private final DCTLookup DCT;
-
 	public JPGImageEncoder(TexType target, boolean[] hasDefault, float[][] quantTables) {
 		final int constantIdx = Constants.getArrayIndexForType(target);
 		this.target = target;
@@ -196,8 +193,6 @@ public final class JPGImageEncoder {
 
 		this.isUsingSubsampling = arrayAny(this.isLayerSubsampled);
 		this.imageRegionSize = this.layerOffset[this.layerOffset.length - 1];
-
-		this.DCT = new DCTLookup(Constants.BLOCK_HEIGHT, Constants.BLOCK_WIDTH);
 	}
 
 	private boolean arrayAny(boolean[] arr) {
@@ -275,13 +270,6 @@ public final class JPGImageEncoder {
 	}
 
 	private void DCT(int[] data, int dataOffset, int[] buffer) {
-		// for (int y0 = 0; y0 < Constants.BLOCK_HEIGHT; ++y0) {
-		// for (int x0 = 0; x0 < Constants.BLOCK_WIDTH; ++x0) {
-		// final double value = this.DCT.DCT(x0, y0, data, dataOffset, Constants.BLOCK_WIDTH, Constants.BLOCK_HEIGHT);
-		// buffer[x0 + y0 * Constants.BLOCK_WIDTH] = (int) Math.round(value);
-		// }
-		// }
-		// System.arraycopy(buffer, 0, data, dataOffset, Constants.BLOCK_SIZE);
 		FastDCT.dct(data, dataOffset);
 	}
 

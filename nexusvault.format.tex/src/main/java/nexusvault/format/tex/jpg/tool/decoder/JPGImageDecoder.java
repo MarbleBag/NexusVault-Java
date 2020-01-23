@@ -17,7 +17,7 @@ import nexusvault.format.tex.jpg.tool.SampleUtil;
 /**
  * A more compact jpg decoder
  */
-final class JPGImageDecoder {
+public final class JPGImageDecoder {
 
 	private static interface PixelWriter {
 		void write(int[] src, byte[] dst, int dstIdx);
