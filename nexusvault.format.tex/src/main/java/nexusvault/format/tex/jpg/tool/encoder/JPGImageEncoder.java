@@ -5,6 +5,7 @@ import java.util.stream.Stream;
 
 import kreed.io.util.BinaryWriter;
 import nexusvault.format.tex.TexType;
+import nexusvault.format.tex.jpg.TextureJPGEncodingException;
 import nexusvault.format.tex.jpg.tool.Constants;
 import nexusvault.format.tex.jpg.tool.Constants.LayerType;
 import nexusvault.format.tex.jpg.tool.FastDCT;
@@ -133,22 +134,18 @@ public final class JPGImageEncoder {
 			final int[] tmpStore = new int[Constants.NUMBER_OF_LAYERS];
 
 			for (int y = 0; y < this.regionHeight; ++y) {
-				if (y + imageY > this.imageHeight) {
-					break;
-				}
-
 				for (int x = 0; x < this.regionWidth; ++x) {
 					final int dstIdx = this.regionLookup[y][x];
 					final int srcIdx = this.imageLookup[y][x] + srcIdxStart;
 
-					if (!(x + imageX > this.imageWidth || y + imageY > this.imageHeight)) {
+					if (x + imageX < this.imageWidth && y + imageY < this.imageHeight) {
 						this.reader.read(image, srcIdx * 4, tmpStore);
 					}
 
 					out[dstIdx + 0 * this.regionSize] = tmpStore[0];
-					out[dstIdx + 0 * this.regionSize] = tmpStore[1];
-					out[dstIdx + 0 * this.regionSize] = tmpStore[2];
-					out[dstIdx + 0 * this.regionSize] = tmpStore[3];
+					out[dstIdx + 1 * this.regionSize] = tmpStore[1];
+					out[dstIdx + 2 * this.regionSize] = tmpStore[2];
+					out[dstIdx + 3 * this.regionSize] = tmpStore[3];
 				}
 			}
 		}
@@ -184,7 +181,7 @@ public final class JPGImageEncoder {
 		this.target = target;
 		this.layerType = Constants.TYPE_PER_LAYER[constantIdx];
 		this.layerBlocks = Constants.BLOCKS_PER_LAYER[constantIdx];
-		this.layerOffset = Constants.OFFSETS_PER_LAYER[constantIdx];
+		this.layerOffset = Constants.OFFSETS_PER_LAYER2[constantIdx];
 		this.layerDCValues = new int[Constants.NUMBER_OF_LAYERS];
 		this.layerQuantTable = quantTables;
 
@@ -205,6 +202,10 @@ public final class JPGImageEncoder {
 	}
 
 	public void encode(byte[] image, int imageWidth, int imageHeight, BinaryWriter out) {
+		if (image.length != imageWidth * imageHeight * 4) {
+			throw new IllegalArgumentException(); // TODO
+		}
+
 		this.lastImageRegionId = 0;
 		this.encoderOutput = new BinaryWriterBitConsumer(out);
 		this.imageReader = new ImageRegionReader(getPixelReader(), imageWidth, imageHeight, this.isUsingSubsampling);
@@ -216,7 +217,13 @@ public final class JPGImageEncoder {
 		Stream.generate(this::allocateMemory) //
 				.limit(this.imageReader.getTotalNumberOfImageRegions()) //
 				.parallel() //
-				.peek(ir -> this.imageReader.read(image, ir.id, ir.data)) //
+				.peek(ir -> {
+					try {
+						this.imageReader.read(image, ir.id, ir.data);
+					} catch (final Exception ex) {
+						throw new TextureJPGEncodingException(String.format("Region [%d]: read error", ir.id), ex);
+					}
+				}) //
 				.peek(this::downsampleImageRegion) //
 				.peek(this::convertImageRegion) //
 				.collect(Collectors.toList()) // parallel -> sequential
@@ -290,7 +297,11 @@ public final class JPGImageEncoder {
 	private void encodeImageRegion(ImageRegion ir) {
 		for (int layerIdx = 0; layerIdx < Constants.NUMBER_OF_LAYERS; ++layerIdx) {
 			if (!this.layerHasDefault[layerIdx]) {
-				encodeLayer(layerIdx, ir.data);
+				try {
+					encodeLayer(layerIdx, ir.data);
+				} catch (final HuffmanEncoderFault ex) {
+					throw new TextureJPGEncodingException(String.format("Region [%d] Layer [%d]: encoding error", ir.id, layerIdx), ex);
+				}
 			}
 		}
 	}
@@ -307,7 +318,7 @@ public final class JPGImageEncoder {
 	private void adjustBlockDC(int layerIdx, int[] arr, int arrOffset) {
 		final int prevDC = this.layerDCValues[layerIdx];
 		final int blockDC = arr[arrOffset];
-		final int newDC = blockDC + prevDC;
+		final int newDC = blockDC - prevDC;
 		this.layerDCValues[layerIdx] = newDC;
 		arr[arrOffset] = newDC;
 	}

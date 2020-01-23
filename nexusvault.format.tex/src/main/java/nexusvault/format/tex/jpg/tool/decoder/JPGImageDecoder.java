@@ -149,45 +149,25 @@ public final class JPGImageDecoder {
 
 			final int[] tmpStore = new int[Constants.NUMBER_OF_LAYERS];
 
-			if (imageX + this.regionWidth > this.imageHeight || imageY + this.regionHeight > this.imageHeight) {
-				// region overlaps with image borders
-				// borders need to be checked so only pixels within the image will be accessed
-				for (int y = 0; y < this.regionHeight; ++y) {
-					if (y + imageY > this.imageHeight) {
+			for (int y = 0; y < this.regionHeight; ++y) {
+				if (y + imageY >= this.imageHeight) {
+					break;
+				}
+
+				for (int x = 0; x < this.regionWidth; ++x) {
+					if (x + imageX >= this.imageWidth) {
 						break;
 					}
 
-					for (int x = 0; x < this.regionWidth; ++x) {
-						if (x + imageX > this.imageWidth) {
-							break;
-						}
+					final int srcIdx = this.regionLookup[y][x];
+					final int dstIdx = this.imageLookup[y][x] + dstIdxStart;
 
-						final int srcIdx = this.regionLookup[y][x];
-						final int dstIdx = this.imageLookup[y][x] + dstIdxStart;
+					tmpStore[0] = src[srcIdx + 0 * this.regionSize];
+					tmpStore[1] = src[srcIdx + 1 * this.regionSize];
+					tmpStore[2] = src[srcIdx + 2 * this.regionSize];
+					tmpStore[3] = src[srcIdx + 3 * this.regionSize];
 
-						tmpStore[0] = src[srcIdx + 0 * this.regionSize];
-						tmpStore[1] = src[srcIdx + 1 * this.regionSize];
-						tmpStore[2] = src[srcIdx + 2 * this.regionSize];
-						tmpStore[3] = src[srcIdx + 3 * this.regionSize];
-
-						this.writer.write(tmpStore, dst, dstIdx * 4);
-					}
-				}
-			} else {
-				// region is contained within image
-				// no additional checks for borders are needed
-				for (int y = 0; y < this.regionHeight; ++y) {
-					for (int x = 0; x < this.regionWidth; ++x) {
-						final int srcIdx = this.regionLookup[y][x];
-						final int dstIdx = this.imageLookup[y][x] + dstIdxStart;
-
-						tmpStore[0] = src[srcIdx + 0 * this.regionSize];
-						tmpStore[1] = src[srcIdx + 1 * this.regionSize];
-						tmpStore[2] = src[srcIdx + 2 * this.regionSize];
-						tmpStore[3] = src[srcIdx + 3 * this.regionSize];
-
-						this.writer.write(tmpStore, dst, dstIdx * 4);
-					}
+					this.writer.write(tmpStore, dst, dstIdx * 4);
 				}
 			}
 		}
