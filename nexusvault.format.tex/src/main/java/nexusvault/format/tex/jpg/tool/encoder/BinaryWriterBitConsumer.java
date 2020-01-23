@@ -22,10 +22,6 @@ public final class BinaryWriterBitConsumer implements BitConsumer {
 		flushBytes();
 	}
 
-	public int remainingUnflushedBits() {
-		return this.queue.getAvailable();
-	}
-
 	public void flush() {
 		flushBytes();
 		final var dataSize = this.queue.getAvailable();
