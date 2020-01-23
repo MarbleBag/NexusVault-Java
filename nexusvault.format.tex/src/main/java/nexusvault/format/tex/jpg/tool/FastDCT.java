@@ -21,7 +21,7 @@ public final class FastDCT {
 	 * @param dataOffset
 	 */
 	public static void dct(int[] data, int dataOffset) {
-		final var buffer = new int[data.length];
+		final var buffer = new int[N * N];
 		final var sumScale = 1 / SCALE;
 
 		// TODO this can still be optimized
