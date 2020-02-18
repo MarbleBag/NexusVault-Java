@@ -11,8 +11,8 @@ The main goal of this library is to document any knowledge that's available of W
     * Uncompressed Grayscale, ARGB8, RGB565
 
 * Read (All .tex formats)
-	* DXT1, DXT3, DXT5
- 	* Uncompressed Grayscale, ARGB8, RGB565
+    * DXT1, DXT3, DXT5
+    * Uncompressed Grayscale, ARGB8, RGB565
     * Compressed .tex (jpg like) with and without subsampling
 
 
