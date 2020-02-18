@@ -1,6 +1,5 @@
 package nexusvault.format.tex.jpg.tool.encoder;
 
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import kreed.io.util.BinaryWriter;
@@ -23,10 +22,10 @@ public final class JPGImageEncoder {
 	private static final class IdentityPixelReader implements PixelReader {
 		@Override
 		public void read(byte[] image, int imageIdx, int[] out) {
-			out[0] = image[imageIdx + 0];
-			out[1] = image[imageIdx + 1];
-			out[2] = image[imageIdx + 2];
-			out[3] = image[imageIdx + 3];
+			out[0] = image[imageIdx + 0] & 0xFF;
+			out[1] = image[imageIdx + 1] & 0xFF;
+			out[2] = image[imageIdx + 2] & 0xFF;
+			out[3] = image[imageIdx + 3] & 0xFF;
 		}
 	}
 
@@ -43,20 +42,20 @@ public final class JPGImageEncoder {
 	private static final class PixelReaderARGB2YCCY implements PixelReader {
 		@Override
 		public void read(byte[] src, int srcIdx, int[] dst) {
-			final int p4 = src[srcIdx + 0];
-			final int r4 = src[srcIdx + 1];
-			final int r2 = src[srcIdx + 2];
-			final int r3 = src[srcIdx + 3];
+			final int p4 = src[srcIdx + 0] & 0xFF;
+			final int r4 = src[srcIdx + 1] & 0xFF;
+			final int r2 = src[srcIdx + 2] & 0xFF;
+			final int r3 = src[srcIdx + 3] & 0xFF;
 
 			final int p2 = r4 - r3; // r4 = r3 + p2
 			final int r1 = r3 + (p2 >> 1); // r3 = r1 - p2>>1
 			final int p3 = r2 - r1; // r2 = r1 + p3
 			final int p1 = r1 + (p3 >> 1); // r1 = p1 - p3>>1
 
-			dst[0] = (byte) MathUtil.clamp(p1, 0, 0xFF);
-			dst[1] = (byte) MathUtil.clamp(p2, 0, 0xFF);
-			dst[2] = (byte) MathUtil.clamp(p3, 0, 0xFF);
-			dst[3] = (byte) MathUtil.clamp(p4, 0, 0xFF);
+			dst[0] = MathUtil.clamp(p1, -256, 0xFF);
+			dst[1] = MathUtil.clamp(p2, -256, 0xFF);
+			dst[2] = MathUtil.clamp(p3, -256, 0xFF);
+			dst[3] = MathUtil.clamp(p4, -256, 0xFF);
 		}
 	}
 
@@ -134,11 +133,14 @@ public final class JPGImageEncoder {
 			final int[] tmpStore = new int[Constants.NUMBER_OF_LAYERS];
 
 			for (int y = 0; y < this.regionHeight; ++y) {
+
 				for (int x = 0; x < this.regionWidth; ++x) {
 					final int dstIdx = this.regionLookup[y][x];
 					final int srcIdx = this.imageLookup[y][x] + srcIdxStart;
 
 					if (x + imageX < this.imageWidth && y + imageY < this.imageHeight) {
+						// TODO not perfect. On the right border we should reuse the last value read from the line
+						// On the bottom border we should replicate the last line
 						this.reader.read(image, srcIdx * 4, tmpStore);
 					}
 
@@ -214,9 +216,9 @@ public final class JPGImageEncoder {
 			this.layerDCValues[i] = 0;
 		}
 
-		Stream.generate(this::allocateMemory) //
+		Stream.generate(this::allocateMemory) // //TODO
 				.limit(this.imageReader.getTotalNumberOfImageRegions()) //
-				.parallel() //
+				// .parallel() //
 				.peek(ir -> {
 					try {
 						this.imageReader.read(image, ir.id, ir.data);
@@ -226,9 +228,9 @@ public final class JPGImageEncoder {
 				}) //
 				.peek(this::downsampleImageRegion) //
 				.peek(this::convertImageRegion) //
-				.collect(Collectors.toList()) // parallel -> sequential
-				.stream() //
-				.sorted(this::sortImageRegion) //
+				// .collect(Collectors.toList()) // parallel -> sequential
+				// .stream() //
+				// .sorted(this::sortImageRegion) //
 				.forEach(this::encodeImageRegion);
 
 		this.encoderOutput.flush();
@@ -264,19 +266,38 @@ public final class JPGImageEncoder {
 	}
 
 	private void convertImageRegion(ImageRegion ir) {
-		final var dctBuffer = new int[Constants.BLOCK_WIDTH];
 		for (int layerIdx = 0; layerIdx < Constants.NUMBER_OF_LAYERS; ++layerIdx) {
 			if (!this.layerHasDefault[layerIdx]) {
 				for (int blockIdx = 0; blockIdx < this.layerBlocks[layerIdx]; ++blockIdx) {
 					final int blockOffset = this.layerOffset[layerIdx] + blockIdx * Constants.BLOCK_SIZE;
-					DCT(ir.data, blockOffset, dctBuffer);
+					shiftAndClamp(layerIdx, ir.data, blockOffset);
+					DCT(ir.data, blockOffset); // TODO this part still sucks
 					quantizate(layerIdx, ir.data, blockOffset);
 				}
 			}
 		}
 	}
 
-	private void DCT(int[] data, int dataOffset, int[] buffer) {
+	private void shiftAndClamp(int layerIdx, int[] data, int dataOffset) {
+		switch (this.layerType[layerIdx]) {
+			case CHROMA:
+				shiftAndClamp(data, dataOffset, 0, -256, 255);
+				break;
+			case LUMINANCE:
+				shiftAndClamp(data, dataOffset, -128, -256, 255);
+				break;
+			default:
+				throw new IllegalArgumentException("Unknown type: " + this.layerType[layerIdx]);
+		}
+	}
+
+	private void shiftAndClamp(int[] data, int offset, int shift, int min, int max) {
+		for (int i = offset; i < offset + Constants.BLOCK_SIZE; ++i) {
+			data[i] = Math.max(min, Math.min(max, data[i] + shift));
+		}
+	}
+
+	private void DCT(int[] data, int dataOffset) {
 		FastDCT.dct(data, dataOffset);
 	}
 
