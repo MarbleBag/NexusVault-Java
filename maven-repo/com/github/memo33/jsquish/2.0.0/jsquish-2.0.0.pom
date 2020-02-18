@@ -1,0 +1,112 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+	http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <packaging>jar</packaging>
+
+    <groupId>com.github.memo33</groupId>
+    <artifactId>jsquish</artifactId>
+    <version>2.0.0</version>
+	
+    <url>https://github.com/goldsam/jsquish</url>
+    
+   	<properties>
+		<project.java.version>11</project.java.version>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+	</properties>
+
+    <build>
+    	<finalName>jsquish</finalName>
+    	
+        <plugins>       
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+				<version>3.8.0</version>
+				<configuration>
+					<release>${project.java.version}</release>
+					<encoding>${project.build.sourceEncoding}</encoding>
+				</configuration>
+            </plugin>
+            
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<configuration>
+					<archive>
+						<addMavenDescriptor>false</addMavenDescriptor>
+						<manifest>
+							<addClasspath>true</addClasspath>
+						</manifest>
+						<manifestEntries>
+							<Built-By></Built-By>
+						</manifestEntries>
+					</archive>
+				</configuration>
+			</plugin>
+			
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-source-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>attach-sources</id>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+					</execution>
+				</executions>
+				
+				<configuration>
+					<archive>
+						<addMavenDescriptor>true</addMavenDescriptor>
+						<manifest>
+							<addClasspath>true</addClasspath>
+						</manifest>
+						<manifestEntries>
+							<Built-By></Built-By>
+						</manifestEntries>
+					</archive>
+				</configuration>
+			</plugin>
+			        
+	        <plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<version>2.5.1</version>
+				<executions>
+				  <execution>
+					<id>copy-dependencies</id>
+					<phase>package</phase>
+					<goals>
+						<goal>copy-dependencies</goal>
+					</goals>
+					<configuration>
+					  <!-- exclude junit, we need runtime dependency only -->
+					  <includeScope>runtime</includeScope>
+					  <outputDirectory>${project.build.directory}/libs/</outputDirectory>
+					</configuration>
+				  </execution>
+				</executions>
+			</plugin>
+			
+			 <plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-install-plugin</artifactId>
+				<version>3.0.0-M1</version>
+			</plugin>
+			
+		</plugins>
+        
+     	<resources>
+			<resource>
+				<directory>docs</directory>
+				<targetPath>docs</targetPath>
+				<filtering>false</filtering>
+			</resource>
+		</resources>
+    </build>
+
+</project>

@@ -40,9 +40,9 @@
 			<version>[1,)</version>
 		</dependency>
 		<dependency>
-			<groupId>DDSUtils</groupId>
-			<artifactId>DDSUtils</artifactId>
-			<version>1.0</version>
+			<groupId>com.github.memo33</groupId>
+			<artifactId>jsquish</artifactId>
+			<version>[2,3)</version>
 		</dependency>
 	</dependencies>
 
