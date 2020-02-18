@@ -8,7 +8,7 @@ import kreed.io.util.BinaryReader;
 import nexusvault.format.tex.TexType;
 import nexusvault.format.tex.TextureImageFormat;
 
-final class ARGB8888Decoder implements UncompressedDecoder {
+final class ARGB8888ImageDecoder implements UncompressedImageDecoder {
 
 	private final Set<TexType> acceptedTypes = Collections.unmodifiableSet(EnumSet.of(TexType.ARGB_1, TexType.ARGB_2));
 

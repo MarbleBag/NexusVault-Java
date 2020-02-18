@@ -4,7 +4,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com)
 
 ## [3.0.0] - Unreleased
 ### Added
-- Texture image writer. It's now possible to create texture images with TextureImageWriter. Only jpg is not supported yet.
+- Texture image writer. It's now possible to create texture images with TextureImageWriter. jpg is not supported yet.
 
 ### Changed
 - Large parts of the library are rewritten to improve code organization and maintainability

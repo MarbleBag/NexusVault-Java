@@ -1,15 +1,17 @@
-package nexusvault.format.tex.unc;
+package nexusvault.format.tex.dxt;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
+import ddsutil.DDSUtil;
+import gr.zdimensions.jsquish.Squish;
 import nexusvault.format.tex.AbstractTextureImageWriter;
 import nexusvault.format.tex.TexType;
 import nexusvault.format.tex.TextureImage;
 import nexusvault.format.tex.TextureImageWriter;
 import nexusvault.format.tex.struct.StructTextureFileHeader;
 
-public final class UncompressedTextureImageWriter extends AbstractTextureImageWriter implements TextureImageWriter {
+public final class DXTTextureImageWriter extends AbstractTextureImageWriter implements TextureImageWriter {
 
 	@Override
 	public ByteBuffer writeTexture(TexType target, TextureImage[] images) {
@@ -26,18 +28,19 @@ public final class UncompressedTextureImageWriter extends AbstractTextureImageWr
 		header.format = target.getFormat();
 		header.isCompressed = target.isCompressed();
 		header.compressionFormat = target.getCompressionFormat();
-		// header.imageSizesCount = images.length; //Not used for uncompressed textures
+		// header.imageSizesCount = images.length; //Not used for dxt textures
 
-		final var encoder = getEncoder(target);
-		final var imageData = new byte[images.length][];
+		final var dxtCompression = getCompressionType(target);
+		final var imageData = new ByteBuffer[images.length];
 		var imageSizes = 0;
 
 		for (var i = 0; i < images.length; ++i) {
 			final var image = images[i];
-			final var encodedImageData = encoder.encode(image.getImageData(), image.getImageWidth(), image.getImageHeight(), image.getImageFormat());
-			// header.imageSizes[i] = encodedImageData.length; //Not used for uncompressed textures
-			imageSizes += encodedImageData.length;
-			imageData[i] = encodedImageData;
+			final var bufferedImage = image.convertToBufferedImage();
+			final var compressed = DDSUtil.compressTexture(bufferedImage, dxtCompression);
+			// header.imageSizes[i] = encodedImageData.length; //Not used for dxt textures
+			imageSizes += compressed.remaining();
+			imageData[i] = compressed;
 		}
 
 		final var output = ByteBuffer.allocate(StructTextureFileHeader.SIZE_IN_BYTES + imageSizes).order(ByteOrder.LITTLE_ENDIAN);
@@ -53,27 +56,25 @@ public final class UncompressedTextureImageWriter extends AbstractTextureImageWr
 
 	private void assertTexType(TexType target) {
 		switch (target) {
-			case ARGB_1:
-			case ARGB_2:
-			case RGB:
-			case GRAYSCALE:
+			case DXT1:
+			case DXT3:
+			case DXT5:
 				return;
 			default:
 				throw new IllegalArgumentException();
 		}
 	}
 
-	private UncompressedImageEncoder getEncoder(TexType target) {
+	private Squish.CompressionType getCompressionType(TexType target) {
 		switch (target) {
-			case ARGB_1:
-			case ARGB_2:
-				return new ARGB8888ImageEncoder();
-			case RGB:
-				return new RGB565ImageEncoder();
-			case GRAYSCALE:
-				return new Gray8ImageEncoder();
+			case DXT1:
+				return Squish.CompressionType.DXT1;
+			case DXT3:
+				return Squish.CompressionType.DXT3;
+			case DXT5:
+				return Squish.CompressionType.DXT5;
 			default:
-				throw new IllegalArgumentException();
+				throw new IllegalArgumentException(/* TODO */);
 		}
 	}
 

@@ -42,21 +42,21 @@ public enum TexType {
 	}
 
 	public int getFormat() {
-		return format == 0 ? 0 : format.intValue();
+		return this.format == 0 ? 0 : this.format.intValue();
 	}
 
 	public boolean isCompressed() {
-		return compressed == null ? false : compressed.booleanValue();
+		return this.compressed == null ? false : this.compressed.booleanValue();
 	}
 
 	public int getCompressionFormat() {
-		return compressionFormat == 0 ? 0 : compressionFormat.intValue();
+		return this.compressionFormat == null ? 0 : this.compressionFormat.intValue();
 	}
 
 	protected boolean matches(int format, boolean isCompressed, int compressionFormat) {
-		final boolean formatMatch = (this.format == null) || ((this.format != null) && (this.format == format));
-		final boolean compressionMatch = (compressed == null) || ((compressed != null) && (compressed == isCompressed));
-		final boolean compFormatMatch = (this.compressionFormat == null) || ((this.compressionFormat != null) && (this.compressionFormat == compressionFormat));
+		final boolean formatMatch = this.format == null || this.format != null && this.format == format;
+		final boolean compressionMatch = this.compressed == null || this.compressed != null && this.compressed == isCompressed;
+		final boolean compFormatMatch = this.compressionFormat == null || this.compressionFormat != null && this.compressionFormat == compressionFormat;
 		return formatMatch && compressionMatch && compFormatMatch;
 	}
 

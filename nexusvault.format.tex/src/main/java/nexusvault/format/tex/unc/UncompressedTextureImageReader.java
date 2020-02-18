@@ -16,9 +16,9 @@ import nexusvault.format.tex.struct.StructTextureFileHeader;
 
 abstract class UncompressedTextureImageReader extends AbstractTextureImageReader implements TextureImageReader {
 
-	private final UncompressedDecoder decoder;
+	private final UncompressedImageDecoder decoder;
 
-	public UncompressedTextureImageReader(UncompressedDecoder decoder, ImageMetaCalculator imageMeta) {
+	public UncompressedTextureImageReader(UncompressedImageDecoder decoder, ImageMetaCalculator imageMeta) {
 		super(imageMeta);
 		this.decoder = Objects.requireNonNull(decoder);
 	}

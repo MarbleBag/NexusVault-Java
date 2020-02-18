@@ -15,6 +15,9 @@ import nexusvault.format.tex.TextureImageReader;
 import nexusvault.format.tex.jpg.old.AllInOneJPGDecoder;
 import nexusvault.format.tex.struct.StructTextureFileHeader;
 
+/**
+ * Uses the old implementation to read ws's jpgs. Faster than the new implementation, but also harder to read.
+ */
 public final class JPGTextureImageReader extends AbstractTextureImageReader implements TextureImageReader {
 
 	private final Set<TexType> acceptedTypes = Collections.unmodifiableSet(EnumSet.of(TexType.JPEG_TYPE_1, TexType.JPEG_TYPE_2, TexType.JPEG_TYPE_3));

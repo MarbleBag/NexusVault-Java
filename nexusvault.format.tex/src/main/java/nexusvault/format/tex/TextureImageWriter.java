@@ -1,8 +1,7 @@
 package nexusvault.format.tex;
 
-import kreed.io.util.BinaryReader;
-import kreed.io.util.BinaryWriter;
+import java.nio.ByteBuffer;
 
 public interface TextureImageWriter {
-	void write(BinaryReader source, TextureImageFormat format, int width, int height, BinaryWriter destination);
+	public ByteBuffer writeTexture(TexType target, TextureImage[] images);
 }

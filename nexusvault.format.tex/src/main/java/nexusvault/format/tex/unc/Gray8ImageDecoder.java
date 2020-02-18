@@ -8,7 +8,7 @@ import kreed.io.util.BinaryReader;
 import nexusvault.format.tex.TexType;
 import nexusvault.format.tex.TextureImageFormat;
 
-final class Gray8Decoder implements UncompressedDecoder {
+final class Gray8ImageDecoder implements UncompressedImageDecoder {
 
 	private final Set<TexType> acceptedTypes = Collections.unmodifiableSet(EnumSet.of(TexType.GRAYSCALE));
 

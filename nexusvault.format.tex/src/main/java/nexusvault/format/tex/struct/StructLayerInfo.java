@@ -39,33 +39,52 @@ public final class StructLayerInfo {
 	}
 
 	public boolean hasReplacement() {
-		return hasReplacement != 0;
+		return this.hasReplacement != 0;
+	}
+
+	public void hasReplacement(boolean value) {
+		this.hasReplacement = (byte) (value ? 1 : 0);
 	}
 
 	public byte getReplacement() {
-		return replacement;
+		return this.replacement;
+	}
+
+	public void setReplacement(byte value) {
+		this.replacement = value;
 	}
 
 	public byte getQuality() {
-		return quality;
+		return this.quality;
+	}
+
+	public void setQuality(int value) {
+		setQuality((byte) value);
+	}
+
+	public void setQuality(byte value) {
+		if (value < 0 || 100 < value) {
+			throw new IllegalArgumentException();
+		}
+		this.quality = value;
 	}
 
 	@Override
 	public String toString() {
 		final StringBuilder builder = new StringBuilder();
 		builder.append("LayerInfo [quality=");
-		builder.append(quality);
+		builder.append(this.quality);
 		builder.append(", hasReplacement=");
-		builder.append(hasReplacement);
+		builder.append(this.hasReplacement);
 		builder.append(", replacement=");
-		builder.append(replacement);
+		builder.append(this.replacement);
 		builder.append("]");
 		return builder.toString();
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(hasReplacement, quality, replacement);
+		return Objects.hash(this.hasReplacement, this.quality, this.replacement);
 	}
 
 	@Override
@@ -80,7 +99,7 @@ public final class StructLayerInfo {
 			return false;
 		}
 		final StructLayerInfo other = (StructLayerInfo) obj;
-		return (hasReplacement == other.hasReplacement) && (quality == other.quality) && (replacement == other.replacement);
+		return this.hasReplacement == other.hasReplacement && this.quality == other.quality && this.replacement == other.replacement;
 	}
 
 }

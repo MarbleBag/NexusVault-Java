@@ -6,7 +6,7 @@ import kreed.io.util.BinaryReader;
 import nexusvault.format.tex.TexType;
 import nexusvault.format.tex.TextureImageFormat;
 
-interface UncompressedDecoder {
+interface UncompressedImageDecoder {
 	byte[] decode(BinaryReader source, int byteLength);
 
 	TextureImageFormat getReturnedImageFormat();

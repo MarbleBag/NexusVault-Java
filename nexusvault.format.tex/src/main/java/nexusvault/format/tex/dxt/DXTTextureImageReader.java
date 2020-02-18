@@ -1,14 +1,20 @@
 package nexusvault.format.tex.dxt;
 
+import java.awt.image.BufferedImage;
+import java.awt.image.DataBufferByte;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Set;
 
+import ddsutil.DDSUtil;
+import gr.zdimensions.jsquish.Squish;
+import gr.zdimensions.jsquish.Squish.CompressionType;
 import kreed.io.util.BinaryReader;
 import kreed.io.util.Seek;
 import nexusvault.format.tex.AbstractTextureImageReader;
 import nexusvault.format.tex.ImageMetaInformation;
 import nexusvault.format.tex.TexType;
+import nexusvault.format.tex.TextureConversionException;
 import nexusvault.format.tex.TextureImage;
 import nexusvault.format.tex.TextureImageFormat;
 import nexusvault.format.tex.TextureImageReader;
@@ -17,10 +23,6 @@ import nexusvault.format.tex.struct.StructTextureFileHeader;
 public final class DXTTextureImageReader extends AbstractTextureImageReader implements TextureImageReader {
 
 	private final Set<TexType> acceptedTypes = Collections.unmodifiableSet(EnumSet.of(TexType.DXT1, TexType.DXT3, TexType.DXT5));
-
-	private final DXTDecoder dxt1decoder = new DXTDecoder(TexType.DXT1);
-	private final DXTDecoder dxt3decoder = new DXTDecoder(TexType.DXT3);
-	private final DXTDecoder dxt5decoder = new DXTDecoder(TexType.DXT5);
 
 	public DXTTextureImageReader() {
 		super(new DXTImageMetaCalculator());
@@ -34,31 +36,50 @@ public final class DXTTextureImageReader extends AbstractTextureImageReader impl
 	@Override
 	public TextureImage read(StructTextureFileHeader header, BinaryReader source, int imageIdx) {
 		final ImageMetaInformation meta = getImageInformation(header, imageIdx);
-		final var decoder = getDecoder(header);
+		final var texType = TexType.resolve(header);
+		final var dxtCompression = getCompressionType(texType);
 
 		source.seek(Seek.BEGIN, meta.offset);
-		final byte[] data = decoder.decode(source, meta.length, meta.width, meta.height);
+		final byte[] data = decode(dxtCompression, source, meta.length, meta.width, meta.height);
 
 		return new TextureImage(meta.width, meta.height, getImageFormat(), data);
 	}
 
-	private DXTDecoder getDecoder(StructTextureFileHeader header) {
-		final var texType = TexType.resolve(header);
-		switch (texType) {
+	private byte[] decode(CompressionType dxtCompression, BinaryReader source, int byteLength, int width, int height) {
+		final byte[] data = new byte[byteLength];
+		source.readInt8(data, 0, data.length);
+		final BufferedImage image = DDSUtil.decompressTexture(data, width, height, dxtCompression);
+
+		if (image.getType() != BufferedImage.TYPE_4BYTE_ABGR) {
+			throw new TextureConversionException();
+		}
+
+		final DataBufferByte buffer = (DataBufferByte) image.getRaster().getDataBuffer();
+		final byte[] imageData = buffer.getData();
+		for (int i = 0; i < imageData.length; i += 4) {
+			final byte tmp = imageData[i + 1];
+			imageData[i + 1] = imageData[i + 3];
+			imageData[i + 3] = tmp;
+		}
+		return imageData;
+	}
+
+	private Squish.CompressionType getCompressionType(TexType target) {
+		switch (target) {
 			case DXT1:
-				return dxt1decoder;
+				return Squish.CompressionType.DXT1;
 			case DXT3:
-				return dxt3decoder;
+				return Squish.CompressionType.DXT3;
 			case DXT5:
-				return dxt5decoder;
+				return Squish.CompressionType.DXT5;
 			default:
-				throw new IllegalArgumentException();
+				throw new IllegalArgumentException(/* TODO */);
 		}
 	}
 
 	@Override
 	public Set<TexType> getAcceptedTexTypes() {
-		return acceptedTypes;
+		return this.acceptedTypes;
 	}
 
 }

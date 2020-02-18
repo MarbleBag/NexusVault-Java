@@ -10,6 +10,7 @@ import kreed.io.util.ByteArrayBinaryReader;
 import kreed.io.util.ByteBufferBinaryReader;
 import nexusvault.format.tex.dxt.DXTTextureImageReader;
 import nexusvault.format.tex.jpg.JPGTextureImageReader;
+import nexusvault.format.tex.jpg.JPGTextureImageReader2;
 import nexusvault.format.tex.struct.StructTextureFileHeader;
 import nexusvault.format.tex.unc.ARGB8888TextureImageReader;
 import nexusvault.format.tex.unc.Gray8TextureImageReader;
@@ -43,7 +44,7 @@ public final class TextureReader {
 		reader.registerImageReader(new RGB565TextureImageReader());
 		reader.registerImageReader(new ARGB8888TextureImageReader());
 		reader.registerImageReader(new DXTTextureImageReader());
-		reader.registerImageReader(new JPGTextureImageReader());
+		reader.registerImageReader(new JPGTextureImageReader2());
 		return reader;
 	}
 
@@ -69,19 +70,19 @@ public final class TextureReader {
 			throw new IllegalArgumentException("'reader' must not be null");
 		}
 		final var types = reader.getAcceptedTexTypes();
-		types.forEach(t -> readerByType.put(t, reader));
+		types.forEach(t -> this.readerByType.put(t, reader));
 	}
 
 	public TextureImageReader getImageReader(TexType type) {
-		return readerByType.get(type);
+		return this.readerByType.get(type);
 	}
 
 	public void removeImageReader(TexType type) {
-		readerByType.remove(type);
+		this.readerByType.remove(type);
 	}
 
 	public int getImageReaderCount() {
-		return readerByType.size();
+		return this.readerByType.size();
 	}
 
 	public StructTextureFileHeader readHeader(ByteBuffer byteBuffer) {
@@ -113,7 +114,7 @@ public final class TextureReader {
 
 	private BinaryReader loadTextureData(BinaryReader reader, long textureDataSize) {
 
-		if ((textureDataSize < 0) || (textureDataSize > Integer.MAX_VALUE)) {
+		if (textureDataSize < 0 || textureDataSize > Integer.MAX_VALUE) {
 			throw new IntegerOverflowException();
 		}
 
@@ -126,7 +127,7 @@ public final class TextureReader {
 
 	private TextureImageReader findImageReader(StructTextureFileHeader header) {
 		final var texType = TexType.resolve(header);
-		return readerByType.get(texType);
+		return this.readerByType.get(texType);
 	}
 
 	public int getFileSignature() {
