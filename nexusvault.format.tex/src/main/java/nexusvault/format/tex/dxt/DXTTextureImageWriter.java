@@ -2,6 +2,9 @@ package nexusvault.format.tex.dxt;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.Set;
 
 import ddsutil.DDSUtil;
 import gr.zdimensions.jsquish.Squish;
@@ -12,6 +15,13 @@ import nexusvault.format.tex.TextureImageWriter;
 import nexusvault.format.tex.struct.StructTextureFileHeader;
 
 public final class DXTTextureImageWriter extends AbstractTextureImageWriter implements TextureImageWriter {
+
+	private final Set<TexType> acceptedTypes = Collections.unmodifiableSet(EnumSet.of(TexType.DXT1, TexType.DXT3, TexType.DXT5));
+
+	@Override
+	public Set<TexType> getAcceptedTexTypes() {
+		return this.acceptedTypes;
+	}
 
 	@Override
 	public ByteBuffer writeTexture(TexType target, TextureImage[] images) {

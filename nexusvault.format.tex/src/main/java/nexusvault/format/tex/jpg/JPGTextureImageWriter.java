@@ -2,6 +2,9 @@ package nexusvault.format.tex.jpg;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.Set;
 
 import nexusvault.format.tex.AbstractTextureImageWriter;
 import nexusvault.format.tex.TexType;
@@ -13,8 +16,11 @@ import nexusvault.format.tex.struct.StructTextureFileHeader;
 
 public final class JPGTextureImageWriter extends AbstractTextureImageWriter implements TextureImageWriter {
 
-	public JPGTextureImageWriter() {
+	private final Set<TexType> acceptedTypes = Collections.unmodifiableSet(EnumSet.of(TexType.JPEG_TYPE_1, TexType.JPEG_TYPE_2, TexType.JPEG_TYPE_3));
 
+	@Override
+	public Set<TexType> getAcceptedTexTypes() {
+		return this.acceptedTypes;
 	}
 
 	@Override

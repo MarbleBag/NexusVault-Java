@@ -2,6 +2,9 @@ package nexusvault.format.tex.unc;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.Set;
 
 import nexusvault.format.tex.AbstractTextureImageWriter;
 import nexusvault.format.tex.TexType;
@@ -10,6 +13,13 @@ import nexusvault.format.tex.TextureImageWriter;
 import nexusvault.format.tex.struct.StructTextureFileHeader;
 
 public final class UncompressedTextureImageWriter extends AbstractTextureImageWriter implements TextureImageWriter {
+
+	private final Set<TexType> acceptedTypes = Collections.unmodifiableSet(EnumSet.of(TexType.ARGB_1, TexType.ARGB_2, TexType.RGB, TexType.GRAYSCALE));
+
+	@Override
+	public Set<TexType> getAcceptedTexTypes() {
+		return this.acceptedTypes;
+	}
 
 	@Override
 	public ByteBuffer writeTexture(TexType target, TextureImage[] images) {

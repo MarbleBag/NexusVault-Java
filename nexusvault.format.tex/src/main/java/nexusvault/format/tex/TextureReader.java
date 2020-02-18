@@ -53,7 +53,7 @@ public final class TextureReader {
 	/**
 	 * Creates a {@link TextureReader} without any registered decoder. By default, this reader can not read any texture formats. To retrieve a reader with the
 	 * default set of decoder use {@link #buildDefault()}. <br>
-	 * To make a decoder useable it is necessary to {@link #registerImageReader(TextureDataDecoder) register} it.
+	 * To make a decoder useable it is necessary to {@link #registerImageReader(TextureImageReader) register} it.
 	 */
 	public TextureReader() {
 
