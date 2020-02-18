@@ -4,12 +4,14 @@ public final class FastDCT {
 
 	private static final double[] coefficients = new double[64];
 	private static final int N = 8;
-	private static final double SCALE = 8d;
+
+	private static final double CO_SCALE = N + N;
+	private static final double DCT_SCALE = 1d / 4d;
 
 	static {
 		for (var k = 0; k < N; ++k) {
 			for (var n = 0; n < N; ++n) {
-				coefficients[n + k * N] = Math.cos(Math.PI * (2 * n + 1) * k / SCALE);
+				coefficients[n + k * N] = Math.cos(Math.PI * (2 * n + 1) * k / CO_SCALE);
 			}
 		}
 	}
@@ -22,7 +24,6 @@ public final class FastDCT {
 	 */
 	public static void dct(int[] data, int dataOffset) {
 		final var buffer = new int[N * N];
-		final var sumScale = 1 / SCALE;
 
 		// TODO this can still be optimized
 
@@ -34,7 +35,7 @@ public final class FastDCT {
 						sum += data[n1 * N + n2 + dataOffset] * coefficients[n1 + k1 * N] * coefficients[n2 + k2 * N];
 					}
 				}
-				buffer[k1 * N + k2] = (int) Math.round(sumScale * sum);
+				buffer[k1 * N + k2] = (int) Math.round(DCT_SCALE * sum);
 			}
 		}
 
