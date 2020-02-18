@@ -54,7 +54,7 @@ public final class JPGImageDecoder {
 	 * @see TexType#JPEG_TYPE_1
 	 * @see TexType#JPEG_TYPE_3
 	 */
-	private static final class PixelWriterYCCY2ARGB implements PixelWriter {
+	public static final class PixelWriterYCCY2ARGB implements PixelWriter {
 
 		@Override
 		public void write(int[] src, byte[] dst, int dstIdx) {

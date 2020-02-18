@@ -1,20 +1,17 @@
 package nexusvault.format.tex.dxt;
 
-import java.awt.image.BufferedImage;
-import java.awt.image.DataBufferByte;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Set;
 
-import ddsutil.DDSUtil;
-import gr.zdimensions.jsquish.Squish;
-import gr.zdimensions.jsquish.Squish.CompressionType;
+import com.github.goldsam.jsquish.Squish;
+import com.github.goldsam.jsquish.Squish.CompressionType;
+
 import kreed.io.util.BinaryReader;
 import kreed.io.util.Seek;
 import nexusvault.format.tex.AbstractTextureImageReader;
 import nexusvault.format.tex.ImageMetaInformation;
 import nexusvault.format.tex.TexType;
-import nexusvault.format.tex.TextureConversionException;
 import nexusvault.format.tex.TextureImage;
 import nexusvault.format.tex.TextureImageFormat;
 import nexusvault.format.tex.TextureImageReader;
@@ -46,22 +43,24 @@ public final class DXTTextureImageReader extends AbstractTextureImageReader impl
 	}
 
 	private byte[] decode(CompressionType dxtCompression, BinaryReader source, int byteLength, int width, int height) {
-		final byte[] data = new byte[byteLength];
-		source.readInt8(data, 0, data.length);
-		final BufferedImage image = DDSUtil.decompressTexture(data, width, height, dxtCompression);
+		final var compressed = new byte[byteLength];
+		source.readInt8(compressed, 0, compressed.length);
+		final var decompressed = Squish.decompressImage(null, width, height, compressed, dxtCompression);
+		convertRGBAToARGB(decompressed);
+		return decompressed;
+	}
 
-		if (image.getType() != BufferedImage.TYPE_4BYTE_ABGR) {
-			throw new TextureConversionException();
+	private void convertRGBAToARGB(byte[] arr) {
+		for (int i = 0; i < arr.length; i += 4) {
+			final var r = arr[i + 0];
+			final var g = arr[i + 1];
+			final var b = arr[i + 2];
+			final var a = arr[i + 3];
+			arr[i + 0] = a;
+			arr[i + 1] = r;
+			arr[i + 2] = g;
+			arr[i + 3] = b;
 		}
-
-		final DataBufferByte buffer = (DataBufferByte) image.getRaster().getDataBuffer();
-		final byte[] imageData = buffer.getData();
-		for (int i = 0; i < imageData.length; i += 4) {
-			final byte tmp = imageData[i + 1];
-			imageData[i + 1] = imageData[i + 3];
-			imageData[i + 3] = tmp;
-		}
-		return imageData;
 	}
 
 	private Squish.CompressionType getCompressionType(TexType target) {

@@ -6,11 +6,14 @@ import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Set;
 
-import ddsutil.DDSUtil;
-import gr.zdimensions.jsquish.Squish;
+import com.github.goldsam.jsquish.Squish;
+
+// import gr.zdimensions.jsquish.Squish;
 import nexusvault.format.tex.AbstractTextureImageWriter;
 import nexusvault.format.tex.TexType;
 import nexusvault.format.tex.TextureImage;
+import nexusvault.format.tex.TextureImageFormat;
+import nexusvault.format.tex.TextureImageTypeConverter;
 import nexusvault.format.tex.TextureImageWriter;
 import nexusvault.format.tex.struct.StructTextureFileHeader;
 
@@ -41,16 +44,20 @@ public final class DXTTextureImageWriter extends AbstractTextureImageWriter impl
 		// header.imageSizesCount = images.length; //Not used for dxt textures
 
 		final var dxtCompression = getCompressionType(target);
-		final var imageData = new ByteBuffer[images.length];
+		final var imageData = new byte[images.length][];
 		var imageSizes = 0;
 
-		for (var i = 0; i < images.length; ++i) {
-			final var image = images[i];
-			final var bufferedImage = image.convertToBufferedImage();
-			final var compressed = DDSUtil.compressTexture(bufferedImage, dxtCompression);
-			// header.imageSizes[i] = encodedImageData.length; //Not used for dxt textures
-			imageSizes += compressed.remaining();
-			imageData[i] = compressed;
+		for (int i = 0; i < images.length; i++) {
+			final TextureImage image = images[i];
+			final int storageRequirements = Squish.getStorageRequirements(image.getImageWidth(), image.getImageHeight(), dxtCompression);
+			final var convertedImage = TextureImageTypeConverter.convertToType(image, TextureImageFormat.ARGB).getImageData();
+			convertARGBToRGBA(convertedImage);
+
+			final var compressedImage = Squish.compressImage(convertedImage, image.getImageWidth(), image.getImageHeight(), //
+					new byte[storageRequirements], dxtCompression, Squish.CompressionMethod.CLUSTER_FIT);
+
+			imageSizes += compressedImage.length;
+			imageData[i] = compressedImage;
 		}
 
 		final var output = ByteBuffer.allocate(StructTextureFileHeader.SIZE_IN_BYTES + imageSizes).order(ByteOrder.LITTLE_ENDIAN);
@@ -62,6 +69,19 @@ public final class DXTTextureImageWriter extends AbstractTextureImageWriter impl
 
 		output.flip();
 		return output;
+	}
+
+	private void convertARGBToRGBA(byte[] arr) {
+		for (int i = 0; i < arr.length; i += 4) {
+			final var a = arr[i + 0];
+			final var r = arr[i + 1];
+			final var g = arr[i + 2];
+			final var b = arr[i + 3];
+			arr[i + 0] = r;
+			arr[i + 1] = g;
+			arr[i + 2] = b;
+			arr[i + 3] = a;
+		}
 	}
 
 	private void assertTexType(TexType target) {

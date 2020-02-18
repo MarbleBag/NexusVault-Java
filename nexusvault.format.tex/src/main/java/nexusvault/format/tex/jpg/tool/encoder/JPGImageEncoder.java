@@ -39,7 +39,7 @@ public final class JPGImageEncoder {
 		}
 	}
 
-	private static final class PixelReaderARGB2YCCY implements PixelReader {
+	public static final class PixelReaderARGB2YCCY implements PixelReader {
 		@Override
 		public void read(byte[] src, int srcIdx, int[] dst) {
 			final int p4 = src[srcIdx + 0] & 0xFF;
