@@ -62,8 +62,8 @@ public final class TextureReader {
 	/**
 	 * Registers a new decoder. Does not check for duplicates.
 	 *
-	 * @param decoder
-	 *            the decoder to register
+	 * @param reader
+	 *            the reader to register
 	 */
 	public void registerImageReader(TextureImageReader reader) {
 		if (reader == null) {

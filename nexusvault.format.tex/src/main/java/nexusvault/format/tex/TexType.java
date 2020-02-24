@@ -10,7 +10,7 @@ public enum TexType {
 		}
 	},
 	/**
-	 * Chroma subsampling & typical jpg color space transformation with one additional color channel
+	 * Chroma subsampling &amp; typical jpg color space transformation with one additional color channel
 	 */
 	JPEG_TYPE_1(null, true, 0),
 	/**

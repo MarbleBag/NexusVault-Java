@@ -21,6 +21,8 @@ public final class FastDCT {
 	 * @param data
 	 *            row-major matrix 8x8
 	 * @param dataOffset
+	 *            matrix start
+	 * 
 	 */
 	public static void dct(int[] data, int dataOffset) {
 		final var buffer = new int[N * N];

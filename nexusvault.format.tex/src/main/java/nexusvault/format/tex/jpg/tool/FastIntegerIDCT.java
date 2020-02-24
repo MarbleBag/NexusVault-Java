@@ -46,7 +46,7 @@ public final class FastIntegerIDCT {
 
 	static {
 		for (int i = -512; i < 512; i++) {
-			iclp[iclp_offset + i] = (short) ((i < -256) ? -256 : ((i > 255) ? 255 : i));
+			iclp[iclp_offset + i] = (short) (i < -256 ? -256 : i > 255 ? 255 : i);
 		}
 	}
 
@@ -55,10 +55,11 @@ public final class FastIntegerIDCT {
 	 * @param data
 	 *            row-major matrix 8x8
 	 * @param dataOffset
+	 *            matrix start
 	 */
 	public static void idct(int[] data, int dataOffset) {
 		for (int i = 0; i < 8; ++i) {
-			idctRow(data, dataOffset + (8 * i));
+			idctRow(data, dataOffset + 8 * i);
 		}
 
 		for (int i = 0; i < 8; ++i) {
@@ -77,7 +78,7 @@ public final class FastIntegerIDCT {
 		x7 = data[i + 3];
 		final boolean useShortCut = (x1 | x2 | x3 | x4 | x5 | x6 | x7) == 0;
 		if (useShortCut) {
-			data[i + 0] = data[i + 1] = data[i + 2] = data[i + 3] = data[i + 4] = data[i + 5] = data[i + 6] = data[i + 7] = (data[i + 0] << 3);
+			data[i + 0] = data[i + 1] = data[i + 2] = data[i + 3] = data[i + 4] = data[i + 5] = data[i + 6] = data[i + 7] = data[i + 0] << 3;
 			return;
 		}
 
@@ -85,18 +86,18 @@ public final class FastIntegerIDCT {
 
 		/* first stage */
 		x8 = W7 * (x4 + x5);
-		x4 = x8 + ((W1 - W7) * x4);
-		x5 = x8 - ((W1 + W7) * x5);
+		x4 = x8 + (W1 - W7) * x4;
+		x5 = x8 - (W1 + W7) * x5;
 		x8 = W3 * (x6 + x7);
-		x6 = x8 - ((W3 - W5) * x6);
-		x7 = x8 - ((W3 + W5) * x7);
+		x6 = x8 - (W3 - W5) * x6;
+		x7 = x8 - (W3 + W5) * x7;
 
 		/* second stage */
 		x8 = x0 + x1;
 		x0 -= x1;
 		x1 = W6 * (x3 + x2);
-		x2 = x1 - ((W2 + W6) * x2);
-		x3 = x1 + ((W2 - W6) * x3);
+		x2 = x1 - (W2 + W6) * x2;
+		x3 = x1 + (W2 - W6) * x3;
 		x1 = x4 + x6;
 		x4 -= x6;
 		x6 = x5 + x7;
@@ -107,53 +108,53 @@ public final class FastIntegerIDCT {
 		x8 -= x3;
 		x3 = x0 + x2;
 		x0 -= x2;
-		x2 = ((181 * (x4 + x5)) + 128) >> 8;
-		x4 = ((181 * (x4 - x5)) + 128) >> 8;
+		x2 = 181 * (x4 + x5) + 128 >> 8;
+		x4 = 181 * (x4 - x5) + 128 >> 8;
 
 		/* fourth stage */
-		data[i + 0] = ((x7 + x1) >> 8);
-		data[i + 1] = ((x3 + x2) >> 8);
-		data[i + 2] = ((x0 + x4) >> 8);
-		data[i + 3] = ((x8 + x6) >> 8);
-		data[i + 4] = ((x8 - x6) >> 8);
-		data[i + 5] = ((x0 - x4) >> 8);
-		data[i + 6] = ((x3 - x2) >> 8);
-		data[i + 7] = ((x7 - x1) >> 8);
+		data[i + 0] = x7 + x1 >> 8;
+		data[i + 1] = x3 + x2 >> 8;
+		data[i + 2] = x0 + x4 >> 8;
+		data[i + 3] = x8 + x6 >> 8;
+		data[i + 4] = x8 - x6 >> 8;
+		data[i + 5] = x0 - x4 >> 8;
+		data[i + 6] = x3 - x2 >> 8;
+		data[i + 7] = x7 - x1 >> 8;
 
 	}
 
 	private static void idctColumn(int[] data, int i) {
 		int x0, x1, x2, x3, x4, x5, x6, x7, x8;
-		x1 = data[i + (8 * 4)] << 8;
-		x2 = data[i + (8 * 6)];
-		x3 = data[i + (8 * 2)];
-		x4 = data[i + (8 * 1)];
-		x5 = data[i + (8 * 7)];
-		x6 = data[i + (8 * 5)];
-		x7 = data[i + (8 * 3)];
+		x1 = data[i + 8 * 4] << 8;
+		x2 = data[i + 8 * 6];
+		x3 = data[i + 8 * 2];
+		x4 = data[i + 8 * 1];
+		x5 = data[i + 8 * 7];
+		x6 = data[i + 8 * 5];
+		x7 = data[i + 8 * 3];
 		final boolean useShortCut = (x1 | x2 | x3 | x4 | x5 | x6 | x7) == 0;
 		if (useShortCut) {
-			data[i + (8 * 0)] = data[i + (8 * 1)] = data[i + (8 * 2)] = data[i + (8 * 3)] = data[i
-					+ (8 * 4)] = data[i + (8 * 5)] = data[i + (8 * 6)] = data[i + (8 * 7)] = iclp[iclp_offset + ((data[i + (8 * 0)] + 32) >> 6)];
+			data[i + 8 * 0] = data[i + 8 * 1] = data[i + 8 * 2] = data[i
+					+ 8 * 3] = data[i + 8 * 4] = data[i + 8 * 5] = data[i + 8 * 6] = data[i + 8 * 7] = iclp[iclp_offset + (data[i + 8 * 0] + 32 >> 6)];
 			return;
 		}
 
-		x0 = (data[i + (8 * 0)] << 8) + 8192;
+		x0 = (data[i + 8 * 0] << 8) + 8192;
 
 		/* first stage */
-		x8 = (W7 * (x4 + x5)) + 4;
-		x4 = (x8 + ((W1 - W7) * x4)) >> 3;
-		x5 = (x8 - ((W1 + W7) * x5)) >> 3;
-		x8 = (W3 * (x6 + x7)) + 4;
-		x6 = (x8 - ((W3 - W5) * x6)) >> 3;
-		x7 = (x8 - ((W3 + W5) * x7)) >> 3;
+		x8 = W7 * (x4 + x5) + 4;
+		x4 = x8 + (W1 - W7) * x4 >> 3;
+		x5 = x8 - (W1 + W7) * x5 >> 3;
+		x8 = W3 * (x6 + x7) + 4;
+		x6 = x8 - (W3 - W5) * x6 >> 3;
+		x7 = x8 - (W3 + W5) * x7 >> 3;
 
 		/* second stage */
 		x8 = x0 + x1;
 		x0 -= x1;
-		x1 = (W6 * (x3 + x2)) + 4;
-		x2 = (x1 - ((W2 + W6) * x2)) >> 3;
-		x3 = (x1 + ((W2 - W6) * x3)) >> 3;
+		x1 = W6 * (x3 + x2) + 4;
+		x2 = x1 - (W2 + W6) * x2 >> 3;
+		x3 = x1 + (W2 - W6) * x3 >> 3;
 		x1 = x4 + x6;
 		x4 -= x6;
 		x6 = x5 + x7;
@@ -164,18 +165,18 @@ public final class FastIntegerIDCT {
 		x8 -= x3;
 		x3 = x0 + x2;
 		x0 -= x2;
-		x2 = ((181 * (x4 + x5)) + 128) >> 8;
-		x4 = ((181 * (x4 - x5)) + 128) >> 8;
+		x2 = 181 * (x4 + x5) + 128 >> 8;
+		x4 = 181 * (x4 - x5) + 128 >> 8;
 
 		/* fourth stage */
-		data[i + (8 * 0)] = iclp[iclp_offset + ((x7 + x1) >> 14)];
-		data[i + (8 * 1)] = iclp[iclp_offset + ((x3 + x2) >> 14)];
-		data[i + (8 * 2)] = iclp[iclp_offset + ((x0 + x4) >> 14)];
-		data[i + (8 * 3)] = iclp[iclp_offset + ((x8 + x6) >> 14)];
-		data[i + (8 * 4)] = iclp[iclp_offset + ((x8 - x6) >> 14)];
-		data[i + (8 * 5)] = iclp[iclp_offset + ((x0 - x4) >> 14)];
-		data[i + (8 * 6)] = iclp[iclp_offset + ((x3 - x2) >> 14)];
-		data[i + (8 * 7)] = iclp[iclp_offset + ((x7 - x1) >> 14)];
+		data[i + 8 * 0] = iclp[iclp_offset + (x7 + x1 >> 14)];
+		data[i + 8 * 1] = iclp[iclp_offset + (x3 + x2 >> 14)];
+		data[i + 8 * 2] = iclp[iclp_offset + (x0 + x4 >> 14)];
+		data[i + 8 * 3] = iclp[iclp_offset + (x8 + x6 >> 14)];
+		data[i + 8 * 4] = iclp[iclp_offset + (x8 - x6 >> 14)];
+		data[i + 8 * 5] = iclp[iclp_offset + (x0 - x4 >> 14)];
+		data[i + 8 * 6] = iclp[iclp_offset + (x3 - x2 >> 14)];
+		data[i + 8 * 7] = iclp[iclp_offset + (x7 - x1 >> 14)];
 	}
 
 }

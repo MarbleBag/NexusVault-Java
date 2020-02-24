@@ -50,8 +50,8 @@ public final class TextureWriter {
 	/**
 	 * Registers a new encoder. Does not check for duplicates.
 	 *
-	 * @param encoder
-	 *            the encoder to register
+	 * @param writer
+	 *            the writer to register
 	 */
 	public void registerImageWriter(TextureImageWriter writer) {
 		if (writer == null) {

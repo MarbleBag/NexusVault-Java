@@ -230,6 +230,7 @@ public final class JPGImageDecoder {
 	/**
 	 *
 	 * @param input
+	 *            image
 	 * @param imageWidth
 	 *            width of the image in pixel
 	 * @param imageHeight

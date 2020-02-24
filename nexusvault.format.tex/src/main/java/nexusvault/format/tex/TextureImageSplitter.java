@@ -128,7 +128,7 @@ public final class TextureImageSplitter {
 	 * @param header
 	 *            header which belongs to the image
 	 * @return true if the image is splitable
-	 * @see #split(TextureImage, StructTextureFileHeader)
+	 * @see TextureImageSplitter#split(TextureImage, TexType)
 	 */
 	public boolean isSplitable(StructTextureFileHeader header) {
 		return isSplitable(TexType.resolve(header));
@@ -138,7 +138,7 @@ public final class TextureImageSplitter {
 	 * @param obj
 	 *            which should be checked
 	 * @return true if the images returned by the texture object is splitable
-	 * @see #split(TextureImage, StructTextureFileHeader)
+	 * @see TextureImageSplitter#split(TextureImage, TexType)
 	 */
 	public boolean isSplitable(TextureObject obj) {
 		return isSplitable(obj.getTextureDataType());
@@ -148,7 +148,7 @@ public final class TextureImageSplitter {
 	 * @param texType
 	 *            texType which belongs to the texture object a image is created from
 	 * @return true if the images returned by the texture object is splitable
-	 * @see #split(TextureImage, StructTextureFileHeader)
+	 * @see TextureImageSplitter#split(TextureImage, TexType)
 	 */
 	public boolean isSplitable(TexType texType) {
 		switch (texType) {
