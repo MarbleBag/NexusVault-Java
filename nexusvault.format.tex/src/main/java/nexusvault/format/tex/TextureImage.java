@@ -1,10 +1,5 @@
 package nexusvault.format.tex;
 
-import java.awt.image.BufferedImage;
-import java.awt.image.DataBufferByte;
-import java.awt.image.DataBufferInt;
-import java.awt.image.Raster;
-import java.nio.ByteBuffer;
 import java.util.Arrays;
 
 public final class TextureImage {
@@ -56,39 +51,6 @@ public final class TextureImage {
 
 	public TextureImageFormat getImageFormat() {
 		return this.format;
-	}
-
-	public BufferedImage convertToBufferedImage() {
-		BufferedImage image = null;
-		switch (this.format) {
-			case GRAYSCALE: {// grayscale
-				image = new BufferedImage(this.width, this.height, BufferedImage.TYPE_BYTE_GRAY);
-				image.setData(Raster.createRaster(image.getSampleModel(), new DataBufferByte(this.data, this.data.length), null));
-				break;
-			}
-
-			case RGB: {// RGB
-				final int[] tmp = new int[this.data.length / 3];
-				for (int i = 0; i < tmp.length; ++i) {
-					tmp[i] = 0xFF000000 | this.data[i * 3 + 0] << 16 | this.data[i * 3 + 1] << 8 | this.data[i * 3 + 2];
-				}
-				image = new BufferedImage(this.width, this.height, BufferedImage.TYPE_INT_ARGB);
-				image.setData(Raster.createRaster(image.getSampleModel(), new DataBufferInt(tmp, tmp.length), null));
-				break;
-			}
-
-			case ARGB: {// ARGB
-				final int[] tmp = new int[this.data.length / Integer.BYTES];
-				ByteBuffer.wrap(this.data).asIntBuffer().get(tmp);
-				image = new BufferedImage(this.width, this.height, BufferedImage.TYPE_INT_ARGB);
-				image.setData(Raster.createRaster(image.getSampleModel(), new DataBufferInt(tmp, tmp.length), null));
-				break;
-			}
-
-			default:
-				throw new IllegalArgumentException();
-		}
-		return image;
 	}
 
 	@Override

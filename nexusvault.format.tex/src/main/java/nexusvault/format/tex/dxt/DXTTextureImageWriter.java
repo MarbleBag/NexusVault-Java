@@ -13,9 +13,10 @@ import nexusvault.format.tex.AbstractTextureImageWriter;
 import nexusvault.format.tex.TexType;
 import nexusvault.format.tex.TextureImage;
 import nexusvault.format.tex.TextureImageFormat;
-import nexusvault.format.tex.TextureImageTypeConverter;
 import nexusvault.format.tex.TextureImageWriter;
 import nexusvault.format.tex.struct.StructTextureFileHeader;
+import nexusvault.format.tex.util.ImageDataConverter;
+import nexusvault.format.tex.util.TextureImageTypeConverter;
 
 public final class DXTTextureImageWriter extends AbstractTextureImageWriter implements TextureImageWriter {
 
@@ -51,7 +52,7 @@ public final class DXTTextureImageWriter extends AbstractTextureImageWriter impl
 			final TextureImage image = images[i];
 			final int storageRequirements = Squish.getStorageRequirements(image.getImageWidth(), image.getImageHeight(), dxtCompression);
 			final var convertedImage = TextureImageTypeConverter.convertToType(image, TextureImageFormat.ARGB).getImageData();
-			convertARGBToRGBA(convertedImage);
+			ImageDataConverter.inplaceConvertARGBToRGBA(convertedImage);
 
 			final var compressedImage = Squish.compressImage(convertedImage, image.getImageWidth(), image.getImageHeight(), //
 					new byte[storageRequirements], dxtCompression, Squish.CompressionMethod.CLUSTER_FIT);
@@ -69,19 +70,6 @@ public final class DXTTextureImageWriter extends AbstractTextureImageWriter impl
 
 		output.flip();
 		return output;
-	}
-
-	private void convertARGBToRGBA(byte[] arr) {
-		for (int i = 0; i < arr.length; i += 4) {
-			final var a = arr[i + 0];
-			final var r = arr[i + 1];
-			final var g = arr[i + 2];
-			final var b = arr[i + 3];
-			arr[i + 0] = r;
-			arr[i + 1] = g;
-			arr[i + 2] = b;
-			arr[i + 3] = a;
-		}
 	}
 
 	private void assertTexType(TexType target) {
