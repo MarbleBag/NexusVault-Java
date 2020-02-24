@@ -117,7 +117,7 @@ public final class TextureWriter {
 		System.arraycopy(mipmaps, 0, copy, 0, copy.length);
 		Arrays.sort(copy, (a, b) -> {
 			final int order = a.getImageHeight() * a.getImageWidth() - b.getImageHeight() * b.getImageWidth();
-			return -order; // smallest to largest
+			return order; // smallest to largest
 		});
 		return copy;
 	}

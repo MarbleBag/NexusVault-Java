@@ -6,9 +6,9 @@ import java.awt.image.DataBufferByte;
 import nexusvault.format.tex.TextureImage;
 import nexusvault.format.tex.TextureImageFormat;
 
-public final class TextureMipMapConverter {
+public final class TextureMipMapGenerator {
 
-	public TextureImage[] buildMipMaps(TextureImage src, int numberOfMipMaps) {
+	public static TextureImage[] buildMipMaps(TextureImage src, int numberOfMipMaps) {
 		final var tmp = new BufferedImage[numberOfMipMaps];
 		tmp[0] = TextureImageAwtConverter.convertToBufferedImage(src);
 		for (int i = 1; i < numberOfMipMaps; ++i) {
@@ -23,7 +23,7 @@ public final class TextureMipMapConverter {
 		return images;
 	}
 
-	private TextureImage convert(TextureImageFormat format, BufferedImage bufferedImage) {
+	private static TextureImage convert(TextureImageFormat format, BufferedImage bufferedImage) {
 		final var srcData = ((DataBufferByte) bufferedImage.getData().getDataBuffer()).getData();
 		byte[] dstData = null;
 
@@ -42,7 +42,7 @@ public final class TextureMipMapConverter {
 		return new TextureImage(bufferedImage.getWidth(), bufferedImage.getHeight(), format, dstData);
 	}
 
-	private BufferedImage scaleDown(BufferedImage input) {
+	private static BufferedImage scaleDown(BufferedImage input) {
 		final var newWidth = Math.max(1, input.getWidth() >> 1);
 		final var newHeight = Math.max(1, input.getHeight() >> 1);
 
