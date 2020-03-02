@@ -9,8 +9,17 @@ public enum TexType {
 			return false;
 		}
 	},
+	/**
+	 * Chroma subsampling &amp; typical jpg color space transformation with one additional color channel
+	 */
 	JPEG_TYPE_1(null, true, 0),
+	/**
+	 * Four color channels and no color space transformation
+	 */
 	JPEG_TYPE_2(null, true, 1),
+	/**
+	 * typical jpg color space transformation with one additional color channel
+	 */
 	JPEG_TYPE_3(null, true, 2),
 	/** identical to {@link #ARGB_2} */
 	ARGB_1(0, false, null),
@@ -32,10 +41,22 @@ public enum TexType {
 		this.compressionFormat = compressionFormat;
 	}
 
+	public int getFormat() {
+		return this.format == 0 ? 0 : this.format.intValue();
+	}
+
+	public boolean isCompressed() {
+		return this.compressed == null ? false : this.compressed.booleanValue();
+	}
+
+	public int getCompressionFormat() {
+		return this.compressionFormat == null ? 0 : this.compressionFormat.intValue();
+	}
+
 	protected boolean matches(int format, boolean isCompressed, int compressionFormat) {
-		final boolean formatMatch = (this.format == null) || ((this.format != null) && (this.format == format));
-		final boolean compressionMatch = (compressed == null) || ((compressed != null) && (compressed == isCompressed));
-		final boolean compFormatMatch = (this.compressionFormat == null) || ((this.compressionFormat != null) && (this.compressionFormat == compressionFormat));
+		final boolean formatMatch = this.format == null || this.format != null && this.format == format;
+		final boolean compressionMatch = this.compressed == null || this.compressed != null && this.compressed == isCompressed;
+		final boolean compFormatMatch = this.compressionFormat == null || this.compressionFormat != null && this.compressionFormat == compressionFormat;
 		return formatMatch && compressionMatch && compFormatMatch;
 	}
 

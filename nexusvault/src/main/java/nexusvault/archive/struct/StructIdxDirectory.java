@@ -23,9 +23,9 @@ public final class StructIdxDirectory {
 
 	}
 
-	public StructIdxDirectory(int nameOffset, int directoryHeaderIdx) {
+	public StructIdxDirectory(int nameOffset, int directoryIndex) {
 		this.nameOffset = nameOffset;
-		directoryIndex = directoryHeaderIdx;
+		this.directoryIndex = directoryIndex;
 	}
 
 	@Override

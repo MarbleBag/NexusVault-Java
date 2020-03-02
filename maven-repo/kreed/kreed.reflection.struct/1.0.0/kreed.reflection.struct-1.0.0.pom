@@ -1,6 +1,7 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-	
+
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>kreed</groupId>
@@ -8,7 +9,7 @@
 	<version>1.0.0</version>
 
 	<properties>
-		<project.java.version>1.8</project.java.version>
+		<project.java.version>11</project.java.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<project.author.name>Kreed</project.author.name>
@@ -18,7 +19,7 @@
 		<dependency>
 			<groupId>kreed</groupId>
 			<artifactId>kreed.io.util</artifactId>
-			<version>[1,)</version>
+			<version>[1.1,)</version>
 		</dependency>
 	</dependencies>
 
@@ -26,11 +27,10 @@
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.7.0</version>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.8.1</version>
 				<configuration>
-					<source>${project.java.version}</source>
-					<target>${project.java.version}</target>
+					<release>${project.java.version}</release>
 					<encoding>${project.build.sourceEncoding}</encoding>
 				</configuration>
 			</plugin>

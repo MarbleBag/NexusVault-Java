@@ -2,6 +2,8 @@ package nexusvault.format.tex.struct;
 
 import static kreed.reflection.struct.DataType.BIT_8;
 
+import java.util.Objects;
+
 import kreed.reflection.struct.Order;
 import kreed.reflection.struct.StructField;
 import kreed.reflection.struct.StructUtil;
@@ -37,38 +39,52 @@ public final class StructLayerInfo {
 	}
 
 	public boolean hasReplacement() {
-		return hasReplacement != 0;
+		return this.hasReplacement != 0;
+	}
+
+	public void hasReplacement(boolean value) {
+		this.hasReplacement = (byte) (value ? 1 : 0);
 	}
 
 	public byte getReplacement() {
-		return replacement;
+		return this.replacement;
+	}
+
+	public void setReplacement(byte value) {
+		this.replacement = value;
 	}
 
 	public byte getQuality() {
-		return quality;
+		return this.quality;
+	}
+
+	public void setQuality(int value) {
+		setQuality((byte) value);
+	}
+
+	public void setQuality(byte value) {
+		if (value < 0 || 100 < value) {
+			throw new IllegalArgumentException();
+		}
+		this.quality = value;
 	}
 
 	@Override
 	public String toString() {
 		final StringBuilder builder = new StringBuilder();
 		builder.append("LayerInfo [quality=");
-		builder.append(quality);
+		builder.append(this.quality);
 		builder.append(", hasReplacement=");
-		builder.append(hasReplacement);
+		builder.append(this.hasReplacement);
 		builder.append(", replacement=");
-		builder.append(replacement);
+		builder.append(this.replacement);
 		builder.append("]");
 		return builder.toString();
 	}
 
 	@Override
 	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = (prime * result) + hasReplacement;
-		result = (prime * result) + quality;
-		result = (prime * result) + replacement;
-		return result;
+		return Objects.hash(this.hasReplacement, this.quality, this.replacement);
 	}
 
 	@Override
@@ -83,16 +99,7 @@ public final class StructLayerInfo {
 			return false;
 		}
 		final StructLayerInfo other = (StructLayerInfo) obj;
-		if (hasReplacement != other.hasReplacement) {
-			return false;
-		}
-		if (quality != other.quality) {
-			return false;
-		}
-		if (replacement != other.replacement) {
-			return false;
-		}
-		return true;
+		return this.hasReplacement == other.hasReplacement && this.quality == other.quality && this.replacement == other.replacement;
 	}
 
 }

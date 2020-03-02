@@ -1,0 +1,31 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>nexusvault</groupId>
+	<artifactId>nexusvault.pom</artifactId>
+	<version>1.0.0</version>
+	<packaging>pom</packaging>
+	<name>Master-pom</name>
+	
+	<properties>
+		<nexusvault.maven.repo.local.id>nexusvault.localrepo</nexusvault.maven.repo.local.id>
+		<nexusvault.maven.repo.local.name>local-maven-repo</nexusvault.maven.repo.local.name>
+		<nexusvault.maven.repo.local.url>file:\\\${project.basedir}\..\maven-repo</nexusvault.maven.repo.local.url>
+	</properties>
+  
+	<distributionManagement>
+		<repository>
+			<id>${nexusvault.maven.repo.local.id}</id>
+			<name>${nexusvault.maven.repo.local.name}</name>
+			<url>${nexusvault.maven.repo.local.url}</url>
+		</repository>
+	</distributionManagement>
+	
+	<repositories>
+		<repository>
+			<id>${project.maven.repo.id}</id>
+			<name>${nexusvault.maven.repo.local.name}</name>
+			<url>${nexusvault.maven.repo.local.url}</url>
+		</repository>
+	</repositories>
+	
+</project>

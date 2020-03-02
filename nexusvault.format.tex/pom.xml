@@ -4,31 +4,10 @@
 
 	<modelVersion>4.0.0</modelVersion>
 
-	<groupId>nexusvault</groupId>
 	<artifactId>nexusvault.format.tex</artifactId>
-	<version>2.0.0</version>
-
-	<properties>
-		<project.java.version>11</project.java.version>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-	</properties>
-
-	<repositories>
-		<repository>
-			<id>integrated.maven.repo</id>
-			<name>imavo</name>
-			<url>file:${project.basedir}\..\maven-repo</url>
-		</repository>
-	</repositories>
-
+	<version>3.0.0</version>
 
 	<dependencies>
-		<dependency>
-			<groupId>kreed</groupId>
-			<artifactId>kreed.io.util</artifactId>
-			<version>[1,)</version>
-		</dependency>
 		<dependency>
 			<groupId>kreed</groupId>
 			<artifactId>kreed.reflection.struct</artifactId>
@@ -40,91 +19,26 @@
 			<version>[1,)</version>
 		</dependency>
 		<dependency>
-			<groupId>DDSUtils</groupId>
-			<artifactId>DDSUtils</artifactId>
-			<version>1.0</version>
+			<groupId>com.github.memo33</groupId>
+			<artifactId>jsquish</artifactId>
+			<version>[2,3)</version>
+		</dependency>
+		<dependency>
+			<groupId>kreed</groupId>
+			<artifactId>kreed.io.util</artifactId>
+			<version>[1.1,)</version>
 		</dependency>
 	</dependencies>
 
 	<build>
 		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.8.0</version>
-				<configuration>
-					<release>${project.java.version}</release>
-					<encoding>${project.build.sourceEncoding}</encoding>
-				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-jar-plugin</artifactId>
-				<configuration>
-					<archive>
-						<addMavenDescriptor>true</addMavenDescriptor>
-						<manifest>
-							<addClasspath>true</addClasspath>
-						</manifest>
-						<manifestEntries>
-							<Built-By></Built-By>
-						</manifestEntries>
-					</archive>
-				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-source-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>attach-sources</id>
-						<goals>
-							<goal>jar</goal>
-						</goals>
-					</execution>
-				</executions>
-				<configuration>
-					<archive>
-						<addMavenDescriptor>true</addMavenDescriptor>
-						<manifest>
-							<addClasspath>true</addClasspath>
-						</manifest>
-						<manifestEntries>
-							<Built-By></Built-By>
-						</manifestEntries>
-					</archive>
-				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-javadoc-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>attach-javadocs</id>
-						<goals>
-							<goal>jar</goal>
-						</goals>
-					</execution>
-				</executions>
-				<configuration>
-					<archive>
-						<addMavenDescriptor>true</addMavenDescriptor>
-						<manifest>
-							<addClasspath>true</addClasspath>
-						</manifest>
-						<manifestEntries>
-							<Built-By></Built-By>
-						</manifestEntries>
-					</archive>
-				</configuration>
-			</plugin>
+
 		</plugins>
-		<resources>
-			<resource>
-				<directory>docs</directory>
-				<targetPath>docs</targetPath>
-				<filtering>false</filtering>
-			</resource>
-		</resources>
 	</build>
+	
+	<parent>
+		<groupId>nexusvault</groupId>
+		<artifactId>nexusvault.pom</artifactId>
+		<version>1.0.0</version>
+	</parent>
 </project>

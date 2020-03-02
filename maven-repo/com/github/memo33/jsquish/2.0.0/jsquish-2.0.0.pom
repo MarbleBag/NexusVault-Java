@@ -1,0 +1,74 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+	http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <packaging>jar</packaging>
+
+    <groupId>com.github.memo33</groupId>
+    <artifactId>jsquish</artifactId>
+    <version>2.0.0</version>
+	
+    <url>https://github.com/goldsam/jsquish</url>
+    
+   	<properties>
+		<project.java.version>11</project.java.version>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+	</properties>
+	
+    <build>    	
+        <plugins>       
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+				<version>3.8.1</version>
+				<configuration>
+					<release>${project.java.version}</release>
+					<encoding>${project.build.sourceEncoding}</encoding>
+				</configuration>
+            </plugin>
+            
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<configuration>
+					<archive>
+						<addMavenDescriptor>true</addMavenDescriptor>
+						<manifest>
+							<addClasspath>true</addClasspath>
+						</manifest>
+						<manifestEntries>
+							<Built-By></Built-By>
+						</manifestEntries>
+					</archive>
+				</configuration>
+			</plugin>
+						        			
+			 <plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-install-plugin</artifactId>
+				<version>3.0.0-M1</version>
+			</plugin>
+			
+			 <plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-deploy-plugin</artifactId>
+				<version>3.0.0-M1</version>
+				<configuration>
+				<altDeploymentRepository>nexusvault.localrepo::file:\\\G:\Programcode\git\NexusVault\maven-repo</altDeploymentRepository>
+				</configuration>
+			</plugin>
+						
+		</plugins>
+        
+     	<resources>
+			<resource>
+				<directory>docs</directory>
+				<targetPath>docs</targetPath>
+				<filtering>false</filtering>
+			</resource>
+		</resources>
+    </build>
+
+</project>
