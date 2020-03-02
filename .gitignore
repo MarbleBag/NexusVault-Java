@@ -5,7 +5,8 @@
 # Compiled class file
 *.class
 *.jar
-!lib/**/*.jar
+!libs/**/*.jar
+!maven-repo/**/*
 *.war
 *.nar
 *.ear
@@ -45,6 +46,8 @@ out/
 .project
 .settings/
 bin/
+!**/src/**/bin/
+!**/src/**/bin/**
 tmp/
 *.tmp
 *.bak
