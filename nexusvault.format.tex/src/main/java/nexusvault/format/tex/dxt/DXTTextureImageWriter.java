@@ -79,7 +79,7 @@ public final class DXTTextureImageWriter extends AbstractTextureImageWriter impl
 			case DXT5:
 				return;
 			default:
-				throw new IllegalArgumentException();
+				throw new IllegalArgumentException(String.format("TexType %s is not supported by this writer", target));
 		}
 	}
 
@@ -92,7 +92,7 @@ public final class DXTTextureImageWriter extends AbstractTextureImageWriter impl
 			case DXT5:
 				return Squish.CompressionType.DXT5;
 			default:
-				throw new IllegalArgumentException(/* TODO */);
+				throw new IllegalArgumentException(String.format("TexType %s is not supported by this writer", target));
 		}
 	}
 

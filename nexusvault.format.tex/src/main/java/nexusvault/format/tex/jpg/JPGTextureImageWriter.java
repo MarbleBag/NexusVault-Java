@@ -74,7 +74,7 @@ public final class JPGTextureImageWriter extends AbstractTextureImageWriter impl
 			case JPEG_TYPE_3:
 				return;
 			default:
-				throw new IllegalArgumentException();
+				throw new IllegalArgumentException(String.format("TexType %s is not supported by this writer", target));
 		}
 	}
 
