@@ -14,7 +14,7 @@ public interface TextureObject {
 
 	/**
 	 * @param idx
-	 *            - mip map index. 0 referes to level 0 (largest image version)
+	 *            - mip map index. 0 refers to level 0 (largest image version)
 	 * @return unprocessed image data
 	 */
 
@@ -22,7 +22,7 @@ public interface TextureObject {
 
 	/**
 	 * @param idx
-	 *            - mip map index. 0 referes to level 0 (largest image version)
+	 *            - mip map index. 0 refers to level 0 (largest image version)
 	 * @return converted image data
 	 */
 	TextureImage getImage(int idx);
