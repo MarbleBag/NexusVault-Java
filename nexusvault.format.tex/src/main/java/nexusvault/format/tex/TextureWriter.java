@@ -96,6 +96,12 @@ public final class TextureWriter {
 	 *            images to write, their dimension needs to be a power of 2
 	 * @return a binary .tex file which can be saved to disk
 	 * @see TexType
+	 * @exception TextureDataEncoderNotFoundException
+	 *                if no writer is available for <i>targetFormat</i>
+	 * @exception IllegalArgumentException
+	 *                if an argument related exception is thrown
+	 * @exception TextureException
+	 *                if a texture related exception is thrown
 	 */
 	public ByteBuffer write(TexType targetFormat, TextureImage[] image) {
 		final var writer = getImageWriter(targetFormat);
