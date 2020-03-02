@@ -69,7 +69,7 @@ public final class UncompressedTextureImageWriter extends AbstractTextureImageWr
 			case GRAYSCALE:
 				return;
 			default:
-				throw new IllegalArgumentException();
+				throw new IllegalArgumentException(String.format("TexType %s is not supported by this writer", target));
 		}
 	}
 
@@ -83,7 +83,7 @@ public final class UncompressedTextureImageWriter extends AbstractTextureImageWr
 			case GRAYSCALE:
 				return new Gray8ImageEncoder();
 			default:
-				throw new IllegalArgumentException();
+				throw new IllegalArgumentException(String.format("TexType %s is not supported by this writer", target));
 		}
 	}
 
