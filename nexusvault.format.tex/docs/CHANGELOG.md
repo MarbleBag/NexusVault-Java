@@ -2,9 +2,14 @@
 All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com)
 
+## [3.1.0]
+### Added
+- BufferedImage to TextureImage converter
+
 ## [3.0.0] - 2020-03-02
 ### Added
 - Texture image writer. It's now possible to create texture images with TextureWriter. JPG is currently not supported.
+- MipMap generator
 
 ### Changed
 - Large parts of the library are rewritten to improve code organization and maintainability
