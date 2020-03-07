@@ -1,10 +1,8 @@
 package nexusvault.format.tex.util;
 
 import java.awt.image.BufferedImage;
-import java.awt.image.DataBufferByte;
 
 import nexusvault.format.tex.TextureImage;
-import nexusvault.format.tex.TextureImageFormat;
 
 public final class TextureMipMapGenerator {
 
@@ -17,29 +15,10 @@ public final class TextureMipMapGenerator {
 
 		final var images = new TextureImage[numberOfMipMaps];
 		for (int i = 0; i < images.length; ++i) {
-			images[i] = convert(src.getImageFormat(), tmp[i]);
+			images[i] = TextureImageAwtConverter.convertToTextureImage(src.getImageFormat(), tmp[i]);
 		}
 
 		return images;
-	}
-
-	private static TextureImage convert(TextureImageFormat format, BufferedImage bufferedImage) {
-		final var srcData = ((DataBufferByte) bufferedImage.getData().getDataBuffer()).getData();
-		byte[] dstData = null;
-
-		switch (format) {
-			case GRAYSCALE:
-				dstData = srcData;
-				break;
-			case RGB:
-				dstData = ImageDataConverter.convertBGRToRGB(srcData);
-				break;
-			case ARGB:
-				dstData = ImageDataConverter.convertABGRToARGB(srcData);
-				break;
-		}
-
-		return new TextureImage(bufferedImage.getWidth(), bufferedImage.getHeight(), format, dstData);
 	}
 
 	private static BufferedImage scaleDown(BufferedImage input) {

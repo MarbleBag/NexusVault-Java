@@ -32,9 +32,9 @@ abstract class AbstVertexFieldAccessor<T> implements VertexFieldAccessor<T> {
 
 }
 
-class VertexFieldLocationAccesorFloat extends AbstVertexFieldAccessor<float[]> {
+class VertexFieldLocationAccessorFloat extends AbstVertexFieldAccessor<float[]> {
 
-	public VertexFieldLocationAccesorFloat(int byteStride) {
+	public VertexFieldLocationAccessorFloat(int byteStride) {
 		super(byteStride);
 	}
 
