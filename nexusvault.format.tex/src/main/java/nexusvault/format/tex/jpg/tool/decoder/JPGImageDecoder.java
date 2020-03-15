@@ -1,6 +1,5 @@
 package nexusvault.format.tex.jpg.tool.decoder;
 
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import kreed.io.util.BinaryReader;
@@ -139,7 +138,7 @@ public final class JPGImageDecoder {
 
 		public void write(int[] src, int regionIdx, byte[] dst) {
 			final int regionX = regionIdx % this.regionsPerImageRow;
-			final int regionY = regionIdx / this.regionsPerImageColumn;
+			final int regionY = regionIdx / this.regionsPerImageRow;
 
 			final int dstIdxStart = regionX * this.regionWidth + regionY * this.regionHeight * this.imageWidth; // start pixel index
 			// final int dstIdxEnd = this.imageHeight * this.imageWidth; // last pixel + 1
@@ -250,8 +249,9 @@ public final class JPGImageDecoder {
 		Stream.generate(this::allocateMemory) //
 				.limit(this.imageWriter.getTotalNumberOfImageRegions()) //
 				.peek(this::decodeImageRegion) //
-				.collect(Collectors.toList()) // sequential -> parallel
-				.parallelStream() //
+				// .collect(Collectors.toList()) // sequential -> parallel
+				// .parallelStream() //
+				.sorted((a, b) -> a.id - b.id) //
 				.peek(this::convertImageRegion) //
 				.peek(this::upsampleImageRegion) //
 				.forEach(ir -> this.imageWriter.write(ir.data, ir.id, this.output));

@@ -2,6 +2,10 @@
 All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com)
 
+## [3.1.1] - 2020-03-15
+### Fixed
+- Images compressed as jpgs weren't converted correctly when their width and height aren't equal.
+
 ## [3.1.0] - 2020-03-07
 ### Added
 - BufferedImage to TextureImage converter
