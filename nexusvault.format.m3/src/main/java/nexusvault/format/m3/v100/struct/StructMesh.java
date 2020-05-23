@@ -4,6 +4,7 @@ import kreed.reflection.struct.DataType;
 import kreed.reflection.struct.Order;
 import kreed.reflection.struct.StructField;
 import kreed.reflection.struct.StructUtil;
+import nexusvault.format.m3.MeshToBodyPart;
 import nexusvault.format.m3.v100.BytePositionTracker;
 import nexusvault.format.m3.v100.StructVisitor;
 import nexusvault.format.m3.v100.VisitableStruct;
@@ -80,56 +81,8 @@ public final class StructMesh implements VisitableStruct {
 	 * The <code>IDs</code> is assigned to meshes, which describe a specific area of a model, for example: left hand, right hand, neck, etc. <br>
 	 * It is reasonable to assume that this <code>ID</code> is used to blend out meshes if, for example, the model wears gear. This still needs to be checked.
 	 * The information may be part of a item model or may be found in a .tbl defining said item.
-	 * <p>
-	 * TODO: Find a better name for this value and define an enum to collect all values
-	 * <ul>
-	 * <li>1 - Left ankle
-	 * <li>2 - right ankle
-	 * <li>3 - Left upper arm
-	 * <li>4 - Right upper arm
-	 * <li>5 - Left lower leg
-	 * <li>6 - Right lower leg
-	 * <li>7 - Area below left knee
-	 * <li>8 - Area below right knee
-	 * <li>9 - Underbust and part of the back
-	 * <li>10 - Both shoulders and area along back between them
-	 * <li>11 - Left ear
-	 * <li>12 - Right ear
-	 * <li>13 - Left elbow
-	 * <li>14 - Right elbow
-	 * <li><b>15 - missing</b>
-	 * <li>16 - Left fingers
-	 * <li>17 - Right fingers
-	 * <li>18 - Left heel
-	 * <li>19 - Right heel
-	 * <li>20 - Left lower arm
-	 * <li>21 - Right lower arm
-	 * <li>22 - Left palm
-	 * <li>23 - Right palm
-	 * <li>24 - Left knee
-	 * <li>25 - Right knee
-	 * <li>26 - Neck, lower head
-	 * <li>27 - Pelvic
-	 * <li>29 - Area of arm, right below left shoulder
-	 * <li>30 - Area of arm, right below right shoulder
-	 * <li><b>31 - missing</b>
-	 * <li><b>32 - missing</b>
-	 * <li>33 - Left thigh
-	 * <li>34 - Right thigh
-	 * <li>35 - Left toes
-	 * <li>36 - Right toes
-	 * <li>37 - Midriff
-	 * <li>38 - Left wrist
-	 * <li>39 - Right wrist
-	 * <li><b>40 -&gt; 80 - missing</b>
-	 * <li>81 - Head
-	 * <li>85 - Chest
-	 * <li>88 - Tail
-	 * <li><b>89 - missing</b>
-	 * <li><b>90 - missing</b>
-	 * <li>91 - Upperbust (May be female specific)
-	 * <li>92 - Neck start
-	 * </ul>
+	 *
+	 * @see MeshToBodyPart
 	 */
 	@Order(12)
 	@StructField(value = DataType.UBIT_8)

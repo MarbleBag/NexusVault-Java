@@ -28,6 +28,18 @@ public interface ModelBone {
 	 */
 	int getParentBoneReference();
 
-	float[] getTransformationMatrix(int idx);
+	/**
+	 * Column major transformation matrix (4x4)
+	 * 
+	 * @return transformation matrix
+	 */
+	float[] getTransformationMatrix();
+
+	/**
+	 * Column major inverse transformation matrix (4x4)
+	 * 
+	 * @return inverse transformation matrix
+	 */
+	float[] getInverseTransformationMatrix();
 
 }

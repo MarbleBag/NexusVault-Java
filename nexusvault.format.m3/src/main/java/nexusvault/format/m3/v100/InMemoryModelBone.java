@@ -19,42 +19,43 @@ final class InMemoryModelBone implements ModelBone {
 	}
 
 	@Override
-	public float[] getTransformationMatrix(int idx) {
-		if (idx == 0) {
-			return struct.matrix_0D0;
-		} else {
-			return struct.matrix_110;
-		}
+	public float[] getTransformationMatrix() {
+		return this.struct.matrix_0D0;
+	}
+
+	@Override
+	public float[] getInverseTransformationMatrix() {
+		return this.struct.matrix_110;
 	}
 
 	@Override
 	public int getBoneIndex() {
-		return idx;
+		return this.idx;
 	}
 
 	@Override
 	public float getLocationX() {
-		return struct.x;
+		return this.struct.x;
 	}
 
 	@Override
 	public float getLocationY() {
-		return struct.y;
+		return this.struct.y;
 	}
 
 	@Override
 	public float getLocationZ() {
-		return struct.z;
+		return this.struct.z;
 	}
 
 	@Override
 	public boolean hasParentBone() {
-		return struct.parentId != -1;
+		return this.struct.parentId != -1;
 	}
 
 	@Override
 	public int getParentBoneReference() {
-		return struct.parentId;
+		return this.struct.parentId;
 	}
 
 }

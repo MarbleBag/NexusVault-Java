@@ -5,6 +5,7 @@ import java.util.List;
 
 import nexusvault.format.m3.ModelMesh;
 import nexusvault.format.m3.ModelVertex;
+import nexusvault.format.m3.ModelVertexReader;
 import nexusvault.format.m3.v100.struct.StructMesh;
 
 /**
@@ -19,60 +20,65 @@ final class InMemoryModelMesh implements ModelMesh {
 	public InMemoryModelMesh(int meshNo, StructMesh structMesh, InMemoryModelGeometry inMemoryGeometry) {
 		this.meshNo = meshNo;
 		this.structMesh = structMesh;
-		model = inMemoryGeometry;
+		this.model = inMemoryGeometry;
 	}
 
 	@Override
 	public int getMaterialReference() {
-		return structMesh.materialSelector;
+		return this.structMesh.materialSelector;
 	}
 
 	@Override
 	public int getMeshIndex() {
-		return meshNo;
+		return this.meshNo;
 	}
 
 	@Override
 	public boolean hasMeshGroup() {
-		return structMesh.meshGroupId != -1;
+		return this.structMesh.meshGroupId != -1;
 	}
 
 	@Override
 	public int getMeshGroup() {
-		return 0xFF & structMesh.meshGroupId;
+		return 0xFF & this.structMesh.meshGroupId;
 	}
 
 	@Override
 	public int getMeshToBodyPart() {
-		return 0xFF & structMesh.meshAnatomyId;
+		return 0xFF & this.structMesh.meshAnatomyId;
 	}
 
 	@Override
 	public long getVertexCount() {
-		return structMesh.vertexCount;
+		return this.structMesh.vertexCount;
 	}
 
 	@Override
 	public long getIndexCount() {
-		return structMesh.indexCount;
+		return this.structMesh.indexCount;
 	}
 
 	@Override
 	public int[] getIndices() {
-		return model.getIndices(structMesh.startIndex, structMesh.indexCount);
+		return this.model.getIndices(this.structMesh.startIndex, this.structMesh.indexCount);
 	}
 
 	@Override
 	public ModelVertex getVertex(int idx) {
-		if ((idx < 0) || (getVertexCount() <= idx)) {
+		if (idx < 0 || getVertexCount() <= idx) {
 			throw new IndexOutOfBoundsException(String.format("Idx out of range. Allowed range is [0,%d)", getVertexCount()));
 		}
-		return model.getVertex(structMesh.startVertex + idx);
+		return this.model.getVertex(this.structMesh.startVertex + idx);
 	}
 
 	@Override
 	public List<ModelVertex> getVertices() {
-		return model.getVertices(structMesh.startVertex, structMesh.vertexCount);
+		return this.model.getVertices(this.structMesh.startVertex, this.structMesh.vertexCount);
+	}
+
+	@Override
+	public ModelVertexReader getVertexReader() {
+		return this.model.getVertexReader(this.structMesh);
 	}
 
 	@Override
@@ -82,7 +88,7 @@ final class InMemoryModelMesh implements ModelMesh {
 	}
 
 	private Iterator<ModelVertex> buildIterator(int startIdx) {
-		return model.buildIterator(startIdx, structMesh.startVertex, structMesh.vertexCount);
+		return this.model.buildIterator(startIdx, this.structMesh.startVertex, this.structMesh.vertexCount);
 	}
 
 }

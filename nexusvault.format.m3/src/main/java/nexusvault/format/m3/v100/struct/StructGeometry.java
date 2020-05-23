@@ -8,9 +8,14 @@ import static kreed.reflection.struct.DataType.UBIT_16;
 import static kreed.reflection.struct.DataType.UBIT_32;
 import static kreed.reflection.struct.DataType.UBIT_8;
 
+import java.util.Collection;
+import java.util.EnumSet;
+import java.util.Set;
+
 import kreed.reflection.struct.Order;
 import kreed.reflection.struct.StructField;
 import kreed.reflection.struct.StructUtil;
+import nexusvault.format.m3.VertexField;
 import nexusvault.format.m3.v100.BytePositionTracker;
 import nexusvault.format.m3.v100.StructVisitor;
 import nexusvault.format.m3.v100.VisitableStruct;
@@ -40,24 +45,26 @@ public final class StructGeometry implements VisitableStruct {
 	@StructField(STRUCT)
 	public ATP_S4 unk_offset_008; // 4b 0x008
 
+	/** Total number of vertices */
 	@Order(3)
 	@StructField(UBIT_32)
 	public long vertexBlockCount; // 0x018
 
+	/** Size of a single vertex in bytes */
 	@Order(4)
 	@StructField(UBIT_16)
 	public int vertexBlockSizeInBytes; // 0x01C
 
 	/**
-	 * This flags indicate which fields each vertex has.
+	 * This flag indicates which fields are used. The position of the flag (starting at 0) is also the array-index for lookup in any vertex related array.
 	 *
 	 * <li>vertexBlockFlags & 0x0001 != 0 -> vertexBlockFieldType[0] is used (value 1 or 2)</li>
 	 * <li>vertexBlockFlags & 0x0002 != 0 -> vertexBlockFieldType[1] is used (value 3)</li>
 	 * <li>vertexBlockFlags & 0x0004 != 0 -> vertexBlockFieldType[2] is used (value 3)</li>
 	 * <li>vertexBlockFlags & 0x0008 != 0 -> vertexBlockFieldType[3] is used (value 3)</li>
-	 * <li>vertexBlockFlags & 0x0010 != 0 -> vertexBlockFieldType[4] is used (value 4), 4 small numbers, ascending, 0 seems to indicate 'not used'. Prob. bone
+	 * <li>vertexBlockFlags & 0x0010 != 0 -> vertexBlockFieldType[4] is used (value 4), 4 small numbers, ascending, 0 seems to indicate 'not used'. Bone
 	 * indices</li>
-	 * <li>vertexBlockFlags & 0x0020 != 0 -> vertexBlockFieldType[5] is used (value 4), 4 bytes, sums always up to 255. Prob. bone weights</li>
+	 * <li>vertexBlockFlags & 0x0020 != 0 -> vertexBlockFieldType[5] is used (value 4), 4 bytes, sums always up to 255. Bone weights</li>
 	 * <li>vertexBlockFlags & 0x0040 != 0 -> vertexBlockFieldType[6] is used (value 4)</li>
 	 * <li>vertexBlockFlags & 0x0080 != 0 -> vertexBlockFieldType[7] is used (value 4), 4 bytes, at any time, only one byte is set to -1, every other byte to
 	 * 0</li>
@@ -71,13 +78,15 @@ public final class StructGeometry implements VisitableStruct {
 	private int vertexBlockFlags; // 0x01E
 
 	/**
+	 * This array seems to indicate which field holds which information
+	 *
 	 * <ul>
 	 * <li>0 - null
-	 * <li>1 - 3 x 32bit float, location xyz
-	 * <li>2 - 3 x 16bit int, location xyz
+	 * <li>1 - Location (xyz), stored as 3 x 32bit float
+	 * <li>2 - Location (xyz), stored as 3 x 16bit int
 	 * <li>3 - 16bit, ??
-	 * <li>4 - 32bit, ??
-	 * <li>5 - 2 x 16bit float, uv map
+	 * <li>4 - Bone map/weight (and some more bone stuff???). Upto 4 bones, stored as 4 x 8bit int
+	 * <li>5 - UV map, stored as 2 x 16bit float
 	 * <li>6 - 8bit, ??
 	 * </ul>
 	 * Other numbers not encountered
@@ -120,7 +129,7 @@ public final class StructGeometry implements VisitableStruct {
 	 * Seems relevant to {@link #vertexBlockCount}. As soon {@link #vertexBlockCount} passes 65536 (max value for uint16), this entry changes from {2,1} to
 	 * {4,2}. <br>
 	 * Opposite to {2,1}, {4,2} indices do not start at 0 for each submesh. The index can also be far greater than the number of available vertices. Additional,
-	 * if 4 bytes are read, the bytes which hole the actual index can be the first 2 LSB or MSB.
+	 * if 4 bytes are read, the bytes which hold the actual index can be the first 2 LSB or MSB.
 	 */
 	@Order(13)
 	@StructField(value = UBIT_8, length = 2)
@@ -139,7 +148,7 @@ public final class StructGeometry implements VisitableStruct {
 	public ATP_Mesh meshes; // 112b //0x080
 
 	/**
-	 * Mostly equal to {@link #vertexBlockCount}, probably part of a struct within this struct, so this value doesn't need to be passed around as a seperate
+	 * Mostly equal to {@link #vertexBlockCount}, probably part of a struct within this struct, so this value doesn't need to be passed around as a separate
 	 * value. <br>
 	 * Sometimes this value is smaller than the other
 	 */
@@ -153,7 +162,7 @@ public final class StructGeometry implements VisitableStruct {
 	public int gap_093;
 
 	/**
-	 * This pointer directs to an array <b>A</b>, containing indices for the vertex block array. Start index, and end index, for mesh <b>i</b> can be found at
+	 * This pointer directs to an array <b>A</b>, containing indices for the vertex block array. Start index and end index, for mesh <b>i</b> can be found at
 	 * <b>A[i]</b> and <b>A[i+1]</b>
 	 * <p>
 	 * Prob. legacy stuff, because this information is also encoded in each mesh, or used as a lookup table so it's not necessary to follow the mesh pointer.
@@ -181,22 +190,23 @@ public final class StructGeometry implements VisitableStruct {
 
 	@Override
 	public void visit(StructVisitor process, BytePositionTracker fileReader, int dataPosition) {
-		process.process(fileReader, dataPosition, unk_offset_008);
+		process.process(fileReader, dataPosition, this.unk_offset_008);
 
-		process.process(fileReader, dataPosition, vertexBlockData);
-		process.process(fileReader, dataPosition, unk_offset_048);
-		process.process(fileReader, dataPosition, unk_offset_058);
+		process.process(fileReader, dataPosition, this.vertexBlockData);
+		process.process(fileReader, dataPosition, this.unk_offset_048);
+		process.process(fileReader, dataPosition, this.unk_offset_058);
 
-		process.process(fileReader, dataPosition, indexData);
-		process.process(fileReader, dataPosition, meshes);
+		process.process(fileReader, dataPosition, this.indexData);
+		process.process(fileReader, dataPosition, this.meshes);
 
-		process.process(fileReader, dataPosition, meshVertexBlockRange);
-		process.process(fileReader, dataPosition, unk_offset_0A8);
-		process.process(fileReader, dataPosition, unk_offset_0B8);
+		process.process(fileReader, dataPosition, this.meshVertexBlockRange);
+		process.process(fileReader, dataPosition, this.unk_offset_0A8);
+		process.process(fileReader, dataPosition, this.unk_offset_0B8);
 	}
 
-	public static enum VertexField {
-		/** Contains the location of the vertex. How this field is to read depends on {@link StructGeometry#getVertexFieldLocationType()} */
+	@Deprecated
+	public static enum VertexFieldOld {
+		/** Contains the location of the vertex. How this field is read depends on {@link StructGeometry#getVertexFieldLocationType()} */
 		LOCATION(0, 3),
 
 		/** 2 byte */
@@ -232,16 +242,17 @@ public final class StructGeometry implements VisitableStruct {
 		private final int index;
 		private final int valuesPerField;
 
-		private VertexField(int index, int valuesPerField) {
+		private VertexFieldOld(int index, int valuesPerField) {
 			this.index = index;
 			this.valuesPerField = valuesPerField;
 		}
 
 		public int getValueCount() {
-			return valuesPerField;
+			return this.valuesPerField;
 		}
 	}
 
+	@Deprecated
 	public static enum VertexFieldLocationType {
 		/** 3 x float32 values, xyz */
 		FLOAT32(1),
@@ -255,15 +266,62 @@ public final class StructGeometry implements VisitableStruct {
 		}
 	}
 
-	public final boolean isVertexFieldAvailable(VertexField field) {
+	public Set<VertexField> getAvailableVertexFields() {
+		final var enumSet = EnumSet.noneOf(VertexField.class);
+		for (final var field : VertexField.values()) {
+			if (isVertexFieldAvailable(field)) {
+				enumSet.add(field);
+			}
+		}
+		return enumSet;
+	}
+
+	public boolean isVertexFieldAvailable(VertexField field) {
 		if (field == null) {
 			throw new IllegalArgumentException("'field' must not be null");
 		}
-		return (vertexBlockFlags & (1 << field.index)) != 0;
+
+		final var hasFlag = (this.vertexBlockFlags & 1 << field.getIndex()) != 0;
+		final var typeMatch = field.getType() == -1 || this.vertexBlockFieldType[field.getIndex()] == field.getType();
+		return hasFlag && typeMatch;
 	}
 
+	public int getVertexFieldPosition(VertexField field) {
+		if (field == null) {
+			throw new IllegalArgumentException("'field' must not be null");
+		}
+		return this.vertexBlockFieldPosition[field.getIndex()];
+	}
+
+	public int[] getVertexFieldPositions(Collection<VertexField> fields) {
+		if (fields == null) {
+			throw new IllegalArgumentException("'fields' must not be null");
+		}
+
+		final var result = new int[fields.size()];
+		var resultidx = 0;
+
+		for (final var field : fields) {
+			if (!isVertexFieldAvailable(field)) {
+				continue;
+			}
+			result[resultidx++] = this.vertexBlockFieldPosition[field.getIndex()];
+		}
+
+		return result;
+	}
+
+	@Deprecated
+	public final boolean isVertexFieldAvailable(VertexFieldOld field) {
+		if (field == null) {
+			throw new IllegalArgumentException("'field' must not be null");
+		}
+		return (this.vertexBlockFlags & 1 << field.index) != 0;
+	}
+
+	@Deprecated
 	public final VertexFieldLocationType getVertexFieldLocationType() {
-		final int type = getVertexFieldValue(VertexField.LOCATION);
+		final int type = getVertexFieldValue(VertexFieldOld.LOCATION);
 		if (type == VertexFieldLocationType.INT16.type) {
 			return VertexFieldLocationType.INT16;
 		} else if (type == VertexFieldLocationType.FLOAT32.type) {
@@ -273,21 +331,23 @@ public final class StructGeometry implements VisitableStruct {
 		}
 	}
 
-	private final int getVertexFieldValue(VertexField field) {
-		return vertexBlockFieldType[field.index];
+	@Deprecated
+	private final int getVertexFieldValue(VertexFieldOld field) {
+		return this.vertexBlockFieldType[field.index];
 	}
 
-	public final int[] getVertexFieldPosition(VertexField field) {
+	@Deprecated
+	public final int[] getVertexFieldPosition(VertexFieldOld field) {
 		if (!isVertexFieldAvailable(field)) {
 			throw new VertexBlockFieldNotFoundException(String.format("Vertex field %s not available.", field.name()));
 		}
 
-		for (int i = field.index + 1; i < vertexBlockFieldPosition.length; ++i) {
-			if (vertexBlockFieldPosition[i] != 0) {
-				return new int[] { vertexBlockFieldPosition[field.index], vertexBlockFieldPosition[i] };
+		for (int i = field.index + 1; i < this.vertexBlockFieldPosition.length; ++i) {
+			if (this.vertexBlockFieldPosition[i] != 0) {
+				return new int[] { this.vertexBlockFieldPosition[field.index], this.vertexBlockFieldPosition[i] };
 			}
 		}
-		return new int[] { vertexBlockFieldPosition[field.index], vertexBlockSizeInBytes };
+		return new int[] { this.vertexBlockFieldPosition[field.index], this.vertexBlockSizeInBytes };
 	}
 
 }

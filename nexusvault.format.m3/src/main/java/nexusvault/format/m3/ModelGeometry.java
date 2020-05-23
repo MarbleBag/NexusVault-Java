@@ -1,6 +1,7 @@
 package nexusvault.format.m3;
 
 import java.util.List;
+import java.util.Set;
 
 public interface ModelGeometry {
 
@@ -22,6 +23,10 @@ public interface ModelGeometry {
 	List<ModelMesh> getMeshes();
 
 	ModelMesh getMesh(int idx);
+
+	Set<VertexField> getAvailableVertexFields();
+
+	boolean isVertexFieldAvailable(VertexField field);
 
 	/**
 	 * @return true if a vertex has location data

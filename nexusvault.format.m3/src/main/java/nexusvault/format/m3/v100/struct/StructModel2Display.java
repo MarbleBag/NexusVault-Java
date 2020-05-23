@@ -24,7 +24,7 @@ public final class StructModel2Display implements VisitableStruct {
 	 * <li>0 - not default
 	 * <li>1 - default
 	 * </ul>
-	 * Other values are not available
+	 * Other values were not seen
 	 */
 	@Order(2)
 	@StructField(value = DataType.UBIT_16)

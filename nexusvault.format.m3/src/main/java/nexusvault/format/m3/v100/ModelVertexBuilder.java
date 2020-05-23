@@ -4,71 +4,68 @@ import java.util.ArrayList;
 import java.util.List;
 
 import nexusvault.format.m3.ModelVertex;
+import nexusvault.format.m3.VertexField;
 import nexusvault.format.m3.v100.struct.StructGeometry;
-import nexusvault.format.m3.v100.struct.StructGeometry.VertexField;
 
-public final class VertexReader {
+public final class ModelVertexBuilder {
 
 	private final List<VertexFieldSetter> setter;
 
-	public VertexReader(StructGeometry geometry) {
+	public ModelVertexBuilder(StructGeometry geometry) {
 
-		setter = new ArrayList<>(11);
+		this.setter = new ArrayList<>(11);
 
-		if (geometry.isVertexFieldAvailable(VertexField.LOCATION)) {
-			switch (geometry.getVertexFieldLocationType()) {
-				case FLOAT32:
-					setter.add(new VertexFieldSetLocationFloat());
-					break;
-				case INT16:
-					setter.add(new VertexFieldSetLocationInt());
-					break;
-			}
+		if (geometry.isVertexFieldAvailable(VertexField.LOCATION_A)) {
+			this.setter.add(new VertexFieldSetLocationFloat());
+		}
+
+		if (geometry.isVertexFieldAvailable(VertexField.LOCATION_B)) {
+			this.setter.add(new VertexFieldSetLocationInt());
 		}
 
 		if (geometry.isVertexFieldAvailable(VertexField.FIELD_3_UNK_1)) {
-			setter.add(new VertexFieldSetF3U1());
+			this.setter.add(new VertexFieldSetF3U1());
 		}
 
 		if (geometry.isVertexFieldAvailable(VertexField.FIELD_3_UNK_2)) {
-			setter.add(new VertexFieldSetF3U2());
+			this.setter.add(new VertexFieldSetF3U2());
 		}
 
 		if (geometry.isVertexFieldAvailable(VertexField.FIELD_3_UNK_3)) {
-			setter.add(new VertexFieldSetF3U3());
+			this.setter.add(new VertexFieldSetF3U3());
 		}
 
 		if (geometry.isVertexFieldAvailable(VertexField.BONE_MAP)) {
-			setter.add(new VertexFieldSetBoneIndex());
+			this.setter.add(new VertexFieldSetBoneIndex());
 		}
 
 		if (geometry.isVertexFieldAvailable(VertexField.BONE_WEIGHTS)) {
-			setter.add(new VertexFieldSetBoneWeight());
+			this.setter.add(new VertexFieldSetBoneWeight());
 		}
 
 		if (geometry.isVertexFieldAvailable(VertexField.FIELD_4_UNK_1)) {
-			setter.add(new VertexFieldSetF4U3());
+			this.setter.add(new VertexFieldSetF4U3());
 		}
 
 		if (geometry.isVertexFieldAvailable(VertexField.FIELD_4_UNK_2)) {
-			setter.add(new VertexFieldSetF4U4());
+			this.setter.add(new VertexFieldSetF4U4());
 		}
 
 		if (geometry.isVertexFieldAvailable(VertexField.UV_MAP_2)) {
-			setter.add(new VertexFieldSetUVMap2());
+			this.setter.add(new VertexFieldSetUVMap2());
 		} else if (geometry.isVertexFieldAvailable(VertexField.UV_MAP_1)) {
-			setter.add(new VertexFieldSetUVMap1());
+			this.setter.add(new VertexFieldSetUVMap1());
 		}
 
 		if (geometry.isVertexFieldAvailable(VertexField.FIELD_6_UNK_1)) {
-			setter.add(new VertexFieldSetF6U1());
+			this.setter.add(new VertexFieldSetF6U1());
 		}
 
 	}
 
 	public ModelVertex read(BytePositionTracker memory) {
 		final DefaultModelVertex vertex = new DefaultModelVertex();
-		for (final VertexFieldSetter setter : setter) {
+		for (final VertexFieldSetter setter : this.setter) {
 			setter.set(vertex, memory.getData());
 		}
 		return vertex;

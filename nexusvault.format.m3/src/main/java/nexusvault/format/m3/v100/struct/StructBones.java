@@ -96,7 +96,7 @@ public final class StructBones implements VisitableStruct {
 	public float[] matrix_0D0; // 0x0D0
 
 	/**
-	 * Looks like a column-major transformation matrix
+	 * Looks like the inverse column-major transformation matrix
 	 */
 	@Order(10)
 	@StructField(value = BIT_32, length = 16)
@@ -120,19 +120,19 @@ public final class StructBones implements VisitableStruct {
 
 	@Override
 	public void visit(StructVisitor process, BytePositionTracker fileReader, int dataPosition) {
-		for (final DATP_S4_S6 p : unk_block_010) {
+		for (final DATP_S4_S6 p : this.unk_block_010) {
 			process.process(fileReader, dataPosition, p);
 		}
 
-		for (final DATP_S4_S8 p : bone_animation) {
+		for (final DATP_S4_S8 p : this.bone_animation) {
 			process.process(fileReader, dataPosition, p);
 		}
 
-		for (final DATP_S4_S12 p : unk_block_0A0) {
+		for (final DATP_S4_S12 p : this.unk_block_0A0) {
 			process.process(fileReader, dataPosition, p);
 		}
 
-		if (padding_15C != 0) {
+		if (this.padding_15C != 0) {
 			throw new IllegalStateException("padding_15C contains value");
 		}
 	}

@@ -68,6 +68,8 @@ public interface ModelMesh {
 	 */
 	List<ModelVertex> getVertices();
 
+	ModelVertexReader getVertexReader();
+
 	@Deprecated
 	Iterable<ModelVertex> iterateVertices();
 

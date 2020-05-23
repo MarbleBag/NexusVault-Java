@@ -10,7 +10,7 @@ import nexusvault.format.m3.v100.debug.Table.TableCell;
 import nexusvault.format.m3.v100.debug.Table.TableColumn;
 import nexusvault.format.m3.v100.debug.Table.TableRow;
 import nexusvault.format.m3.v100.struct.StructGeometry;
-import nexusvault.format.m3.v100.struct.StructGeometry.VertexField;
+import nexusvault.format.m3.v100.struct.StructGeometry.VertexFieldOld;
 import nexusvault.format.m3.v100.struct.StructMesh;
 
 public final class VertexBlockFieldFormater implements FieldFormater {
@@ -26,7 +26,7 @@ public final class VertexBlockFieldFormater implements FieldFormater {
 		private final StructGeometry geometry;
 		private final TaskOutput<? super Table> out;
 
-		private List<VertexField> vertexFields;
+		private List<VertexFieldOld> vertexFields;
 
 		public VertexBlockFieldTask(StructGeometry geometry, TaskOutput<? super Table> out) {
 			this.geometry = geometry;
@@ -48,7 +48,7 @@ public final class VertexBlockFieldFormater implements FieldFormater {
 			final List<TableColumn> columns = new LinkedList<>();
 			vertexFields = new LinkedList<>();
 			columns.add(new TableColumn("Mesh #", "Mesh"));
-			for (final VertexField vertexField : VertexField.values()) {
+			for (final VertexFieldOld vertexField : VertexFieldOld.values()) {
 				if (!geometry.isVertexFieldAvailable(vertexField)) {
 					continue;
 				}
@@ -81,7 +81,7 @@ public final class VertexBlockFieldFormater implements FieldFormater {
 
 					table.getColumn("Mesh").getCell(newRow).addEntry(String.format("Mesh %d", i));
 
-					for (final VertexField vertexField : vertexFields) {
+					for (final VertexFieldOld vertexField : vertexFields) {
 						final TableColumn column = table.getColumn(vertexField.name());
 						final TableCell cell = column.getCell(newRow);
 

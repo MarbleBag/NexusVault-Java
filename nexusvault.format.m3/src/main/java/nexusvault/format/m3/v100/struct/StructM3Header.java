@@ -42,7 +42,7 @@ public final class StructM3Header implements VisitableStruct {
 		nexusvault.format.m3.v100.struct.SizeTest.ensureSizeAndOrder(StructM3Header.class, 0x630);
 	}
 
-	public static final int SIGNATURE = ('M' << 24) | ('O' << 16) | ('D' << 8) | 'L';
+	public static final int SIGNATURE = 'M' << 24 | 'O' << 16 | 'D' << 8 | 'L';
 	public static final int SIZE_IN_BYTES = StructUtil.sizeOf(StructM3Header.class);
 
 	@Order(1)
@@ -125,6 +125,9 @@ public final class StructM3Header implements VisitableStruct {
 	@StructField(value = DataType.BIT_8, length = 8)
 	public byte[] gap_178; // 0x178
 
+	/**
+	 * Pointer to an array of bone elements
+	 */
 	@Order(21)
 	@StructField(DataType.STRUCT)
 	public ATP_Bones bones; // o: 0x180
@@ -137,6 +140,10 @@ public final class StructM3Header implements VisitableStruct {
 	@StructField(DataType.STRUCT)
 	public ATP_S2 unk_offset_1A0; // 2 o: 0x1A0
 
+	/**
+	 * Pointer to an array of shorts. Each of them references back to {@link #bones} and is used by the vertices of {@link StructGeometry} to bypass the limit
+	 * of a byte to index more than 255 bones. Some bones are not used by vertices, but by other bones via parenting.
+	 */
 	@Order(24)
 	@StructField(DataType.STRUCT)
 	public ATP_UInt16 boneMapping; // 2 o: 0x1B0
@@ -331,71 +338,71 @@ public final class StructM3Header implements VisitableStruct {
 	@Override
 	public void visit(StructVisitor process, BytePositionTracker fileReader, int dataPosition) {
 
-		process.process(fileReader, dataPosition, unk_offset_010);
-		process.process(fileReader, dataPosition, unk_offset_020);
-		process.process(fileReader, dataPosition, unk_offset_038);
-		process.process(fileReader, dataPosition, unk_offset_050);
-		process.process(fileReader, dataPosition, unk_offset_068);
-		process.process(fileReader, dataPosition, unk_offset_080);
-		process.process(fileReader, dataPosition, unk_offset_090);
-		process.process(fileReader, dataPosition, unk_offset_0A8);
-		process.process(fileReader, dataPosition, unk_offset_0C0);
-		process.process(fileReader, dataPosition, unk_offset_0D8);
-		process.process(fileReader, dataPosition, unk_offset_0F0);
-		process.process(fileReader, dataPosition, unk_offset_100);
-		process.process(fileReader, dataPosition, unk_offset_118);
-		process.process(fileReader, dataPosition, unk_offset_130);
-		process.process(fileReader, dataPosition, unk_offset_148);
-		process.process(fileReader, dataPosition, unk_offset_160);
+		process.process(fileReader, dataPosition, this.unk_offset_010);
+		process.process(fileReader, dataPosition, this.unk_offset_020);
+		process.process(fileReader, dataPosition, this.unk_offset_038);
+		process.process(fileReader, dataPosition, this.unk_offset_050);
+		process.process(fileReader, dataPosition, this.unk_offset_068);
+		process.process(fileReader, dataPosition, this.unk_offset_080);
+		process.process(fileReader, dataPosition, this.unk_offset_090);
+		process.process(fileReader, dataPosition, this.unk_offset_0A8);
+		process.process(fileReader, dataPosition, this.unk_offset_0C0);
+		process.process(fileReader, dataPosition, this.unk_offset_0D8);
+		process.process(fileReader, dataPosition, this.unk_offset_0F0);
+		process.process(fileReader, dataPosition, this.unk_offset_100);
+		process.process(fileReader, dataPosition, this.unk_offset_118);
+		process.process(fileReader, dataPosition, this.unk_offset_130);
+		process.process(fileReader, dataPosition, this.unk_offset_148);
+		process.process(fileReader, dataPosition, this.unk_offset_160);
 
-		process.process(fileReader, dataPosition, bones);
-		process.process(fileReader, dataPosition, unk_offset_190);
-		process.process(fileReader, dataPosition, unk_offset_1A0);
-		process.process(fileReader, dataPosition, boneMapping);
-		process.process(fileReader, dataPosition, textures);
-		process.process(fileReader, dataPosition, unk_offset_1D0);
-		process.process(fileReader, dataPosition, unk_offset_1E0);
-		process.process(fileReader, dataPosition, material);
-		process.process(fileReader, dataPosition, model2Display);
-		process.process(fileReader, dataPosition, display2model);
-		process.process(fileReader, dataPosition, unk_offset_220);
-		process.process(fileReader, dataPosition, unk_offset_230);
-		process.process(fileReader, dataPosition, unk_offset_240);
-		process.process(fileReader, dataPosition, geometry);
-		process.process(fileReader, dataPosition, unk_offset_260);
-		process.process(fileReader, dataPosition, unk_offset_270);
-		process.process(fileReader, dataPosition, unk_offset_280);
-		process.process(fileReader, dataPosition, unk_offset_290);
-		process.process(fileReader, dataPosition, unk_offset_2A8);
-		process.process(fileReader, dataPosition, unk_offset_2B8);
-		process.process(fileReader, dataPosition, unk_offset_2C8);
-		process.process(fileReader, dataPosition, unk_offset_2D8);
-		process.process(fileReader, dataPosition, unk_offset_2E8);
-		process.process(fileReader, dataPosition, unk_offset_2F8);
-		process.process(fileReader, dataPosition, unk_offset_308);
-		process.process(fileReader, dataPosition, unk_offset_318);
-		process.process(fileReader, dataPosition, unk_offset_328);
-		process.process(fileReader, dataPosition, unk_offset_338);
+		process.process(fileReader, dataPosition, this.bones);
+		process.process(fileReader, dataPosition, this.unk_offset_190);
+		process.process(fileReader, dataPosition, this.unk_offset_1A0);
+		process.process(fileReader, dataPosition, this.boneMapping);
+		process.process(fileReader, dataPosition, this.textures);
+		process.process(fileReader, dataPosition, this.unk_offset_1D0);
+		process.process(fileReader, dataPosition, this.unk_offset_1E0);
+		process.process(fileReader, dataPosition, this.material);
+		process.process(fileReader, dataPosition, this.model2Display);
+		process.process(fileReader, dataPosition, this.display2model);
+		process.process(fileReader, dataPosition, this.unk_offset_220);
+		process.process(fileReader, dataPosition, this.unk_offset_230);
+		process.process(fileReader, dataPosition, this.unk_offset_240);
+		process.process(fileReader, dataPosition, this.geometry);
+		process.process(fileReader, dataPosition, this.unk_offset_260);
+		process.process(fileReader, dataPosition, this.unk_offset_270);
+		process.process(fileReader, dataPosition, this.unk_offset_280);
+		process.process(fileReader, dataPosition, this.unk_offset_290);
+		process.process(fileReader, dataPosition, this.unk_offset_2A8);
+		process.process(fileReader, dataPosition, this.unk_offset_2B8);
+		process.process(fileReader, dataPosition, this.unk_offset_2C8);
+		process.process(fileReader, dataPosition, this.unk_offset_2D8);
+		process.process(fileReader, dataPosition, this.unk_offset_2E8);
+		process.process(fileReader, dataPosition, this.unk_offset_2F8);
+		process.process(fileReader, dataPosition, this.unk_offset_308);
+		process.process(fileReader, dataPosition, this.unk_offset_318);
+		process.process(fileReader, dataPosition, this.unk_offset_328);
+		process.process(fileReader, dataPosition, this.unk_offset_338);
 
-		process.process(fileReader, dataPosition, unk_offset_350);
-		process.process(fileReader, dataPosition, unk_offset_370);
+		process.process(fileReader, dataPosition, this.unk_offset_350);
+		process.process(fileReader, dataPosition, this.unk_offset_370);
 
-		process.process(fileReader, dataPosition, unk_offset_490);
-		process.process(fileReader, dataPosition, unk_offset_4A0);
+		process.process(fileReader, dataPosition, this.unk_offset_490);
+		process.process(fileReader, dataPosition, this.unk_offset_4A0);
 
-		process.process(fileReader, dataPosition, unk_offset_510);
-		process.process(fileReader, dataPosition, unk_offset_520);
-		process.process(fileReader, dataPosition, unk_offset_530);
-		process.process(fileReader, dataPosition, unk_offset_540);
-		process.process(fileReader, dataPosition, unk_offset_550);
-		process.process(fileReader, dataPosition, unk_offset_560);
-		process.process(fileReader, dataPosition, unk_offset_570);
+		process.process(fileReader, dataPosition, this.unk_offset_510);
+		process.process(fileReader, dataPosition, this.unk_offset_520);
+		process.process(fileReader, dataPosition, this.unk_offset_530);
+		process.process(fileReader, dataPosition, this.unk_offset_540);
+		process.process(fileReader, dataPosition, this.unk_offset_550);
+		process.process(fileReader, dataPosition, this.unk_offset_560);
+		process.process(fileReader, dataPosition, this.unk_offset_570);
 
-		process.process(fileReader, dataPosition, unk_offset_588);
-		process.process(fileReader, dataPosition, unk_offset_598);
-		process.process(fileReader, dataPosition, unk_offset_5A8);
+		process.process(fileReader, dataPosition, this.unk_offset_588);
+		process.process(fileReader, dataPosition, this.unk_offset_598);
+		process.process(fileReader, dataPosition, this.unk_offset_5A8);
 
-		process.process(fileReader, dataPosition, unk_offset_5C0);
+		process.process(fileReader, dataPosition, this.unk_offset_5C0);
 	}
 
 }

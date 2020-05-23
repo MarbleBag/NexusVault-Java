@@ -30,7 +30,7 @@ public final class StructTexture implements VisitableStruct {
 	public int[] unk_gap_000; // o: 0x000
 
 	/**
-	 * This may actually be the reference to assetTextureXY, found in model2display.tbl.
+	 * This may actually be a reference to assetTextureXY, found in model2display.tbl.
 	 * <ul>
 	 * <li>0 - diffuse
 	 * <li>1 - normal
@@ -54,8 +54,8 @@ public final class StructTexture implements VisitableStruct {
 	public int[] unk_gap_008;
 
 	/**
-	 * UTF16 encoded. 2 bytes per character. Pointer contains length, but string is also 0-terminated. In some cases the given length is to long for the string,
-	 * resulting in null-characters at the end of the string
+	 * UTF16 encoded. 2 bytes per character. Pointer contains length, but string is also 0-terminated. In some cases the given length is too long for the
+	 * string, resulting in null-characters at the end of the string
 	 */
 	@Order(6)
 	@StructField(DataType.STRUCT)
@@ -63,11 +63,11 @@ public final class StructTexture implements VisitableStruct {
 
 	@Override
 	public void visit(StructVisitor process, BytePositionTracker fileReader, int dataPosition) {
-		process.process(fileReader, dataPosition, textureName);
+		process.process(fileReader, dataPosition, this.textureName);
 	}
 
 	public String getName(BytePositionTracker data) {
-		data.setPosition(textureName.getOffset());
+		data.setPosition(this.textureName.getOffset());
 		return TextUtil.extractNullTerminatedUTF16(new ByteBufferBinaryReader(data.getData()));
 		// data.setPosition(textureName.getOffset());
 		// final Charset charset = ByteBufferUtil.getUTF16CharSet(data.getData());
@@ -79,17 +79,17 @@ public final class StructTexture implements VisitableStruct {
 	public String toString() {
 		final StringBuilder builder = new StringBuilder();
 		builder.append("StructTexture [unk_gap_000=");
-		builder.append(Arrays.toString(unk_gap_000));
+		builder.append(Arrays.toString(this.unk_gap_000));
 		builder.append(", textureType=");
-		builder.append(textureType);
+		builder.append(this.textureType);
 		builder.append(", unk_003=");
-		builder.append(unk_003);
+		builder.append(this.unk_003);
 		builder.append(", unk_value_004=");
-		builder.append(unk_value_004);
+		builder.append(this.unk_value_004);
 		builder.append(", unk_gap_008=");
-		builder.append(Arrays.toString(unk_gap_008));
+		builder.append(Arrays.toString(this.unk_gap_008));
 		builder.append(", textureName=");
-		builder.append(textureName);
+		builder.append(this.textureName);
 		builder.append("]");
 		return builder.toString();
 	}
@@ -98,12 +98,12 @@ public final class StructTexture implements VisitableStruct {
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = (prime * result) + ((textureName == null) ? 0 : textureName.hashCode());
-		result = (prime * result) + textureType;
-		result = (prime * result) + unk_003;
-		result = (prime * result) + Arrays.hashCode(unk_gap_000);
-		result = (prime * result) + Arrays.hashCode(unk_gap_008);
-		result = (prime * result) + unk_value_004;
+		result = prime * result + (this.textureName == null ? 0 : this.textureName.hashCode());
+		result = prime * result + this.textureType;
+		result = prime * result + this.unk_003;
+		result = prime * result + Arrays.hashCode(this.unk_gap_000);
+		result = prime * result + Arrays.hashCode(this.unk_gap_008);
+		result = prime * result + this.unk_value_004;
 		return result;
 	}
 
@@ -119,26 +119,26 @@ public final class StructTexture implements VisitableStruct {
 			return false;
 		}
 		final StructTexture other = (StructTexture) obj;
-		if (textureName == null) {
+		if (this.textureName == null) {
 			if (other.textureName != null) {
 				return false;
 			}
-		} else if (!textureName.equals(other.textureName)) {
+		} else if (!this.textureName.equals(other.textureName)) {
 			return false;
 		}
-		if (textureType != other.textureType) {
+		if (this.textureType != other.textureType) {
 			return false;
 		}
-		if (unk_003 != other.unk_003) {
+		if (this.unk_003 != other.unk_003) {
 			return false;
 		}
-		if (!Arrays.equals(unk_gap_000, other.unk_gap_000)) {
+		if (!Arrays.equals(this.unk_gap_000, other.unk_gap_000)) {
 			return false;
 		}
-		if (!Arrays.equals(unk_gap_008, other.unk_gap_008)) {
+		if (!Arrays.equals(this.unk_gap_008, other.unk_gap_008)) {
 			return false;
 		}
-		if (unk_value_004 != other.unk_value_004) {
+		if (this.unk_value_004 != other.unk_value_004) {
 			return false;
 		}
 		return true;
