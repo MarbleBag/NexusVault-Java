@@ -5,8 +5,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 
-import de.javagl.jgltf.impl.v2.Image;
-
 // TODO
 public final class PathTextureResource extends TextureResource {
 	private final Path source;
@@ -19,12 +17,10 @@ public final class PathTextureResource extends TextureResource {
 	}
 
 	@Override
-	Image writeImageTo(Path outputDirectory, String outputFileName) throws IOException {
-		Path dst = outputDirectory.resolve(source.getFileName());
-		Files.copy(source, dst, StandardCopyOption.REPLACE_EXISTING);
-		final Image image = new Image(); // TODO
-		dst = dst.subpath(dst.getNameCount() - 2, dst.getNameCount());
-		image.setUri(dst.toString());
-		return image;
+	public Path writeImageTo(Path outputDirectory) throws IOException {
+		final var dst = outputDirectory.resolve(this.source.getFileName());
+		Files.copy(this.source, dst, StandardCopyOption.REPLACE_EXISTING);
+		final var relativePath = dst.subpath(outputDirectory.getNameCount() - 1, dst.getNameCount());
+		return relativePath;
 	}
 }

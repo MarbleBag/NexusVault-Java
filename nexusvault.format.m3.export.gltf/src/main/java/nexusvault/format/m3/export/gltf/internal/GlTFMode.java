@@ -1,6 +1,6 @@
-package nexusvault.format.m3.export.gltf;
+package nexusvault.format.m3.export.gltf.internal;
 
-enum GlTFMode {
+public enum GlTFMode {
 	POINTS,
 	LINES,
 	LINE_LOOP,
@@ -9,6 +9,6 @@ enum GlTFMode {
 	TRIANGLE_STRIP,
 	TRIANGLE_FAN;
 	public int getId() {
-		return this.ordinal();
+		return ordinal();
 	}
 }

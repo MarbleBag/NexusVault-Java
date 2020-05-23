@@ -1,6 +1,6 @@
-package nexusvault.format.m3.export.gltf;
+package nexusvault.format.m3.export.gltf.internal;
 
-enum GlTFComponentType {
+public enum GlTFComponentType {
 	INT8(5120, 1),
 	UINT8(5121, 1),
 	INT16(5122, 2),
@@ -17,10 +17,10 @@ enum GlTFComponentType {
 	}
 
 	public int getId() {
-		return id;
+		return this.id;
 	}
 
 	public int getByteCount() {
-		return byteCount;
+		return this.byteCount;
 	}
 }

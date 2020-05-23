@@ -13,7 +13,7 @@ public interface GlTFExportMonitor {
 	 * @param resourceBundle
 	 *            the bundle in which the texture should be stored
 	 */
-	void requestTextures(String textureId, ResourceBundle resourceBundle);
+	void requestTexture(String textureId, ResourceBundle resourceBundle);
 
-	void newFile(Path path);
+	void newFileCreated(Path path);
 }

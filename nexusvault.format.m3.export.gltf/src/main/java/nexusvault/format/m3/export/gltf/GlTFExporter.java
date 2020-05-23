@@ -4,31 +4,20 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.channels.SeekableByteChannel;
+import java.nio.channels.WritableByteChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
 
-import de.javagl.jgltf.impl.v2.Accessor;
-import de.javagl.jgltf.impl.v2.Asset;
-import de.javagl.jgltf.impl.v2.Buffer;
-import de.javagl.jgltf.impl.v2.BufferView;
 import de.javagl.jgltf.impl.v2.GlTF;
-import de.javagl.jgltf.impl.v2.Image;
 import de.javagl.jgltf.impl.v2.Material;
 import de.javagl.jgltf.impl.v2.MaterialNormalTextureInfo;
 import de.javagl.jgltf.impl.v2.MaterialOcclusionTextureInfo;
 import de.javagl.jgltf.impl.v2.MaterialPbrMetallicRoughness;
-import de.javagl.jgltf.impl.v2.Mesh;
 import de.javagl.jgltf.impl.v2.MeshPrimitive;
 import de.javagl.jgltf.impl.v2.Node;
-import de.javagl.jgltf.impl.v2.Scene;
 import de.javagl.jgltf.impl.v2.Skin;
-import de.javagl.jgltf.impl.v2.Texture;
 import de.javagl.jgltf.impl.v2.TextureInfo;
 import de.javagl.jgltf.model.GltfModel;
 import de.javagl.jgltf.model.GltfModels;
@@ -38,166 +27,135 @@ import de.javagl.jgltf.model.io.v2.GltfAssetV2;
 import kreed.io.util.BinaryWriter;
 import kreed.io.util.WritableByteChannelBinaryWriter;
 import nexusvault.format.m3.Model;
-import nexusvault.format.m3.ModelBone;
-import nexusvault.format.m3.ModelGeometry;
-import nexusvault.format.m3.ModelMaterial;
-import nexusvault.format.m3.ModelMaterialDescription;
 import nexusvault.format.m3.ModelMesh;
-import nexusvault.format.m3.ModelTexture;
-import nexusvault.format.m3.ModelVertex;
-import nexusvault.format.m3.export.gltf.Bi2NiLookUp.Bi2NiEntry;
+import nexusvault.format.m3.export.gltf.internal.GlTFComponentType;
+import nexusvault.format.m3.export.gltf.internal.GlTFMode;
+import nexusvault.format.m3.export.gltf.internal.GlTFType;
+import nexusvault.format.m3.export.gltf.internal.GltfHelper;
+import nexusvault.format.m3.export.gltf.internal.TextureManager;
+import nexusvault.format.m3.export.gltf.internal.vertex.MeshWriter;
 import nexusvault.shared.exception.IntegerOverflowException;
 
-/**
- * Exports {@link nexusvault.format.m3.Model m3-models} as <code>gltf</code> <br>
- * Set up a {@link GlTFExportMonitor} to provide the exported model with textures and to monitor each file this exporter creates.
- *
- * @see #exportModel(Path, String, Model)
- * @see <a href="https://github.com/KhronosGroup/glTF">https://github.com/KhronosGroup/glTF</a>
- */
-// TODO add kind of property to control some export functions
 public final class GlTFExporter {
 
-	private static final class LookupIndex {
-		public int index;
-		public int length;
+	public static GlTFExporter makeExporter() {
+		return new GlTFExporter();
+	}
 
-		public LookupIndex(int index, int length) {
-			super();
-			this.index = index;
-			this.length = length;
-		}
+	private String modelName;
 
-		public int getIndex() {
-			return index;
-		}
+	private Path outputDirectory;
+	private Path binaryBufferFile;
+	private Path textureDirectory;
 
-		public int getLength() {
-			return length;
-		}
+	private Model model;
+	private GlTF gltfModel;
 
-		public int getLastIndex() {
-			return index + length;
-		}
+	// helper
+	private TextureManager textureManager;
+
+	// config
+	private boolean isExportMesh = true;
+	private boolean isExportBones = true;
+	private boolean isExportTextures = true;
+
+	private GlTFExportMonitor monitor;
+
+	private GlTFExporter() {
 
 	}
 
-	private static final GlTFComponentType INDEX_COMPONENT_TYPE = GlTFComponentType.UINT32;
+	private void initialize(Path directory, String modelName, Model model) {
+		if (directory == null) {
+			throw new IllegalArgumentException("'directory' must not be null");
+		}
+		this.outputDirectory = directory;
 
-	// TODO
-	public GlTFExportMonitor monitor;
+		if (modelName == null || modelName.isEmpty()) {
+			throw new IllegalArgumentException("'modelName' must not be null or empty");
+		}
+		this.modelName = modelName;
 
-	private Model model;
-	private String outputFileName;
-	private Path outputDirectory;
+		if (model == null) {
+			throw new IllegalArgumentException("'model' must not be null");
+		}
+		this.model = model;
 
-	private GlTF gltf;
+		this.gltfModel = GltfHelper.createBaseModel();
+		GltfHelper.getRootNode(this.gltfModel).setName(modelName);
 
-	private List<LookupIndex> materialLookUp;
-	private Map<String, int[]> textureLookUpByURI;
-	private List<TextureResource> textureResources;
-	private Bi2NiLookUp boneIndexToNodeIndexLookUp;
+	}
 
-	private VertexField[] fieldAccessors;
-	private int vertexSizeInBytes;
-	private int minIndex;
-	private int maxIndex;
+	private void dispose() {
+		this.outputDirectory = null;
+		this.binaryBufferFile = null;
+		this.modelName = null;
 
-	private Node baseNode;
+		this.model = null;
+		this.gltfModel = null;
 
-	private Path binaryBufferFile;
-
-	public GlTFExporter() {
-
+		this.textureManager = null;
 	}
 
 	public void setGlTFExportMonitor(GlTFExportMonitor monitor) {
 		this.monitor = monitor;
 	}
 
-	/**
-	 * Exports the given model to the given directory. The exporter may procude multiple files. <br>
-	 * Supported functions:
-	 * <ul>
-	 * <li>2 UV maps
-	 * </ul>
-	 * <p>
-	 * This process is not thread safe.
-	 *
-	 * @param directory
-	 *            output directory
-	 * @param fileName
-	 *            name given to the output gltf file, will also be used to name model and may be used to name additional resources produces by the export
-	 *            process
-	 * @param model
-	 *            model to export
-	 * @throws IOException
-	 *             if an I/O error occurs
-	 */
-	public void exportModel(Path directory, String fileName, Model model) throws IOException {
+	public boolean isExportMesh() {
+		return this.isExportMesh;
+	}
+
+	public void setExportMesh(boolean value) {
+		this.isExportMesh = value;
+	}
+
+	public boolean isExportSkeleton() {
+		return this.isExportBones;
+	}
+
+	public void setExportBones(boolean value) {
+		this.isExportBones = value;
+	}
+
+	public boolean isExportTextures() {
+		return this.isExportTextures;
+	}
+
+	public void setExportTextures(boolean value) {
+		this.isExportTextures = value;
+	}
+
+	public void exportModel(Path directory, String modelName, Model model) throws IOException {
 		try {
-			setOutputDirectory(directory);
-			setOutputFileName(fileName);
-			setExportModel(model);
-			computeVertex();
+			initialize(directory, modelName, model);
 
-			prepareOutputDirectory();
-			prepareGltf();
-			prepareLookups();
+			if (isExportMesh()) {
+				writeMeshData();
+			}
 
-			prepareDefaultScene();
-			prepareBinaryBuffer();
+			if (isExportSkeleton()) {
+				writeSkeletonData();
+			}
 
-			processMeshes();
+			if (isExportTextures()) {
+				writeTextureData();
+				writeMaterialData();
+			}
 
 			writeGltf();
 		} finally {
-			clearLookups();
-			clearExportModel();
-			clearGltf();
+			dispose();
 		}
 	}
 
-	private int getLastUsedIndex(List<LookupIndex> lookups) {
-		if (lookups.isEmpty()) {
-			return 0;
-		}
-		final LookupIndex last = lookups.get(lookups.size() - 1);
-		return last.index + last.length;
-	}
-
-	private void processMeshes() throws IOException {
-		final ModelGeometry modelGeometry = model.getGeometry();
-		long bufferViewOffset = 0;
-		int meshId = 0;
-
-		addTextures();
-		addMaterials();
-
-		for (final ModelMesh modelMesh : modelGeometry.getMeshes()) {
-			writeMeshToBuffer(modelMesh);
-			bufferViewOffset = addBufferView(modelMesh, meshId, bufferViewOffset);
-			addAccessor(modelMesh, meshId);
-			addMeshToScene(modelMesh, meshId);
-
-			meshId += 1;
+	private void writeSkeletonData() throws IOException { // TODO
+		final var bones = this.model.getBones();
+		if (bones.isEmpty()) {
+			return; // done
 		}
 
-		addSkeleton();
-	}
-
-	private void addSkeleton() throws IOException {
-		// TODO bone translation, rotation and scaling is missing
-		// TODO blender imports gltf with each mesh connected to each bone in order, check if error may be in how the skeleton is exported
-
-		final List<ModelBone> modelBones = model.getBones();
-
-		final SeekableByteChannel channel = Files.newByteChannel(binaryBufferFile, StandardOpenOption.CREATE, StandardOpenOption.WRITE,
-				StandardOpenOption.APPEND);
-		try (BinaryWriter writer = new WritableByteChannelBinaryWriter(channel, ByteBuffer.allocateDirect(1024 * 1024 * 1).order(ByteOrder.LITTLE_ENDIAN))) {
-			final long byteOffset = writer.getPosition();
-
-			for (int i = 0; i < modelBones.size(); ++i) {
+		final var writeResult = writeToBinary((writer, position) -> {
+			for (int i = 0; i < bones.size(); ++i) {
 				// column major
 				writer.writeFloat32(1f);
 				writer.writeFloat32(0f);
@@ -214,561 +172,365 @@ public final class GlTFExporter {
 				writer.writeFloat32(1f);
 				writer.writeFloat32(0f);
 
-				writer.writeFloat32(0f);
-				writer.writeFloat32(0f);
-				writer.writeFloat32(0f);
+				writer.writeFloat32(-bones.get(i).getLocationX());
+				writer.writeFloat32(-bones.get(i).getLocationY());
+				writer.writeFloat32(-bones.get(i).getLocationZ());
 				writer.writeFloat32(1f);
+
+				// final var bone = bones.get(i);
+				// final var transMatrix = bone.getTransformationMatrix();
+				// final var invTransMatrix = MathUtil.inverse(transMatrix);
+				// for (final var r : invTransMatrix) {
+				// writer.writeFloat32(r);
+				// }
 			}
+		});
 
-			final long byteWritten = modelBones.size() * 16;
+		final var bufferViewIdx = GltfHelper.addBufferView(this.gltfModel, writeResult.writeStart, writeResult.writeLength);
+		final var bufferView = this.gltfModel.getBufferViews().get(bufferViewIdx);
+		bufferView.setName("ViewSkinInverseBindMatrix");
 
-			final BufferView bufferView = new BufferView();
-			bufferView.setName("ViewSkinInverseBindMatrix");
-			bufferView.setBuffer(0);
-			bufferView.setByteOffset((int) byteOffset);
-			bufferView.setByteLength((int) byteWritten);
-			gltf.addBufferViews(bufferView);
+		final var accessorIdx = GltfHelper.addAccessor(this.gltfModel, GlTFType.MAT4, GlTFComponentType.FLOAT);
+		final var accessor = this.gltfModel.getAccessors().get(accessorIdx);
+		accessor.setName("AccessorSkinInverseBindMatrix");
+		accessor.setBufferView(bufferViewIdx);
+		accessor.setCount(bones.size());
 
-			final Accessor accessor = new Accessor();
-			accessor.setName("AccessorSkinInverseBindMatrix");
-			accessor.setBufferView(gltf.getBufferViews().size() - 1);
-			accessor.setType(GlTFType.MAT4.getId());
-			accessor.setComponentType(GlTFComponentType.FLOAT.getId());
-			accessor.setCount(modelBones.size());
-			gltf.addAccessors(accessor);
-		}
-
-		final Skin skin = new Skin();
+		final var skin = new Skin();
 		skin.setName("Armature");
-		skin.setSkeleton(0);
+		// skin.setSkeleton(0);
+		skin.setSkeleton(GltfHelper.getNodeCount(this.gltfModel)); // first node we will add is also skeleton root
 
-		// TODO: optional my ass. Bug in GltfModelV2#initSkinModels
-		skin.setInverseBindMatrices(gltf.getAccessors().size() - 1); // seems not to work in blender?
-		gltf.addSkins(skin);
+		// TODO: By spec this should be optional. Bug in GltfModelV2#initSkinModels
+		skin.setInverseBindMatrices(accessorIdx);
+		this.gltfModel.addSkins(skin);
 
-		for (final ModelBone modelBone : modelBones) {
-			final Node node = new Node();
-			gltf.addNodes(node);
-			node.setName("Bone_" + modelBone.getBoneIndex());
+		final var bone2Node = new HashMap<Integer, Integer>(); // bone index => node index
+		final var nodeNameFormat = "Joint_%0" + String.valueOf(bones.size()).length() + "d";
+		for (final var bone : bones) {
+			final var nodeIdx = GltfHelper.getNodeCount(this.gltfModel);
+			final var node = new Node();
 
-			final int nodeIndex = gltf.getNodes().size() - 1;
+			node.setName(String.format(nodeNameFormat, bone.getBoneIndex()));
+			bone2Node.put(bone.getBoneIndex(), nodeIdx);
 
-			final Bi2NiEntry lookUpEntry = new Bi2NiEntry(modelBone.getBoneIndex(), nodeIndex);
-			boneIndexToNodeIndexLookUp.add(lookUpEntry);
+			skin.addJoints(nodeIdx);
 
-			skin.addJoints(nodeIndex);
-
-			if (modelBone.hasParentBone()) {
-				lookUpEntry.setParentOriginalIndex(modelBone.getParentBoneReference());
+			if (skin.getSkeleton() == null) {
+				skin.setSkeleton(nodeIdx);
 			}
+
+			this.gltfModel.addNodes(node);
 		}
 
-		for (final Bi2NiEntry node : boneIndexToNodeIndexLookUp) {
-			// set gltf parents
-			if (node.hasParent()) {
-				final Bi2NiEntry parent = boneIndexToNodeIndexLookUp.getForOriginalIndex(node.getParentOriginalIndex());
-				final Node parentNode = gltf.getNodes().get(parent.getLookUpIndex());
-				parentNode.addChildren(node.getLookUpIndex());
-			} else {
-				baseNode.addChildren(node.getLookUpIndex());
+		final var rootNode = GltfHelper.getRootNode(this.gltfModel);
+		for (final var bone : bones) {
+			final var nodeIdx = bone2Node.get(bone.getBoneIndex());
+			var parentNode = rootNode;
+
+			if (bone.hasParentBone()) {
+				final var parentBoneIdx = bone.getParentBoneReference();
+				parentNode = this.gltfModel.getNodes().get(bone2Node.get(parentBoneIdx));
 			}
 
-			// update bone translation
-			final Node gltfNode = gltf.getNodes().get(node.getLookUpIndex());
-			final ModelBone bone = modelBones.get(node.getOriginalIndex());
-			final float[] translation = new float[] { bone.getLocationX(), bone.getLocationY(), bone.getLocationZ() };
+			parentNode.addChildren(nodeIdx);
 
-			if (node.hasParent()) {
-				final ModelBone parentBone = modelBones.get(node.getParentOriginalIndex());
+			final var translation = new float[] { bone.getLocationX(), bone.getLocationY(), bone.getLocationZ() };
+			if (bone.hasParentBone()) {
+				// gltf calculates position along the edges, while WS uses absolute position
+				final var parentBone = bones.get(bone.getParentBoneReference());
 				translation[0] -= parentBone.getLocationX();
 				translation[1] -= parentBone.getLocationY();
 				translation[2] -= parentBone.getLocationZ();
 			}
 
-			gltfNode.setTranslation(translation);
+			final var boneNode = this.gltfModel.getNodes().get(nodeIdx);
+			boneNode.setTranslation(translation);
+			// boneNode.setRotation(MathUtil.toQuaternion(bone.getTransformationMatrix()));
+
+			// works, but using the inverse transformation matrix for the inverse binding matrix gives weird results
+			// boneNode.setMatrix(bone.getTransformationMatrix());
+
+			// Calculate pre-multiplied transformation matrix
+			// mB = mT * mP (mB current matrix, mT new, mP parent matrix)
+			// mP^(-1) * mB = mT
+
+			// {
+			// final var mat1 = bone.getTransformationMatrix(0);
+			// final var mat2 = bone.getTransformationMatrix(1);
+			// final var mat3 = multiply(mat1, mat2);
+			// System.out.println(mat3);
+			// }
+		}
+	}
+
+	private void writeMeshData() throws IOException {
+		final var modelGeometry = this.model.getGeometry();
+		final var meshes = modelGeometry.getMeshes();
+
+		if (meshes.isEmpty()) {
+			return; // done
+		}
+
+		final var meshWriter = new MeshWriter(this.model);
+		for (final var mesh : meshes) {
+			writeMeshData(mesh, meshWriter);
+		}
+	}
+
+	private void writeMeshData(ModelMesh mesh, MeshWriter meshWriter) throws IOException {
+		// write binary data
+		final var geometryWrite = writeToBinary((writer, position) -> {
+			meshWriter.writeGeometry(mesh, writer);
+		});
+
+		final var indexWrite = writeToBinary((writer, position) -> {
+			meshWriter.writeIndices(mesh, writer);
+		});
+
+		// create geometry and indices view
+		final var geoBufferViewIdx = GltfHelper.addBufferView(this.gltfModel, geometryWrite.writeStart, geometryWrite.writeLength);
+		final var geoBufferView = this.gltfModel.getBufferViews().get(geoBufferViewIdx);
+		geoBufferView.setByteStride(meshWriter.getVertexWriteSize());
+		geoBufferView.setName(String.format("bufferview_geo_%d", mesh.getMeshIndex()));
+
+		final var indicesViewIdx = GltfHelper.addBufferView(this.gltfModel, indexWrite.writeStart, indexWrite.writeLength);
+		final var indicesView = this.gltfModel.getBufferViews().get(indicesViewIdx);
+		indicesView.setName(String.format("bufferview_idx_%d", mesh.getMeshIndex()));
+
+		// create view accessors
+		final var accessorCount = GltfHelper.getAccessorCount(this.gltfModel);
+		final var fieldAccessors = meshWriter.getVertexFields(); // Ids will start here and use fieldAccessor.length + 1 (indices) numbers
+
+		for (final var field : fieldAccessors) {
+			final var idx = GltfHelper.addAccessor(this.gltfModel, field, validateIntegerLimit(mesh.getVertexCount()));
+			final var accessor = this.gltfModel.getAccessors().get(idx);
+			accessor.setName(String.format("accessor_%d_%s", mesh.getMeshIndex(), field.getNameShort()));
+			accessor.setBufferView(geoBufferViewIdx);
+		}
+
+		final var indicesAccessorIdx = GltfHelper.addAccessor(this.gltfModel, GlTFType.SCALAR, GlTFComponentType.UINT32);
+		final var indicesAccessor = this.gltfModel.getAccessors().get(indicesAccessorIdx);
+		indicesAccessor.setName(String.format("accessor_idx_%d", mesh.getMeshIndex()));
+		indicesAccessor.setBufferView(indicesViewIdx);
+		indicesAccessor.setCount(validateIntegerLimit(mesh.getIndexCount()));
+		indicesAccessor.setMax(new Number[] { meshWriter.getIndexUpperBound() });
+		indicesAccessor.setMin(new Number[] { meshWriter.getIndexLowerBound() });
+
+		// create mesh primitives and link it to accessors
+		final var gltfMeshPrimitive = new MeshPrimitive();
+		for (int i = 0; i < fieldAccessors.length; ++i) {
+			final var field = fieldAccessors[i];
+			gltfMeshPrimitive.addAttributes(field.getAttributeKey(), accessorCount + i);
+		}
+
+		gltfMeshPrimitive.setMode(GlTFMode.TRIANGLES.getId());
+		gltfMeshPrimitive.setIndices(accessorCount + fieldAccessors.length);
+		if (isExportTextures()) {
+			gltfMeshPrimitive.setMaterial(mesh.getMaterialReference());
+		}
+
+		final var nameSuffix = computeMeshNodeSuffix(mesh);
+
+		// create mesh with mesh primitive
+		final var gltfMeshIdx = GltfHelper.addMesh(this.gltfModel);
+		final var gltfMesh = this.gltfModel.getMeshes().get(gltfMeshIdx);
+
+		gltfMesh.setName("mesh" + nameSuffix);
+		gltfMesh.addPrimitives(gltfMeshPrimitive);
+
+		// add mesh to a new node and add node to scene
+		final var gltfNodeIdx = GltfHelper.getNodeCount(this.gltfModel);
+		final var gltfNode = new Node();
+		gltfNode.setMesh(mesh.getMeshIndex());
+		gltfNode.setName("node" + nameSuffix);
+		if (isExportSkeleton()) {
+			gltfNode.setSkin(0);
+		}
+
+		this.gltfModel.addNodes(gltfNode);
+		GltfHelper.getRootNode(this.gltfModel).addChildren(gltfNodeIdx);
+	}
+
+	private void writeTextureData() throws IOException {
+		if (this.textureDirectory == null) {
+			this.textureDirectory = getOutputDirectory().resolve(getModelName() + "_textures");
+			Files.createDirectories(this.textureDirectory);
+			if (!Files.isDirectory(this.textureDirectory)) {
+				throw new IOException("Unable to create texture directory '" + this.textureDirectory + "'");
+			}
+
+			this.textureManager = new TextureManager(this.textureDirectory, this.gltfModel, this.monitor);
+		}
+
+		for (final var textures : this.model.getTextures()) {
+			final var texturePath = textures.getTexturePath();
+			this.textureManager.loadTextureIntoModel(texturePath);
 		}
 
 	}
 
-	private void prepareLookups() {
-		materialLookUp = new ArrayList<>(10);
-		textureLookUpByURI = new HashMap<>();
-		textureResources = new ArrayList<>(20);
-		boneIndexToNodeIndexLookUp = new Bi2NiLookUp();
-	}
+	private void writeMaterialData() throws IOException {
+		final var textures = this.model.getTextures();
+		final var materials = this.model.getMaterials();
 
-	private void clearLookups() {
-		materialLookUp = null;
-		textureLookUpByURI = null;
-		textureResources = null;
-		boneIndexToNodeIndexLookUp = null;
-	}
+		for (final var material : materials) {
+			final var matDescriptions = material.getMaterialDescriptions();
+			final var gltfMaterial = new Material();
+			this.gltfModel.addMaterials(gltfMaterial);
 
-	private void clearExportModel() {
-		model = null;
-	}
+			for (final var matDescription : matDescriptions) {
+				if (textures.size() > matDescription.getTextureReferenceA()) {
+					final var refTexture = textures.get(matDescription.getTextureReferenceA());
+					final var gltfTexIndices = this.textureManager.getGltfTextureIndices(refTexture.getTexturePath());
+					if (gltfTexIndices.length != 0) {
+						final var gltfMatDescription = new MaterialPbrMetallicRoughness();
 
-	private void clearGltf() {
-		gltf = null;
-	}
-
-	private void addTextures() throws IOException {
-		// TODO what a mess
-		final String textureDirName = outputFileName + "_textures";
-		final Path textureDir = outputDirectory.resolve(textureDirName);
-		boolean textureDirCreated = Files.isDirectory(textureDir);
-
-		int counter = 0;
-		for (final ModelTexture textures : model.getTextures()) {
-			final String texturePath = textures.getTexturePath();
-			final ResourceBundle bundle = requestTexture(texturePath);
-
-			String imageName = texturePath;
-			if (imageName.lastIndexOf('\\') >= 0) {
-				imageName = imageName.substring(imageName.lastIndexOf('\\') + 1);
-			}
-
-			if (!textureDirCreated && !bundle.getTextureResources().isEmpty()) {
-				Files.createDirectories(textureDir);
-				textureDirCreated = true;
-			}
-
-			for (final TextureResource texResource : bundle.getTextureResources()) {
-				// TODO any added file needs to be reported
-				final Image image = texResource.writeImageTo(textureDir, outputFileName);
-				if (image.getBufferView() == null) {
-					// this is has to be done because of a bug in de.javagl.jgltf.model.io.GltfModelWriter.GltfModelWriter(), which does not accept an image
-					// without a bufferview, even while it's not even using one.
-					image.setBufferView(0);
-					image.setName(imageName);
-				}
-				gltf.addImages(image);
-
-				final Texture texture = new Texture();
-				texture.setSource(counter++);
-				gltf.addTextures(texture);
-			}
-
-		}
-	}
-
-	private void addMaterials() {
-		final List<ModelTexture> textures = model.getTextures();
-		for (final ModelMaterial modelMaterial : model.getMaterials()) {
-			final List<ModelMaterialDescription> modelMaterialDescriptions = modelMaterial.getMaterialDescriptions();
-			materialLookUp.add(new LookupIndex(getLastUsedIndex(materialLookUp), modelMaterialDescriptions.size()));
-
-			for (final ModelMaterialDescription modelMaterialDescription : modelMaterialDescriptions) {
-				final Material material = new Material();
-
-				if (textures.size() > modelMaterialDescription.getTextureReferenceA()) {
-					final ModelTexture referenceTexture = textures.get(modelMaterialDescription.getTextureReferenceA());
-					final int[] textureIndices = requestTextureIndices(referenceTexture.getTexturePath());
-
-					if (textureIndices.length != 0) {
-						final MaterialPbrMetallicRoughness materialPbrMetallicRoughness = new MaterialPbrMetallicRoughness();
 						{ // diffuse
-							final TextureInfo textureInfo = new TextureInfo();
-							textureInfo.setIndex(textureIndices[0]);
-							materialPbrMetallicRoughness.setBaseColorTexture(textureInfo);
+							final var gltfTexInfo = new TextureInfo();
+							gltfTexInfo.setIndex(gltfTexIndices[0]);
+							gltfMatDescription.setBaseColorTexture(gltfTexInfo);
 						}
 
-						if (textureIndices.length >= 2) { // Roughness
-							final TextureInfo textureInfo = new TextureInfo();
-							textureInfo.setIndex(textureIndices[1]);
-							materialPbrMetallicRoughness.setMetallicRoughnessTexture(textureInfo);
+						if (gltfTexIndices.length >= 2) { // Roughness (in some cases?)
+							final var gltfTexInfo = new TextureInfo();
+							gltfTexInfo.setIndex(gltfTexIndices[1]);
+							gltfMatDescription.setMetallicRoughnessTexture(gltfTexInfo);
 						}
 
-						material.setPbrMetallicRoughness(materialPbrMetallicRoughness);
+						gltfMaterial.setPbrMetallicRoughness(gltfMatDescription);
 					}
 				}
 
-				if (textures.size() > modelMaterialDescription.getTextureReferenceB()) {
-					final ModelTexture referenceTexture = textures.get(modelMaterialDescription.getTextureReferenceB());
-					final int[] textureIndices = requestTextureIndices(referenceTexture.getTexturePath());
-					if (textureIndices.length != 0) {
-						{ // normal
-							final MaterialNormalTextureInfo normal = new MaterialNormalTextureInfo();
-							normal.setIndex(textureIndices[0]);
-							material.setNormalTexture(normal);
-						}
+				if (textures.size() > matDescription.getTextureReferenceB()) {
+					final var refTexture = textures.get(matDescription.getTextureReferenceB());
+					final var gltfTexIndices = this.textureManager.getGltfTextureIndices(refTexture.getTexturePath());
 
-						{ // occlusion
-							final MaterialOcclusionTextureInfo occlusion = new MaterialOcclusionTextureInfo();
-							occlusion.setIndex(textureIndices[1]);
-							material.setOcclusionTexture(occlusion);
-						}
+					if (gltfTexIndices.length > 0) { // normal
+						final MaterialNormalTextureInfo normal = new MaterialNormalTextureInfo();
+						normal.setIndex(gltfTexIndices[0]);
+						gltfMaterial.setNormalTexture(normal);
+					}
 
-						{ // emissive
-							final TextureInfo textureInfo = new TextureInfo();
-							textureInfo.setIndex(textureIndices[2]);
-							material.setEmissiveTexture(textureInfo);
-							material.setEmissiveFactor(new float[] { 1f, 1f, 1f });
-						}
+					if (gltfTexIndices.length > 1) { // occlusion (sometimes?)
+						final MaterialOcclusionTextureInfo occlusion = new MaterialOcclusionTextureInfo();
+						occlusion.setIndex(gltfTexIndices[1]);
+						gltfMaterial.setOcclusionTexture(occlusion);
+					}
+
+					if (gltfTexIndices.length > 2) { // emissive (sometimes?)
+						final TextureInfo gltfTexInfo = new TextureInfo();
+						gltfTexInfo.setIndex(gltfTexIndices[2]);
+						gltfMaterial.setEmissiveTexture(gltfTexInfo);
+						gltfMaterial.setEmissiveFactor(new float[] { 1f, 1f, 1f });
 					}
 				}
-				gltf.addMaterials(material);
 			}
 		}
 	}
 
-	private int[] requestTextureIndices(String textureId) {
-		return textureLookUpByURI.getOrDefault(textureId, new int[0]);
+	private String computeMeshNodeSuffix(ModelMesh mesh) {
+		return String.format("_%s_%d", this.modelName, mesh.getMeshIndex());
 	}
 
-	private ResourceBundle requestTexture(String textureId) {
-		if (textureLookUpByURI.containsKey(textureId)) {
-			final int[] indices = textureLookUpByURI.get(textureId);
-			final ResourceBundle resourceBundle = new ResourceBundle();
-			for (final int idx : indices) {
-				resourceBundle.addTextureResource(textureResources.get(idx));
-			}
-			return resourceBundle;
+	private static interface WriteJob {
+		void task(BinaryWriter writer, long position) throws IOException;
+	}
+
+	private static class WriteResult {
+		public WriteResult(int start, int length) {
+			this.writeStart = start;
+			this.writeLength = length;
 		}
 
-		final ResourceBundle resourceBundle = new ResourceBundle();
+		public final int writeStart;
+		public final int writeLength;
+	}
 
-		if ((textureId == null) || textureId.isEmpty()) {
+	private WriteResult writeToBinary(WriteJob fun) throws IOException {
+		long writeStart = 0;
+		long writeEnd = 0;
+		long length = 0;
 
-		} else if (monitor != null) {
-			try {
-				monitor.requestTextures(textureId, resourceBundle); // TODO the way this works is not ideal yet
-			} catch (final Exception e) {
-				throw new OnTextureRequestException(e);
+		try (var channel = getBinaryChannel()) {
+			try (var writer = getBinaryChannelWriter(channel)) {
+				writeStart = channel.position();
+				fun.task(writer, writeStart);
+				writer.flush();
+				writeEnd = channel.position();
+				length = channel.size();
 			}
+		}
+
+		updateGltfBuffer(validateIntegerLimit(length));
+		return new WriteResult(validateIntegerLimit(writeStart), validateIntegerLimit(writeEnd - writeStart));
+	}
+
+	private void updateGltfBuffer(int length) {
+		if (GltfHelper.getBufferCount(this.gltfModel) == 0) {
+			final var bufferUri = getBinaryFile().getFileName().toString();
+			GltfHelper.addBuffer(this.gltfModel, bufferUri, length);
+			this.gltfModel.getBuffers().get(0).setName("binary_buffer");
 		} else {
-
+			this.gltfModel.getBuffers().get(0).setByteLength(length);
 		}
-
-		final List<TextureResource> textureResources = resourceBundle.getTextureResources();
-		int startIndex = this.textureResources.size();
-		final int[] indices = new int[textureResources.size()];
-		int idx = 0;
-		for (final TextureResource res : textureResources) {
-			indices[idx++] = startIndex++;
-			this.textureResources.add(res);
-		}
-		textureLookUpByURI.put(textureId, indices);
-
-		return resourceBundle;
 	}
 
-	private void prepareDefaultScene() {
-		final Scene scene = new Scene();
-		scene.addNodes(0);
-		gltf.addScenes(scene);
-		gltf.setScene(0);
-
-		baseNode = new Node();
-		baseNode.setName(outputFileName);
-		gltf.addNodes(baseNode);
+	private SeekableByteChannel getBinaryChannel() throws IOException {
+		ensureBinaryIsAvailable();
+		return Files.newByteChannel(getBinaryFile(), StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.APPEND);
 	}
 
-	private void writeMeshToBuffer(ModelMesh modelMesh) throws IOException {
+	private BinaryWriter getBinaryChannelWriter(WritableByteChannel channel) throws IOException {
+		final var buffer = ByteBuffer.allocateDirect(1024 * 1024 * 1).order(ByteOrder.LITTLE_ENDIAN);
+		return new WritableByteChannelBinaryWriter(channel, buffer);
+	}
 
-		final SeekableByteChannel channel = Files.newByteChannel(binaryBufferFile, StandardOpenOption.CREATE, StandardOpenOption.WRITE,
-				StandardOpenOption.APPEND);
-
-		for (final VertexField vertexField : fieldAccessors) {
-			vertexField.resetField();
+	// TODO
+	private int validateIntegerLimit(long value) {
+		if (value < 0 || value > Integer.MAX_VALUE) {
+			throw new IntegerOverflowException(String.format("jglTF only supports values within a size of %d bytes", Integer.MAX_VALUE));
 		}
+		return (int) value;
+	}
 
-		try (BinaryWriter writer = new WritableByteChannelBinaryWriter(channel, ByteBuffer.allocateDirect(1024 * 1024 * 1).order(ByteOrder.LITTLE_ENDIAN))) {
-			for (final ModelVertex vertex : modelMesh.getVertices()) {
-				for (final VertexField vertexField : fieldAccessors) {
-					vertexField.writeTo(writer, vertex);
+	private void ensureBinaryIsAvailable() throws IOException {
+		if (this.binaryBufferFile == null) {
+			final String binaryName = getModelName() + ".bin";
+			this.binaryBufferFile = getOutputDirectory().resolve(binaryName);
+
+			Files.deleteIfExists(this.binaryBufferFile);
+			Files.createFile(this.binaryBufferFile);
+
+			if (this.monitor != null) {
+				try {
+					this.monitor.newFileCreated(this.binaryBufferFile);
+				} catch (final Throwable t) {
+					throw new OnAddFileException(t);
 				}
 			}
-
-			minIndex = Integer.MAX_VALUE;
-			maxIndex = 0;
-
-			for (final int index : modelMesh.getIndices()) {
-				switch (INDEX_COMPONENT_TYPE) {
-					case UINT32:
-						writer.writeInt32(index);
-						break;
-					case UINT16:
-						writer.writeInt16(index);
-						break;
-					default:
-						throw new IllegalStateException("TODO");
-				}
-
-				minIndex = Math.min(minIndex, index);
-				maxIndex = Math.max(maxIndex, index);
-			}
-
-			writer.flush();
-
-			final long writtenBytes = writer.getPosition();
-			if ((writtenBytes < 0) || (writtenBytes > Integer.MAX_VALUE)) {
-				throw new IntegerOverflowException(String.format("jglTF only supports binary buffer within a size of %d bytes", Integer.MAX_VALUE));
-			}
-
-			if ((gltf.getBuffers() != null) && !gltf.getBuffers().isEmpty()) {
-				final Buffer buffer = gltf.getBuffers().get(0); // only supports one buffer
-				buffer.setByteLength(buffer.getByteLength() + (int) writtenBytes);
-			} else {
-				final Buffer buffer = new Buffer();
-				buffer.setByteLength((int) writtenBytes);
-				buffer.setUri(binaryBufferFile.getFileName().toString());
-				buffer.setName("binary_buffer");
-				gltf.addBuffers(buffer);
-			}
 		}
 	}
 
-	private void prepareBinaryBuffer() throws IOException {
-		final String binaryName = outputFileName + ".buffer.bin";
-		binaryBufferFile = outputDirectory.resolve(binaryName);
-
-		Files.deleteIfExists(binaryBufferFile);
-		Files.createFile(binaryBufferFile);
-
-		if (monitor != null) {
-			try {
-				monitor.newFile(binaryBufferFile);
-			} catch (final Throwable t) {
-				throw new OnAddFileException(t);
-			}
-		}
+	private Path getBinaryFile() {
+		return this.binaryBufferFile;
 	}
 
-	private void setExportModel(Model model) {
-		if (model == null) {
-			throw new IllegalArgumentException("'model' must not be null");
-		}
-		this.model = model;
+	private Path getOutputDirectory() {
+		return this.outputDirectory;
 	}
 
-	private void setOutputFileName(String fileName) {
-		if (fileName == null) {
-			throw new IllegalArgumentException("'fileName' must not be null");
-		}
-		outputFileName = fileName;
-	}
-
-	private void setOutputDirectory(Path directory) {
-		if (directory == null) {
-			throw new IllegalArgumentException("'directory' must not be null");
-		}
-		outputDirectory = directory;
-	}
-
-	private int getOffsetWithinVertex(LinkedList<VertexField> vertexFields) {
-		int offset = 0;
-		if (!vertexFields.isEmpty()) {
-			final VertexField lastField = vertexFields.getLast();
-			offset = lastField.getFieldOffset() + lastField.getSizeInBytes();
-		}
-		return offset;
-	}
-
-	private void computeVertex() {
-		final ModelGeometry modelGeometry = model.getGeometry();
-
-		final LinkedList<VertexField> vertexFields = new LinkedList<>();
-
-		if (modelGeometry.hasVertexLocation()) {
-			final int offset = getOffsetWithinVertex(vertexFields);
-			final VertexField field = new VertexFieldPosition(offset);
-			vertexFields.add(field);
-		}
-
-		if (modelGeometry.hasVertex1TextureCoords() || modelGeometry.hasVertex2TextureCoords()) {
-			final int offset = getOffsetWithinVertex(vertexFields);
-			final VertexField field = new VertexFieldTexCoords1(offset);
-			vertexFields.add(field);
-		}
-
-		if (modelGeometry.hasVertex2TextureCoords()) {
-			final int offset = getOffsetWithinVertex(vertexFields);
-			final VertexField field = new VertexFieldTexCoords2(offset);
-			vertexFields.add(field);
-		}
-
-		if (modelGeometry.hasVertexBoneIndices()) {
-			final int offset = getOffsetWithinVertex(vertexFields);
-			final VertexField field = new VertexFieldBoneIndices(offset, model.getBoneLookUp());
-			vertexFields.add(field);
-		}
-
-		if (modelGeometry.hasVertexBoneWeights()) {
-			final int offset = getOffsetWithinVertex(vertexFields);
-			final VertexField field = new VertexFieldBoneWeights(offset);
-			vertexFields.add(field);
-		}
-
-		fieldAccessors = vertexFields.toArray(new VertexField[vertexFields.size()]);
-		vertexSizeInBytes = 0;
-		for (final VertexField vertexField : fieldAccessors) {
-			vertexSizeInBytes += vertexField.getSizeInBytes();
-		}
-	}
-
-	private void addMeshToScene(ModelMesh modelMesh, int meshId) {
-		final String name = String.format("_%s_%d", outputFileName, modelMesh.getMeshIndex());
-
-		final Node node = new Node();
-		node.setMesh(meshId);
-		node.setName("node" + name);
-		node.setSkin(0);
-		gltf.addNodes(node);
-		baseNode.addChildren(gltf.getNodes().size() - 1);
-
-		final Mesh mesh = new Mesh();
-		gltf.addMeshes(mesh);
-
-		mesh.setName("mesh" + name);
-		final List<MeshPrimitive> primitives = new ArrayList<>(1);
-		{
-			final MeshPrimitive primitive = new MeshPrimitive();
-			primitive.setMode(GlTFMode.TRIANGLES.getId());
-			final int baseAccessorId = meshId * (fieldAccessors.length + 1);
-			for (int i = 0; i < fieldAccessors.length; ++i) {
-				final VertexField field = fieldAccessors[i];
-				primitive.addAttributes(field.getAttributeKey(), baseAccessorId + i);
-			}
-			primitive.setIndices(baseAccessorId + fieldAccessors.length);
-			primitive.setMaterial(materialLookUp.get(modelMesh.getMaterialReference()).index);
-			primitives.add(primitive);
-		}
-		mesh.setPrimitives(primitives);
-
-	}
-
-	private void addAccessor(ModelMesh modelMesh, int meshId) {
-		addFieldAccessor(modelMesh, meshId);
-		addIndexAccessor(modelMesh, meshId);
-	}
-
-	private void addFieldAccessor(ModelMesh modelMesh, int meshId) {
-		final long vertexCount = modelMesh.getVertexCount();
-		if ((vertexCount < 0) || (vertexCount > Integer.MAX_VALUE)) {
-			throw new IntegerOverflowException(String.format("jglTF only supports accessor with a element limit of %d", Short.MAX_VALUE));
-		}
-
-		final int bufferViewIndex = meshId * 2;
-
-		for (int i = 0; i < fieldAccessors.length; i++) {
-			final VertexField vertexField = fieldAccessors[i];
-
-			final Accessor accessor = new Accessor();
-			gltf.addAccessors(accessor);
-			final int accessorId = (meshId * (fieldAccessors.length + 1)) + i;
-			accessor.setName(String.format("accessor_%s_%d", vertexField.getNameShort(), accessorId));
-
-			accessor.setBufferView(bufferViewIndex);
-			accessor.setByteOffset(vertexField.getFieldOffset());
-
-			accessor.setComponentType(vertexField.getComponentType()); // float
-			accessor.setType(vertexField.getType());
-			accessor.setCount((int) vertexCount);
-
-			if (vertexField.hasMinimum()) {
-				accessor.setMin(vertexField.getMinimum());
-			}
-
-			if (vertexField.hasMaximum()) {
-				accessor.setMax(vertexField.getMaximum());
-			}
-		}
-	}
-
-	private void addIndexAccessor(ModelMesh modelMesh, int meshId) {
-		final int bufferViewIndex = meshId * 2;
-
-		final Accessor idxAccessor = new Accessor();
-		gltf.addAccessors(idxAccessor);
-
-		final long indexCount = modelMesh.getIndexCount();
-		if ((indexCount < 0) || (indexCount > Integer.MAX_VALUE)) {
-			throw new IntegerOverflowException(String.format("jglTF only supports accessor with a element limit of %d", Integer.MAX_VALUE));
-		}
-
-		final int accessorId = (meshId * (fieldAccessors.length + 1)) + fieldAccessors.length;
-		idxAccessor.setName(String.format("accessor_idx_%d", accessorId));
-		idxAccessor.setBufferView(bufferViewIndex + 1);
-		idxAccessor.setByteOffset(0);
-		idxAccessor.setCount((int) indexCount);
-		idxAccessor.setComponentType(GlTFComponentType.UINT32.getId());
-		idxAccessor.setType(GlTFType.SCALAR.getId());
-		idxAccessor.setMax(new Number[] { maxIndex });
-		idxAccessor.setMin(new Number[] { minIndex });
-	}
-
-	private long addBufferView(ModelMesh modelMesh, int meshId, long bufferViewOffset) {
-		bufferViewOffset = addBufferViewGeometry(modelMesh, meshId, bufferViewOffset);
-		bufferViewOffset = addBufferViewIndices(modelMesh, meshId, bufferViewOffset);
-		return bufferViewOffset;
-	}
-
-	private long addBufferViewGeometry(ModelMesh modelMesh, int meshId, long bufferViewOffset) {
-		final long vertexByteCount = modelMesh.getVertexCount() * vertexSizeInBytes;
-
-		if ((bufferViewOffset < 0) || (bufferViewOffset > Integer.MAX_VALUE)) {
-			throw new IntegerOverflowException(String.format("jglTF only supports binary buffer within a size of %d bytes", Integer.MAX_VALUE));
-		}
-
-		if ((vertexByteCount < 0) || (vertexByteCount > Integer.MAX_VALUE)) {
-			throw new IntegerOverflowException(String.format("jglTF only supports bufferviews within a size of %d bytes", Integer.MAX_VALUE));
-		}
-
-		final BufferView geometryBufferView = new BufferView();
-		gltf.addBufferViews(geometryBufferView);
-
-		geometryBufferView.setBuffer(0);
-		geometryBufferView.setByteOffset((int) bufferViewOffset);
-		geometryBufferView.setByteLength((int) vertexByteCount);
-		geometryBufferView.setByteStride(vertexSizeInBytes);
-		geometryBufferView.setName(String.format("bufferview_geo_%d", meshId));
-
-		bufferViewOffset += vertexByteCount;
-		return bufferViewOffset;
-	}
-
-	private long addBufferViewIndices(ModelMesh modelMesh, int meshId, long bufferViewOffset) {
-		final long indexByteCount = modelMesh.getIndexCount() * INDEX_COMPONENT_TYPE.getByteCount();
-
-		if ((bufferViewOffset < 0) || (bufferViewOffset > Integer.MAX_VALUE)) {
-			throw new IntegerOverflowException(String.format("jglTF only supports binary buffer within a size of %d bytes", Integer.MAX_VALUE));
-		}
-
-		if ((indexByteCount < 0) || (indexByteCount > Integer.MAX_VALUE)) {
-			throw new IntegerOverflowException(String.format("jglTF only supports bufferviews within a size of %d bytes", Integer.MAX_VALUE));
-		}
-
-		final BufferView indexBufferView = new BufferView();
-		gltf.addBufferViews(indexBufferView);
-
-		indexBufferView.setBuffer(0);
-		indexBufferView.setByteOffset((int) bufferViewOffset);
-		indexBufferView.setByteLength((int) indexByteCount);
-		indexBufferView.setName(String.format("bufferview_idx_%d", meshId));
-
-		bufferViewOffset += indexByteCount;
-		return bufferViewOffset;
-	}
-
-	private void prepareOutputDirectory() throws IOException {
-		Files.createDirectories(outputDirectory);
-	}
-
-	private void prepareGltf() {
-		gltf = new GlTF();
-
-		final Asset asset = new Asset();
-		asset.setVersion("2.0");
-		asset.setGenerator("nexusvault-gltf-exporter");
-		gltf.setAsset(asset);
+	private String getModelName() {
+		return this.modelName;
 	}
 
 	private void writeGltf() throws IOException {
-		final GltfAsset gltfAsset = new GltfAssetV2(gltf, null);
+		Files.createDirectories(getOutputDirectory());
+		final GltfAsset gltfAsset = new GltfAssetV2(this.gltfModel, null);
 		final GltfModel gltfModel = GltfModels.create(gltfAsset);
 		final GltfModelWriter gltfModelWriter = new GltfModelWriter();
-		final Path outputFile = outputDirectory.resolve(outputFileName + ".gltf");
+		final Path outputFile = getOutputDirectory().resolve(getModelName() + ".gltf");
 		gltfModelWriter.write(gltfModel, outputFile.toFile());
 	}
+
 }

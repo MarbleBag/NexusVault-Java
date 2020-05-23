@@ -1,6 +1,6 @@
-package nexusvault.format.m3.export.gltf;
+package nexusvault.format.m3.export.gltf.internal;
 
-enum GlTFType {
+public enum GlTFType {
 	SCALAR("SCALAR", 1),
 	VEC2("VEC2", 2),
 	VEC3("VEC3", 3),
@@ -18,10 +18,10 @@ enum GlTFType {
 	}
 
 	public String getId() {
-		return id;
+		return this.id;
 	}
 
 	public int getComponentCount() {
-		return componentCount;
+		return this.componentCount;
 	}
 }

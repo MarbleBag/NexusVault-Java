@@ -1,6 +1,6 @@
-package nexusvault.format.m3.export.gltf;
+package nexusvault.format.m3.export.gltf.internal;
 
-enum GlTFMeshAttribute {
+public enum GlTFMeshAttribute {
 	POSITION("POSITION", 1),
 	TEXCOORD("TEXCOORD", 2),
 	JOINTS("JOINTS_0", 1),
@@ -15,6 +15,6 @@ enum GlTFMeshAttribute {
 	}
 
 	public String getAttributeKey() {
-		return id;
+		return this.id;
 	}
 }

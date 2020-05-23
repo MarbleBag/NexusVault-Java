@@ -1,19 +1,22 @@
-package nexusvault.format.m3.export.gltf;
+package nexusvault.format.m3.export.gltf.internal.vertex;
 
 import kreed.io.util.BinaryWriter;
 import nexusvault.format.m3.ModelVertex;
+import nexusvault.format.m3.export.gltf.internal.GlTFComponentType;
+import nexusvault.format.m3.export.gltf.internal.GlTFMeshAttribute;
+import nexusvault.format.m3.export.gltf.internal.GlTFType;
 
 /**
  * Abstraction to access various fields of a vertex.
  */
-abstract class VertexField {
+public abstract class VertexFieldWriter {
 	private final GlTFComponentType componentType;
 	private final GlTFType type;
 	private final GlTFMeshAttribute attribute;
 	private final String nameShort;
 	private final int offsetWithinVertex;
 
-	public VertexField(String nameShort, GlTFComponentType componentType, GlTFType type, GlTFMeshAttribute attribute, int offsetWithinVertex) {
+	public VertexFieldWriter(String nameShort, GlTFComponentType componentType, GlTFType type, GlTFMeshAttribute attribute, int offsetWithinVertex) {
 		super();
 		this.nameShort = nameShort;
 		this.componentType = componentType;
@@ -22,34 +25,33 @@ abstract class VertexField {
 		this.offsetWithinVertex = offsetWithinVertex;
 	}
 
-	public int getComponentType() {
-		return componentType.getId();
+	public GlTFComponentType getComponentType() {
+		return this.componentType;
 	}
 
-	public String getType() {
-		return type.getId();
+	public GlTFType getType() {
+		return this.type;
 	}
 
 	public String getAttributeKey() {
-		return attribute.getAttributeKey();
+		return this.attribute.getAttributeKey();
 	}
 
 	public String getNameShort() {
-		return nameShort;
+		return this.nameShort;
 	}
 
 	public final int getSizeInBytes() {
-		return componentType.getByteCount() * type.getComponentCount();
+		return this.componentType.getByteCount() * this.type.getComponentCount();
 	}
 
 	public final int getFieldOffset() {
-		return offsetWithinVertex;
+		return this.offsetWithinVertex;
 	}
 
-	abstract public void writeTo(BinaryWriter writer, ModelVertex vertex);
+	abstract protected void writeTo(BinaryWriter writer, ModelVertex vertex);
 
 	public void resetField() {
-		// TODO Auto-generated method stub
 
 	}
 
