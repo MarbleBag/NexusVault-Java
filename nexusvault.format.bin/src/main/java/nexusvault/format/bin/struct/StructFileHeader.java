@@ -12,7 +12,7 @@ public final class StructFileHeader {
 		System.out.println(StructUtil.analyzeStruct(StructFileHeader.class, true));
 	}
 
-	public static final int SIGNATURE = ('L' << 24) | ('T' << 16) | ('E' << 8) | 'X';
+	public static final int SIGNATURE = 'L' << 24 | 'T' << 16 | 'E' << 8 | 'X';
 
 	public static final int SIZE_IN_BYTES = StructUtil.sizeOf(StructFileHeader.class);
 
@@ -38,7 +38,7 @@ public final class StructFileHeader {
 	public long languageType;
 
 	/**
-	 * UTF16 encoded, 2 bytes per character, 0 terminated
+	 * UTF16 encoded, 0 terminated
 	 */
 	@Order(4)
 	@StructField(UBIT_64)
@@ -49,7 +49,7 @@ public final class StructFileHeader {
 	public long languageTagNameOffset;
 
 	/**
-	 * UTF16 encoded, 2 bytes per character, 0 terminated
+	 * UTF16 encoded, 0 terminated
 	 */
 	@Order(6)
 	@StructField(UBIT_64)
@@ -60,7 +60,7 @@ public final class StructFileHeader {
 	public long languageShortNameOffset;
 
 	/**
-	 * UTF16 encoded, 2 bytes per character, 0 terminated
+	 * UTF16 encoded, 0 terminated
 	 */
 	@Order(8)
 	@StructField(UBIT_64)
@@ -79,7 +79,7 @@ public final class StructFileHeader {
 	public long entryOffset;
 
 	/**
-	 * number of characters, each is UTF16 encoded with 2 bytes
+	 * number of characters, each is UTF16 encoded
 	 */
 	@Order(12)
 	@StructField(UBIT_64)
