@@ -13,6 +13,8 @@ package nexusvault.format.m3;
  * <li><b>90, 93, 94, 95</b>
  * <li><b>97 -&gt; 255 </b>
  * </ul>
+ * 
+ * @see ModelCluster.tbl
  */
 public enum MeshToBodyPart {
 	MISSING(-1),
