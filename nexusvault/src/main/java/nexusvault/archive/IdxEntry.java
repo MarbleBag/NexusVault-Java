@@ -1,5 +1,8 @@
 package nexusvault.archive;
 
+/**
+ * Represents an entry in a {@link NexusArchive}
+ */
 public interface IdxEntry {
 
 	/**

@@ -2,6 +2,10 @@
 All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com)
 
+## [3.1.0] - 2020-08-27
+### Added
+- Retrieval of data from a NexusArchive is thread safe
+
 ## [3.0.0] - 2019-08-27
 ### Added
 - An archive contains now informations about its source

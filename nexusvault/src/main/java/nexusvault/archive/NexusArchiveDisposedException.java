@@ -1,5 +1,8 @@
 package nexusvault.archive;
 
+/**
+ * Signals that at one point a function tried to call a method on a disposed archive
+ */
 public final class NexusArchiveDisposedException extends ArchiveException {
 
 	private static final long serialVersionUID = -1L;
