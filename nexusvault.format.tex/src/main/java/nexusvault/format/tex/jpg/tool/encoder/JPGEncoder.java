@@ -30,17 +30,17 @@ public final class JPGEncoder {
 	}
 
 	public void encode(byte[] image, int imageWidth, int imageHeight, BinaryWriter out) {
-		this.encoder.encode(image, 0, 0, out);
+		this.encoder.encode(image, imageWidth, imageHeight, out);
 	}
 
 	public ByteBuffer encode(byte[] image, int imageWidth, int imageHeight) {
-		final var writeBuffer = ByteBuffer.allocate(image.length * 4);
+		final var writeBuffer = ByteBuffer.allocate(image.length * 4); // estimated size
 		final var writer = new ByteBufferBinaryWriter(writeBuffer);
 		this.encode(image, imageWidth, imageHeight, writer);
 		writer.flush();
 		writeBuffer.flip();
 
-		final var readBuffer = ByteBuffer.allocate(writeBuffer.remaining());
+		final var readBuffer = ByteBuffer.allocate(writeBuffer.remaining()); // allocate new buffer with the correct size
 		readBuffer.put(writeBuffer).rewind();
 		return readBuffer;
 	}

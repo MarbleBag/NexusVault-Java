@@ -2,9 +2,16 @@
 All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com)
 
+## [3.2.0] - 2021-10-18
+### Added
+- TexType.resolve by name
+
+### Fixed
+- An issue where JPGEncoder ignores image width and height 
+
 ## [3.1.1] - 2020-03-15
 ### Fixed
-- Images compressed as jpgs weren't converted correctly when their width and height aren't equal.
+- Images compressed as jpgs weren't converted correctly when their width and height were different.
 
 ## [3.1.0] - 2020-03-07
 ### Added

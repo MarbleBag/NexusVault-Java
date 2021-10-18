@@ -64,7 +64,17 @@ public enum TexType {
 		return resolve(header.format, header.isCompressed, header.compressionFormat);
 	}
 
-	private static TexType resolve(int format, boolean isCompressed, int compressionFormat) {
+	public static TexType resolve(String name) {
+		name = name.toUpperCase();
+		for (final TexType f : TexType.values()) {
+			if (f.name().toUpperCase().equals(name)) {
+				return f;
+			}
+		}
+		return UNKNOWN;
+	}
+
+	public static TexType resolve(int format, boolean isCompressed, int compressionFormat) {
 		for (final TexType f : TexType.values()) {
 			if (f.matches(format, isCompressed, compressionFormat)) {
 				return f;

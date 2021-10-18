@@ -133,7 +133,6 @@ public final class JPGImageEncoder {
 			final int[] tmpStore = new int[Constants.NUMBER_OF_LAYERS];
 
 			for (int y = 0; y < this.regionHeight; ++y) {
-
 				for (int x = 0; x < this.regionWidth; ++x) {
 					final int dstIdx = this.regionLookup[y][x];
 					final int srcIdx = this.imageLookup[y][x] + srcIdxStart;
