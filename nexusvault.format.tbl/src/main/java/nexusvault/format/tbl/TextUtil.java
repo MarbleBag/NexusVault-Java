@@ -7,9 +7,10 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
 import kreed.io.util.BinaryReader;
+import kreed.io.util.BinaryWriter;
 
 // TODO move to shared
-abstract class TextUtil {
+public abstract class TextUtil {
 	private TextUtil() {
 
 	}
@@ -22,12 +23,19 @@ abstract class TextUtil {
 		return charBuffer.toString();
 	}
 
-	public static String extractNullTerminatedUTF16(BinaryReader reader) {
+	public static int writeUTF16(BinaryWriter writer, String text) {
+		final Charset charset = findCharset(writer);
+		final ByteBuffer encoded = charset.encode(text);
+		final int length = encoded.remaining();
+		writer.writeInt8(encoded.array(), 0, length);
+		return length;
+	}
 
-		final ByteBuffer buffer = ByteBuffer.allocate(64); // small buffer, just big enough to digest most small strings in one go
+	public static String extractNullTerminatedUTF16(BinaryReader reader) {
+		final ByteBuffer buffer = ByteBuffer.allocate(64).order(reader.getOrder()); // small buffer, just big enough to digest most small strings in one go
 		final StringBuilder builder = new StringBuilder(128);
 
-		final Charset charset = findCharset(buffer);
+		final Charset charset = findCharset(reader);
 		boolean isTerminated = false;
 		while (!isTerminated && !reader.isEndOfData()) {
 			final short character = reader.readInt16();
@@ -53,12 +61,22 @@ abstract class TextUtil {
 		return builder.toString();
 	}
 
+	public static int writeNullTerminatedUTF16(BinaryWriter writer, String text) {
+		final var length = writeUTF16(writer, text);
+		writer.writeInt16(0);
+		return length + 2;
+	}
+
 	private static Charset findCharset(ByteBuffer buffer) {
 		return findCharset(buffer.order());
 	}
 
 	private static Charset findCharset(BinaryReader reader) {
 		return findCharset(reader.getOrder());
+	}
+
+	private static Charset findCharset(BinaryWriter writer) {
+		return findCharset(writer.getOrder());
 	}
 
 	private static Charset findCharset(ByteOrder order) {

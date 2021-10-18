@@ -4,6 +4,7 @@ import java.lang.reflect.Field;
 
 import kreed.reflection.struct.StructFactory;
 import kreed.reflection.struct.exception.InvalidStructInstanceException;
+import nexusvault.format.tbl.struct.StructColumnData;
 
 /**
  * Provides a typed {@link GameTable} by reflection. The class which is used for the entries needs to have a public/protected or private constructor with no
@@ -50,11 +51,11 @@ abstract class AbstTypedTable<T> implements GameTable<T>, Iterable<T> {
 
 		for (int fieldIdx = 0; fieldIdx < fields.length; ++fieldIdx) {
 			final Field field = fields[fieldIdx];
-			final StructTableFieldHeader tableField = table.fields[fieldIdx];
+			final StructColumnData tableField = table.fields[fieldIdx];
 
 			Object value = null;
 			final Class<?> fieldClass = field.getType();
-			switch (tableField.getFieldDataType()) {
+			switch (tableField.getDataType()) {
 				case BOOL:
 					if (!validateAssignability(fieldClass, boolean.class, Boolean.class)) {
 						throw new ClassCastException(String.format("Record[%d] Field[%d] is of type %s and can not be assigned to type %s", recordIdx, fieldIdx,

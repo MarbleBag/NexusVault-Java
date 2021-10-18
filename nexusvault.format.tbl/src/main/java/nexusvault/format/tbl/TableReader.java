@@ -7,6 +7,8 @@ import java.util.List;
 import kreed.io.util.BinaryReader;
 import kreed.io.util.ByteBufferBinaryReader;
 import kreed.io.util.Seek;
+import nexusvault.format.tbl.struct.StructColumnData;
+import nexusvault.format.tbl.struct.StructTableFileHeader;
 
 public final class TableReader {
 
@@ -40,7 +42,7 @@ public final class TableReader {
 		final long postHeaderPosition = tableStart + StructTableFileHeader.SIZE_IN_BYTES;
 
 		final StructTableFileHeader tableHeader = loadTableHeader(reader);
-		final StructTableFieldHeader[] tableFields = loadTableFields(tableHeader, postHeaderPosition, reader);
+		final StructColumnData[] tableFields = loadTableFields(tableHeader, postHeaderPosition, reader);
 
 		final List<TableRecord> records = loadTableRecords(tableHeader, tableFields, postHeaderPosition, reader);
 		final int[] lookUps = loadTableLookup(tableHeader, postHeaderPosition, reader);
@@ -63,50 +65,50 @@ public final class TableReader {
 
 	protected StructTableFileHeader loadTableHeader(BinaryReader reader) {
 		final StructTableFileHeader tblHeader = new StructTableFileHeader(reader);
-		final long length = (tblHeader.tableNameLength - 1) * 2;
-		tblHeader.name = TextUtil.extractUTF16(reader, length);
+		final long length = (tblHeader.nameLength - 1) * 2;
+		// tblHeader.name = TextUtil.extractUTF16(reader, length);
 		return tblHeader;
 	}
 
-	protected StructTableFieldHeader[] loadTableFields(StructTableFileHeader header, long postHeaderPosition, BinaryReader reader) {
+	protected StructColumnData[] loadTableFields(StructTableFileHeader header, long postHeaderPosition, BinaryReader reader) {
 		final int fieldHeaderPosition = (int) (postHeaderPosition + header.fieldOffset);
 
-		final StructTableFieldHeader[] fields = new StructTableFieldHeader[(int) header.fieldCount];
+		final StructColumnData[] fields = new StructColumnData[(int) header.fieldCount];
 		for (int i = 0; i < fields.length; ++i) {
-			reader.seek(Seek.BEGIN, fieldHeaderPosition + (i * StructTableFieldHeader.SIZE_IN_BYTES));
-			fields[i] = new StructTableFieldHeader(reader);
+			reader.seek(Seek.BEGIN, fieldHeaderPosition + i * StructColumnData.SIZE_IN_BYTES);
+			fields[i] = new StructColumnData(reader);
 		}
 
 		// data is 16byte aligned, so for an odd number of fields, the data
 		// contains 0-padding to align the following data correctly:
 		// 2*16 - 24 = 8
-		final int offsetPadding = (fields.length % 2) == 0 ? 0 : 8;
-		final int tblNamePosition = fieldHeaderPosition + offsetPadding + (StructTableFieldHeader.SIZE_IN_BYTES * fields.length);
+		final int offsetPadding = fields.length % 2 == 0 ? 0 : 8;
+		final int tblNamePosition = fieldHeaderPosition + offsetPadding + StructColumnData.SIZE_IN_BYTES * fields.length;
 
-		for (final StructTableFieldHeader field : fields) {
-			final StructTableFieldHeader fieldHeader = field;
+		for (final StructColumnData field : fields) {
+			final StructColumnData fieldHeader = field;
 			reader.seek(Seek.BEGIN, tblNamePosition + fieldHeader.nameOffset);
-			fieldHeader.name = TextUtil.extractUTF16(reader, (fieldHeader.nameLength - 1) * 2);
+			// fieldHeader.name = TextUtil.extractUTF16(reader, (fieldHeader.nameLength - 1) * 2);
 		}
 
 		return fields;
 	}
 
-	protected List<TableRecord> loadTableRecords(StructTableFileHeader header, StructTableFieldHeader[] fields, long postHeaderPosition, BinaryReader reader) {
+	protected List<TableRecord> loadTableRecords(StructTableFileHeader header, StructColumnData[] fields, long postHeaderPosition, BinaryReader reader) {
 
 		final long tblRecordPosition = postHeaderPosition + header.recordOffset;
 		final List<TableRecord> records = new ArrayList<>((int) header.recordCount);
 
 		for (int i = 0; i < header.recordCount; ++i) {
-			reader.seek(Seek.BEGIN, tblRecordPosition + (i * header.recordSize));
+			reader.seek(Seek.BEGIN, tblRecordPosition + i * header.recordSize);
 
 			final TableRecord record = new TableRecord(fields.length);
 			records.add(record);
 
 			for (int j = 0; j < fields.length; ++j) {
-				final StructTableFieldHeader field = fields[j];
+				final StructColumnData field = fields[j];
 
-				switch (field.getFieldDataType()) {
+				switch (field.getDataType()) {
 					case INT32:
 						record.data[j] = reader.readInt32();
 						break;
@@ -121,29 +123,24 @@ public final class TableReader {
 						record.data[j] = reader.readInt64();
 						break;
 					case STRING:
-						final long offsetA = reader.readUInt32();
-						final long offsetB = reader.readUInt32();
-						final long strOffset = Math.max(offsetA, offsetB);
-						if (offsetA == 0) {
-							reader.readInt32();
-							// for some reason the field can have an additional 4
-							// bytes,
-							// if the first offset is 0
+						if (reader.getPosition() % 8 != 0) {
+							reader.readInt32(); // padding, all strings are 8 byte aligned.
 						}
 
+						final long offset = reader.readInt64();
+
 						final long lastPosition = reader.getPosition();
-						final long dataOffset = tblRecordPosition + strOffset;
+						final long dataOffset = tblRecordPosition + offset;
 
 						reader.seek(Seek.BEGIN, dataOffset);
-						final String value = TextUtil.extractNullTerminatedUTF16(reader);
-						record.data[j] = value;
+						record.data[j] = TextUtil.extractNullTerminatedUTF16(reader);
 						reader.seek(Seek.BEGIN, lastPosition);
 						break;
 					default:
+						System.out.println(String.format("Unknow data type: '%s'", field.dataType));
 						throw new IllegalArgumentException();
 				}
 			}
-
 		}
 
 		return records;
@@ -151,7 +148,7 @@ public final class TableReader {
 
 	protected int[] loadTableLookup(StructTableFileHeader header, long postHeaderPosition, BinaryReader reader) {
 		reader.seek(Seek.BEGIN, postHeaderPosition + header.lookupOffset);
-		final int[] lookUps = new int[(int) header.maxId];
+		final int[] lookUps = new int[(int) header.lookupCount];
 		for (int i = 0; i < lookUps.length; ++i) {
 			lookUps[i] = reader.readInt32();
 		}

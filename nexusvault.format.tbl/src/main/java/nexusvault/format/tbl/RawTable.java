@@ -3,6 +3,9 @@ package nexusvault.format.tbl;
 import java.util.Collections;
 import java.util.List;
 
+import nexusvault.format.tbl.struct.StructColumnData;
+import nexusvault.format.tbl.struct.StructTableFileHeader;
+
 /**
  * Table which contains all information on the read .tbl file. Its entries are stored in untyped {@link TableRecord TableRecords}. To increase its usability,
  * instances of this class should be wrapped in a typed {@link GameTable} like {@link LazyLoadedTypedTable} or {@link PreloadedTypedTable}
@@ -10,11 +13,11 @@ import java.util.List;
 public final class RawTable implements GameTable<TableRecord> {
 
 	public final StructTableFileHeader header;
-	public final StructTableFieldHeader[] fields;
+	public final StructColumnData[] fields;
 	public final List<TableRecord> records;
 	public final int[] lookUp;
 
-	public RawTable(StructTableFileHeader header, StructTableFieldHeader[] fields, List<TableRecord> records, int[] lookUp) {
+	public RawTable(StructTableFileHeader header, StructColumnData[] fields, List<TableRecord> records, int[] lookUp) {
 		this.header = header;
 		this.fields = fields;
 		this.records = records;
@@ -22,7 +25,7 @@ public final class RawTable implements GameTable<TableRecord> {
 	}
 
 	public String getTableName() {
-		return this.header.name;
+		return null; // this.header.name;
 	}
 
 	public int getFieldCount() {
@@ -30,37 +33,37 @@ public final class RawTable implements GameTable<TableRecord> {
 	}
 
 	public String getFieldName(int idx) {
-		return this.fields[idx].getFieldName();
+		return null; // this.fields[idx].getFieldName();
 	}
 
 	@Override
 	public int size() {
-		return records.size();
+		return this.records.size();
 	}
 
 	@Override
 	public TableRecord getEntry(int recordIndex) {
-		return records.get(recordIndex);
+		return this.records.get(recordIndex);
 	}
 
 	public List<TableRecord> getRecords() {
-		return Collections.unmodifiableList(records);
+		return Collections.unmodifiableList(this.records);
 	}
 
 	@Override
 	public String toString() {
 		final StringBuilder builder = new StringBuilder();
 		builder.append("Tbl [name=");
-		builder.append(header);
+		builder.append(this.header);
 		builder.append(", #fields=");
-		if (fields != null) {
-			builder.append(fields.length);
+		if (this.fields != null) {
+			builder.append(this.fields.length);
 		} else {
 			builder.append(0);
 		}
 		builder.append(", #data=");
-		if (records != null) {
-			builder.append(records.size());
+		if (this.records != null) {
+			builder.append(this.records.size());
 		} else {
 			builder.append(0);
 		}
