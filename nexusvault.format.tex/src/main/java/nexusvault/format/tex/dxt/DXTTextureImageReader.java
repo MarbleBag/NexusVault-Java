@@ -17,6 +17,9 @@ import nexusvault.format.tex.TextureImageFormat;
 import nexusvault.format.tex.TextureImageReader;
 import nexusvault.format.tex.struct.StructTextureFileHeader;
 
+/**
+ * Thread-Safe
+ */
 public final class DXTTextureImageReader extends AbstractTextureImageReader implements TextureImageReader {
 
 	private final Set<TexType> acceptedTypes = Collections.unmodifiableSet(EnumSet.of(TexType.DXT1, TexType.DXT3, TexType.DXT5));

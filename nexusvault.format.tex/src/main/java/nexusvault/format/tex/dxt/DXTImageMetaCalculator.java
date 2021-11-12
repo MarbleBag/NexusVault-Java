@@ -4,14 +4,14 @@ import nexusvault.format.tex.ImageMetaCalculator;
 import nexusvault.format.tex.ImageMetaInformation;
 import nexusvault.format.tex.struct.StructTextureFileHeader;
 
-public class DXTImageMetaCalculator implements ImageMetaCalculator {
+final class DXTImageMetaCalculator implements ImageMetaCalculator {
 
 	@Override
 	public ImageMetaInformation getImageInformation(StructTextureFileHeader header, int mipmapIndex) {
 		if (header == null) {
 			throw new IllegalArgumentException("'header' must not be null");
 		}
-		if ((mipmapIndex < 0) || (header.mipMaps <= mipmapIndex)) {
+		if (mipmapIndex < 0 || header.mipMaps <= mipmapIndex) {
 			throw new IndexOutOfBoundsException(String.format("'mipmapIndex' out of bounds. Range [0;%d). Got %d", header.mipMaps, mipmapIndex));
 		}
 
@@ -27,7 +27,7 @@ public class DXTImageMetaCalculator implements ImageMetaCalculator {
 			height = height <= 0 ? 1 : height;
 
 			offset += length;
-			length = ((width + 3) / 4) * ((height + 3) / 4) * blockSize;
+			length = (width + 3) / 4 * ((height + 3) / 4) * blockSize;
 		}
 
 		return new ImageMetaInformation(offset, length, width, height);

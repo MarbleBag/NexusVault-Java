@@ -15,7 +15,7 @@ public abstract class AbstractTextureImageReader implements TextureImageReader {
 	}
 
 	protected final ImageMetaInformation getImageInformation(StructTextureFileHeader header, int mipmapIndex) {
-		return imageMeta.getImageInformation(header, mipmapIndex);
+		return this.imageMeta.getImageInformation(header, mipmapIndex);
 	}
 
 	@Override
