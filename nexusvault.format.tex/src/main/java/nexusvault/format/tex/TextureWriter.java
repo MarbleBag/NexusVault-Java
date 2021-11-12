@@ -2,8 +2,10 @@ package nexusvault.format.tex;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 import nexusvault.format.tex.dxt.DXTTextureImageWriter;
 import nexusvault.format.tex.jpg.JPGTextureImageWriter;
@@ -77,7 +79,7 @@ public final class TextureWriter {
 	 * Turns the given set of images into the specified {@link TexType} and returns a WS compatible <i>.tex</i> file in binary format. <br>
 	 * A image must have a height and width which is a multiple of 2 and not smaller than 1.
 	 * <p>
-	 * When more than one image is provided, they are handled as a sequence to create a mipmap. <br>
+	 * When more than one image is provided, they are used for mip mapping. <br>
 	 * <ul>
 	 * <li>The images will be sorted automatically by dimension
 	 * <li>Each image in the sequence must be half of the dimension of the previous image and can't be smaller than 1x1.
@@ -94,8 +96,13 @@ public final class TextureWriter {
 	 *            the target format of the file
 	 * @param image
 	 *            images to write, their dimension needs to be a power of 2
+	 * @param config
+	 *            settings, used in writing the image. Which settings are used depends on the writer. For config options see each writer
 	 * @return a binary .tex file which can be saved to disk
 	 * @see TexType
+	 * @see DXTTextureImageWriter
+	 * @see JPGTextureImageWriter
+	 * @see UncompressedTextureImageWriter
 	 * @exception TextureDataEncoderNotFoundException
 	 *                if no writer is available for <i>targetFormat</i>
 	 * @exception IllegalArgumentException
@@ -103,7 +110,8 @@ public final class TextureWriter {
 	 * @exception TextureException
 	 *                if a texture related exception is thrown
 	 */
-	public ByteBuffer write(TexType targetFormat, TextureImage[] image) {
+	public ByteBuffer write(TexType targetFormat, TextureImage[] image, Map<String, Object> config) {
+
 		final var writer = getImageWriter(targetFormat);
 		if (writer == null) {
 			throw new TextureDataEncoderNotFoundException();
@@ -114,7 +122,8 @@ public final class TextureWriter {
 			throw new IllegalArgumentException("image needs to be of length 1 or greater");
 		}
 
-		final var result = writer.writeTexture(targetFormat, image);
+		config = Objects.requireNonNullElse(config, Collections.emptyMap());
+		final var result = writer.writeTexture(targetFormat, image, config);
 		return result;
 	}
 

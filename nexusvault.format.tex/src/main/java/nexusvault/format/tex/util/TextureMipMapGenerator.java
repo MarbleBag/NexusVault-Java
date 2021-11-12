@@ -8,14 +8,14 @@ public final class TextureMipMapGenerator {
 
 	public static TextureImage[] buildMipMaps(TextureImage src, int numberOfMipMaps) {
 		final var tmp = new BufferedImage[numberOfMipMaps];
-		tmp[0] = TextureImageAwtConverter.convertToBufferedImage(src);
+		tmp[0] = AwtImageConverter.convertToBufferedImage(src);
 		for (int i = 1; i < numberOfMipMaps; ++i) {
 			tmp[i] = scaleDown(tmp[i - 1]);
 		}
 
 		final var images = new TextureImage[numberOfMipMaps];
 		for (int i = 0; i < images.length; ++i) {
-			images[i] = TextureImageAwtConverter.convertToTextureImage(src.getImageFormat(), tmp[i]);
+			images[i] = AwtImageConverter.convertToTextureImage(src.getImageFormat(), tmp[i]);
 		}
 
 		return images;

@@ -3,14 +3,16 @@ package nexusvault.format.tex.jpg.tool.encoder;
 import nexusvault.format.tex.jpg.tool.HuffmanTable;
 
 public final class HuffmanEncoder {
+	private HuffmanEncoder() {
+	}
 
 	private static void assertNotOutOfBounds(String argumentName, int value, int lowerBound, int upperBound) {
-		if ((value < lowerBound) || (upperBound < value)) {
+		if (value < lowerBound || upperBound < value) {
 			throw new IllegalArgumentException(String.format("%s : %d is not within [%d; %d]", argumentName, value, lowerBound, upperBound));
 		}
 	}
 
-	public void encode(HuffmanTable dc, HuffmanTable ac, BitConsumer consumer, int[] src, int srcOffset, int srcLength) {
+	public static void encode(HuffmanTable dc, HuffmanTable ac, BitConsumer consumer, int[] src, int srcOffset, int srcLength) {
 		if (dc == null) {
 			throw new IllegalArgumentException("'dc' must not be null");
 		}
@@ -63,7 +65,7 @@ public final class HuffmanEncoder {
 				}
 
 				// msb contains the number of zeros before the next ac value
-				acBits |= (zeroCounter << 4) & 0xF0;
+				acBits |= zeroCounter << 4 & 0xF0;
 			}
 
 			final int acValue = src[i++ + srcOffset];
@@ -84,21 +86,21 @@ public final class HuffmanEncoder {
 		}
 	}
 
-	private int calculateBitLength(int value) {
+	private static int calculateBitLength(int value) {
 		if (value == 0) {
 			return 0;
 		}
 		return Integer.SIZE - Integer.numberOfLeadingZeros(Math.abs(value));
 	}
 
-	private int convertToUnsigned(int data, int nBits) {
+	private static int convertToUnsigned(int data, int nBits) {
 		if (data < 0) {
 			data = data - ((-1 << nBits) + 1);
 		}
 		return data;
 	}
 
-	private void encode(HuffmanTable table, BitConsumer consumer, int value) {
+	private static void encode(HuffmanTable table, BitConsumer consumer, int value) {
 		final var huffValue = table.encode(value);
 		if (huffValue == null) {
 			final String tableName = String.format("(%d,%d)", table.getDHT().destinationId, table.getDHT().tableClass);

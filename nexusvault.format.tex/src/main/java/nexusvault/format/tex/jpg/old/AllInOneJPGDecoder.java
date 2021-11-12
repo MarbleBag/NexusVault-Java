@@ -10,15 +10,12 @@ import nexusvault.format.tex.jpg.tool.Constants;
 import nexusvault.format.tex.jpg.tool.Constants.LayerType;
 import nexusvault.format.tex.jpg.tool.FastIntegerIDCT;
 import nexusvault.format.tex.jpg.tool.HuffmanTable;
-import nexusvault.format.tex.jpg.tool.StackSet;
 import nexusvault.format.tex.jpg.tool.decoder.BinaryReaderBitSupplier;
 import nexusvault.format.tex.jpg.tool.decoder.BitSupply;
 import nexusvault.format.tex.jpg.tool.decoder.HuffmanDecoder;
 import nexusvault.format.tex.struct.StructTextureFileHeader;
 
 public final class AllInOneJPGDecoder {
-
-	private final HuffmanDecoder decoder = new HuffmanDecoder();
 
 	private final int[] decoderOutput = new int[Constants.BLOCK_SIZE];
 	private final int[] dcValues = new int[Constants.NUMBER_OF_LAYERS];
@@ -158,7 +155,7 @@ public final class AllInOneJPGDecoder {
 		final LayerType type = this.typePerLayer[layerIdx];
 		final HuffmanTable dc = Constants.getHuffmanTable(type, 0);
 		final HuffmanTable ac = Constants.getHuffmanTable(type, 1);
-		this.decoder.decode(dc, ac, this.source, this.decoderOutput, 0, Constants.BLOCK_SIZE);
+		HuffmanDecoder.decode(dc, ac, this.source, this.decoderOutput, 0, Constants.BLOCK_SIZE);
 	}
 
 	private void transferDecodeToData(int layerId, int[] data, int dataOffset) {

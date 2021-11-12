@@ -4,14 +4,16 @@ import nexusvault.format.tex.jpg.tool.HuffmanTable;
 import nexusvault.format.tex.jpg.tool.HuffmanTable.HuffmanValue;
 
 public final class HuffmanDecoder {
+	private HuffmanDecoder() {
+	}
 
 	private static void assertNotOutOfBounds(String argumentName, int value, int lowerBound, int upperBound) {
-		if ((value < lowerBound) || (upperBound < value)) {
+		if (value < lowerBound || upperBound < value) {
 			throw new IllegalArgumentException(String.format("%s : %d is not within [%d; %d]", argumentName, value, lowerBound, upperBound));
 		}
 	}
 
-	public void decode(HuffmanTable dc, HuffmanTable ac, BitSupply supplier, int[] dst, int dstOffset, int dstLength) {
+	public static void decode(HuffmanTable dc, HuffmanTable ac, BitSupply supplier, int[] dst, int dstOffset, int dstLength) {
 		if (dc == null) {
 			throw new IllegalArgumentException("'dc' must not be null");
 		}
@@ -24,6 +26,7 @@ public final class HuffmanDecoder {
 		if (dst == null) {
 			throw new IllegalArgumentException("'dst' must not be null");
 		}
+
 		assertNotOutOfBounds("dstOffset", dstOffset, 0, dst.length);
 		assertNotOutOfBounds("dstLength", dstLength, 1, dst.length);
 		assertNotOutOfBounds("dstOffset+dstLength", dstOffset + dstLength, 0, dst.length);
@@ -47,7 +50,7 @@ public final class HuffmanDecoder {
 			}
 
 			if (acBits == 0xF0) { // Zero out 16 elements
-				if (dstLength < (i + 16)) {
+				if (dstLength < i + 16) {
 					throw new HuffmanDecoderFault("Overflow",
 							String.format("AC code 0xF0 detected. Unable to zero %d elements at position %d of %d", 16, i, dstLength));
 				}
@@ -58,8 +61,8 @@ public final class HuffmanDecoder {
 				continue;
 			}
 
-			final int msbAC = (acBits >>> 4) & 0xF;
-			if (dstLength < (i + msbAC)) {
+			final int msbAC = acBits >>> 4 & 0xF;
+			if (dstLength < i + msbAC) {
 				throw new HuffmanDecoderFault("Overflow",
 						String.format("AC high bits set. Unable to zero %d elements at position %d of %d", msbAC, i, dstLength));
 			}
@@ -81,11 +84,11 @@ public final class HuffmanDecoder {
 		return;
 	}
 
-	protected int decode(HuffmanTable decoder, BitSupply supplier) {
+	private static int decode(HuffmanTable decoder, BitSupply supplier) {
 		final int maxLength = decoder.getDecodeMaxLength();
 		final int minLength = decoder.getDecodeMinLength();
 
-		if ((minLength == 0) || (maxLength == 0)) {
+		if (minLength == 0 || maxLength == 0) {
 			return 0;
 		}
 
@@ -104,7 +107,7 @@ public final class HuffmanDecoder {
 				return 0;
 			}
 
-			word = (word << diff) | supplier.supply(diff);
+			word = word << diff | supplier.supply(diff);
 			wordLength += diff;
 			final HuffmanValue huffVal = decoder.decode(word, wordLength);
 			if (huffVal == null) {
@@ -125,8 +128,8 @@ public final class HuffmanDecoder {
 		return 0;
 	}
 
-	protected int convertToSigned(int data, int nBits) {
-		int exData = 1 << (nBits - 1);
+	private static int convertToSigned(int data, int nBits) {
+		int exData = 1 << nBits - 1;
 		if (data < exData) {
 			exData = (-1 << nBits) + 1;
 			data = data + exData;

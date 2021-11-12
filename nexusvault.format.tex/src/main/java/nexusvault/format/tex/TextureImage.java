@@ -11,16 +11,16 @@ public final class TextureImage {
 
 	public TextureImage(int width, int height, TextureImageFormat format, byte[] data) {
 		if (width <= 0) {
-			throw new IllegalArgumentException();
+			throw new IllegalArgumentException("'width' must be greater than zero");
 		}
 		if (height <= 0) {
-			throw new IllegalArgumentException();
+			throw new IllegalArgumentException("'height' must be greater than zero");
 		}
 		if (format == null) {
-			throw new IllegalArgumentException();
+			throw new IllegalArgumentException("'format' must not be null");
 		}
 		if (data == null) {
-			throw new IllegalArgumentException();
+			throw new IllegalArgumentException("'data' must not be null");
 		}
 
 		this.width = width;

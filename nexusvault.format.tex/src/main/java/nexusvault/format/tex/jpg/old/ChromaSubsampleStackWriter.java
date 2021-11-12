@@ -4,7 +4,6 @@ import java.util.Objects;
 
 import nexusvault.format.tex.jpg.tool.Constants;
 import nexusvault.format.tex.jpg.tool.MathUtil;
-import nexusvault.format.tex.jpg.tool.StackSet;
 
 final class ChromaSubsampleStackWriter implements ImageRegionWriter {
 

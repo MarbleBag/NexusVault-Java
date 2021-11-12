@@ -4,7 +4,7 @@ import java.util.stream.Stream;
 
 import kreed.io.util.BinaryWriter;
 import nexusvault.format.tex.TexType;
-import nexusvault.format.tex.jpg.TextureJPGEncodingException;
+import nexusvault.format.tex.TextureEncodingException;
 import nexusvault.format.tex.jpg.tool.Constants;
 import nexusvault.format.tex.jpg.tool.Constants.LayerType;
 import nexusvault.format.tex.jpg.tool.FastDCT;
@@ -156,7 +156,6 @@ public final class JPGImageEncoder {
 		}
 	}
 
-	private final HuffmanEncoder encoder = new HuffmanEncoder();
 	private final int[] tmpBlockStorage = new int[Constants.BLOCK_SIZE];
 
 	private final TexType target;
@@ -222,7 +221,7 @@ public final class JPGImageEncoder {
 					try {
 						this.imageReader.read(image, ir.id, ir.data);
 					} catch (final Exception ex) {
-						throw new TextureJPGEncodingException(String.format("Region [%d]: read error", ir.id), ex);
+						throw new TextureEncodingException(String.format("Region [%d]: read error", ir.id), ex);
 					}
 				}) //
 				.peek(this::downsampleImageRegion) //
@@ -320,7 +319,7 @@ public final class JPGImageEncoder {
 				try {
 					encodeLayer(layerIdx, ir.data);
 				} catch (final HuffmanEncoderFault ex) {
-					throw new TextureJPGEncodingException(String.format("Region [%d] Layer [%d]: encoding error", ir.id, layerIdx), ex);
+					throw new TextureEncodingException(String.format("Region [%d] Layer [%d]: encoding error", ir.id, layerIdx), ex);
 				}
 			}
 		}
@@ -353,7 +352,7 @@ public final class JPGImageEncoder {
 		final LayerType type = this.layerType[layerIdx];
 		final HuffmanTable dc = Constants.getHuffmanTable(type, 0);
 		final HuffmanTable ac = Constants.getHuffmanTable(type, 1);
-		this.encoder.encode(dc, ac, this.encoderOutput, dst, 0, Constants.BLOCK_SIZE);
+		HuffmanEncoder.encode(dc, ac, this.encoderOutput, dst, 0, Constants.BLOCK_SIZE);
 	}
 
 }

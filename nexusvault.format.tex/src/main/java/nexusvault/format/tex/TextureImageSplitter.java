@@ -13,14 +13,28 @@ import nexusvault.format.tex.struct.StructTextureFileHeader;
  */
 public final class TextureImageSplitter {
 
-	private static interface Splitter {
-		List<TextureImage> split(TextureImage original);
+	private static final class TextureSplitInfo {
+		public final TextureImageFormat format;
+		public final TextureImageExpectedUseType type;
+
+		public TextureSplitInfo(TextureImageFormat format, TextureImageExpectedUseType type) {
+			super();
+			this.format = format;
+			this.type = type;
+		}
+
+		public TextureImageFormat getFormat() {
+			return this.format;
+		}
+
+		public TextureImageExpectedUseType getType() {
+			return this.type;
+		}
 	}
 
-	private static abstract class AbstSplitter implements Splitter {
+	private static abstract class Splitter {
 
-		@Override
-		public List<TextureImage> split(TextureImage original) {
+		public final List<TextureImage> split(TextureImage original) {
 			final byte[] originalData = original.getImageData();
 			final int imageWidth = original.getImageWidth();
 			final int imageHeight = original.getImageHeight();
@@ -52,7 +66,7 @@ public final class TextureImageSplitter {
 		abstract void split(byte[][] out, byte[] originalData, int idx);
 	}
 
-	private static final class SplitterJPGType1 extends AbstSplitter {
+	private static final class SplitterJPGType1 extends Splitter {
 		private static final List<TextureSplitInfo> channels;
 		static {
 			final List<TextureSplitInfo> tmp = new ArrayList<>(2);
@@ -90,7 +104,7 @@ public final class TextureImageSplitter {
 		}
 	}
 
-	private static final class SplitterJPGType0And2 extends AbstSplitter {
+	private static final class SplitterJPGType0And2 extends Splitter {
 		private static final List<TextureSplitInfo> channels;
 		static {
 			final List<TextureSplitInfo> tmp = new ArrayList<>(2);

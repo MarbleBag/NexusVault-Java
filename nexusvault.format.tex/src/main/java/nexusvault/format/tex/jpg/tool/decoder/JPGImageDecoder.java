@@ -11,173 +11,15 @@ import nexusvault.format.tex.jpg.tool.Constants.LayerType;
 import nexusvault.format.tex.jpg.tool.FastIntegerIDCT;
 import nexusvault.format.tex.jpg.tool.HuffmanTable;
 import nexusvault.format.tex.jpg.tool.ImageRegion;
-import nexusvault.format.tex.jpg.tool.MathUtil;
 import nexusvault.format.tex.jpg.tool.SampleUtil;
+import nexusvault.format.tex.jpg.tool.decoder.PixelWriter.PixelWriterYCCY2ARGB;
+import nexusvault.format.tex.jpg.tool.decoder.PixelWriter.PixelWriterYYYY2ARGB;
 
 /**
  * A more compact jpg decoder
  */
 public final class JPGImageDecoder {
 
-	private static interface PixelWriter {
-		void write(int[] src, byte[] dst, int dstIdx);
-	}
-
-	private static final class IdentityPixelWriter implements PixelWriter {
-		@Override
-		public void write(int[] src, byte[] dst, int dstIdx) {
-			dst[dstIdx + 0] = (byte) MathUtil.clamp(src[0], 0, 0xFF);
-			dst[dstIdx + 1] = (byte) MathUtil.clamp(src[1], 0, 0xFF);
-			dst[dstIdx + 2] = (byte) MathUtil.clamp(src[2], 0, 0xFF);
-			dst[dstIdx + 3] = (byte) MathUtil.clamp(src[3], 0, 0xFF);
-		}
-	}
-
-	/**
-	 * Converts jpg data into argb data without any additional steps in color transformation
-	 *
-	 * @see TexType#JPEG_TYPE_2
-	 */
-	private static final class PixelWriterYYYY2ARGB implements PixelWriter {
-		@Override
-		public void write(int[] src, byte[] dst, int dstIdx) {
-			dst[dstIdx + 0] = (byte) MathUtil.clamp(src[0], 0, 0xFF);
-			dst[dstIdx + 1] = (byte) MathUtil.clamp(src[1], 0, 0xFF);
-			dst[dstIdx + 2] = (byte) MathUtil.clamp(src[2], 0, 0xFF);
-			dst[dstIdx + 3] = (byte) MathUtil.clamp(src[3], 0, 0xFF);
-		}
-	}
-
-	/**
-	 * Converts jpg data into argb data by applying a color transformation
-	 *
-	 * @see TexType#JPEG_TYPE_1
-	 * @see TexType#JPEG_TYPE_3
-	 */
-	public static final class PixelWriterYCCY2ARGB implements PixelWriter {
-
-		@Override
-		public void write(int[] src, byte[] dst, int dstIdx) {
-			final int p1 = src[0];
-			final int p2 = src[1];
-			final int p3 = src[2];
-			final int p4 = src[3];
-
-			final int r1 = p1 - (p3 >> 1); // r1 = p1 - p3>>1
-			final int r2 = MathUtil.clamp(r1 + p3, 0, 0xFF); // r2 = p1 - p3>>1 + p3
-			final int r3 = MathUtil.clamp(r1 - (p2 >> 1), 0, 0xFF); // r3 = p1 - p3>>1 - p2>>1
-			final int r4 = MathUtil.clamp(r3 + p2, 0, 0xFF); // r4 = p1 - p3>>1 - p2>>1 + p2
-
-			dst[dstIdx + 0] = (byte) MathUtil.clamp(p4, 0, 0xFF); // A = p4
-			dst[dstIdx + 1] = (byte) MathUtil.clamp(r4, 0, 0xFF); // R = p1 - p3/2 - p2/2 + p2
-			dst[dstIdx + 2] = (byte) MathUtil.clamp(r2, 0, 0xFF); // G = p1 - p3/2 + p3
-			dst[dstIdx + 3] = (byte) MathUtil.clamp(r3, 0, 0xFF); // B = p1 - p3/2 - p2/2
-		}
-
-	}
-
-	private static final class ImageRegionWriter {
-
-		private static void coordinatesToRegionIdx(int[][] lookup, int x, int y, int start) {
-			for (int y1 = y, idx = start; y1 < Constants.BLOCK_HEIGHT + y; ++y1) {
-				for (int x1 = x; x1 < Constants.BLOCK_WIDTH + x; ++x1) {
-					lookup[y1][x1] = idx++;
-				}
-			}
-		}
-
-		private static final int[][] SINGLE_LOOKUP;
-		private static final int[][] MULTI_LOOKUP;
-
-		static {
-			SINGLE_LOOKUP = new int[Constants.BLOCK_HEIGHT][Constants.BLOCK_WIDTH];
-			coordinatesToRegionIdx(SINGLE_LOOKUP, 0, 0, 0);
-
-			MULTI_LOOKUP = new int[Constants.BLOCK_HEIGHT * 2][Constants.BLOCK_WIDTH * 2];
-			coordinatesToRegionIdx(MULTI_LOOKUP, 0 * Constants.BLOCK_WIDTH, 0 * Constants.BLOCK_HEIGHT, 0 * Constants.BLOCK_SIZE);
-			coordinatesToRegionIdx(MULTI_LOOKUP, 1 * Constants.BLOCK_WIDTH, 0 * Constants.BLOCK_HEIGHT, 1 * Constants.BLOCK_SIZE);
-			coordinatesToRegionIdx(MULTI_LOOKUP, 0 * Constants.BLOCK_WIDTH, 1 * Constants.BLOCK_HEIGHT, 2 * Constants.BLOCK_SIZE);
-			coordinatesToRegionIdx(MULTI_LOOKUP, 1 * Constants.BLOCK_WIDTH, 1 * Constants.BLOCK_HEIGHT, 3 * Constants.BLOCK_SIZE);
-		}
-
-		private final int imageWidth;
-		private final int imageHeight;
-		private final int regionWidth;
-		private final int regionHeight;
-		private final int regionSize;
-		private final int regionsPerImageRow;
-		private final int regionsPerImageColumn;
-		private final int totalNumberOfRegions;
-
-		private final int[][] regionLookup;
-		private final int[][] imageLookup;
-
-		private final PixelWriter writer;
-
-		public ImageRegionWriter(PixelWriter writer, int width, int height, boolean subsampled) {
-			this.imageWidth = width;
-			this.imageHeight = height;
-			this.regionWidth = subsampled ? Constants.BLOCK_WIDTH * 2 : Constants.BLOCK_WIDTH;
-			this.regionHeight = subsampled ? Constants.BLOCK_HEIGHT * 2 : Constants.BLOCK_HEIGHT;
-			this.regionSize = this.regionWidth * this.regionHeight;
-			this.regionsPerImageRow = (this.imageWidth + this.regionWidth - 1) / this.regionWidth;
-			this.regionsPerImageColumn = (this.imageHeight + this.regionHeight - 1) / this.regionHeight;
-			this.totalNumberOfRegions = this.regionsPerImageRow * this.regionsPerImageColumn;
-
-			this.regionLookup = subsampled ? MULTI_LOOKUP : SINGLE_LOOKUP;
-
-			// precalculate indices, those will be reused - a lot
-			this.imageLookup = new int[this.regionHeight][this.regionWidth];
-			for (int y = 0; y < this.regionHeight; ++y) {
-				for (int x = 0; x < this.regionWidth; ++x) {
-					this.imageLookup[y][x] = x + y * this.imageWidth;
-				}
-			}
-
-			this.writer = writer;
-		}
-
-		public void write(int[] src, int regionIdx, byte[] dst) {
-			final int regionX = regionIdx % this.regionsPerImageRow;
-			final int regionY = regionIdx / this.regionsPerImageRow;
-
-			final int dstIdxStart = regionX * this.regionWidth + regionY * this.regionHeight * this.imageWidth; // start pixel index
-			// final int dstIdxEnd = this.imageHeight * this.imageWidth; // last pixel + 1
-
-			final int imageX = regionX * this.regionWidth;
-			final int imageY = regionY * this.regionHeight;
-
-			final int[] tmpStore = new int[Constants.NUMBER_OF_LAYERS];
-
-			for (int y = 0; y < this.regionHeight; ++y) {
-				if (y + imageY >= this.imageHeight) {
-					break;
-				}
-
-				for (int x = 0; x < this.regionWidth; ++x) {
-					if (x + imageX >= this.imageWidth) {
-						break;
-					}
-
-					final int srcIdx = this.regionLookup[y][x];
-					final int dstIdx = this.imageLookup[y][x] + dstIdxStart;
-
-					tmpStore[0] = src[srcIdx + 0 * this.regionSize];
-					tmpStore[1] = src[srcIdx + 1 * this.regionSize];
-					tmpStore[2] = src[srcIdx + 2 * this.regionSize];
-					tmpStore[3] = src[srcIdx + 3 * this.regionSize];
-
-					this.writer.write(tmpStore, dst, dstIdx * 4);
-				}
-			}
-		}
-
-		public int getTotalNumberOfImageRegions() {
-			return this.totalNumberOfRegions;
-		}
-	}
-
-	private final HuffmanDecoder decoder = new HuffmanDecoder();
 	private final int[] tmpBlockStorage = new int[Constants.BLOCK_SIZE];
 
 	private final TexType target;
@@ -312,7 +154,7 @@ public final class JPGImageDecoder {
 		final LayerType type = this.layerType[layerIdx];
 		final HuffmanTable dc = Constants.getHuffmanTable(type, 0);
 		final HuffmanTable ac = Constants.getHuffmanTable(type, 1);
-		this.decoder.decode(dc, ac, this.decoderInput, dst, 0, Constants.BLOCK_SIZE);
+		HuffmanDecoder.decode(dc, ac, this.decoderInput, dst, 0, Constants.BLOCK_SIZE);
 	}
 
 	private void applyReverseZigZag(int[] src, int[] dst, int dstOffset) {
@@ -376,8 +218,9 @@ public final class JPGImageDecoder {
 	private void upsampleImageRegion(ImageRegion ir) {
 		for (int layerIdx = 0; layerIdx < Constants.NUMBER_OF_LAYERS; ++layerIdx) {
 			if (this.isLayerSubsampled[layerIdx] && !this.layerHasDefault[layerIdx]) {
-				final var layerOffset = this.layerOffset[layerIdx]; // this part is hardcoded and only supports 2x2 upsampling, pretty much all that WS needs
-				// start at the end and work back to the start, because it's done inplace
+				final var layerOffset = this.layerOffset[layerIdx];
+				// this part is hardcoded and only supports 2x2 upsampling, pretty much all that WS needs
+				// inplace implementation. Fills layer from back to start
 				SampleUtil.upsample(ir.data, layerOffset + 0x24, 4, 4, 4, 2, ir.data, layerOffset + Constants.BLOCK_SIZE * 3, 0);
 				SampleUtil.upsample(ir.data, layerOffset + 0x20, 4, 4, 4, 2, ir.data, layerOffset + Constants.BLOCK_SIZE * 2, 0);
 				SampleUtil.upsample(ir.data, layerOffset + 0x04, 4, 4, 4, 2, ir.data, layerOffset + Constants.BLOCK_SIZE * 1, 0);

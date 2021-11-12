@@ -4,13 +4,21 @@ import static kreed.reflection.struct.DataType.BIT_8;
 
 import java.util.Objects;
 
+import kreed.io.util.BinaryReader;
 import kreed.reflection.struct.Order;
 import kreed.reflection.struct.StructField;
 import kreed.reflection.struct.StructUtil;
+import nexusvault.shared.exception.StructException;
 
 public final class StructLayerInfo {
 
-	public static final int SIZE_IN_BYTES = StructUtil.sizeOf(StructLayerInfo.class); // 0x6;
+	static {
+		if (StructUtil.sizeOf(StructLayerInfo.class) != 0x3) {
+			throw new StructException();
+		}
+	}
+
+	public static final int SIZE_IN_BYTES = StructUtil.sizeOf(StructLayerInfo.class); // 0x3;
 
 	/** uint8, 0-100 */
 	@Order(1)
@@ -32,10 +40,15 @@ public final class StructLayerInfo {
 	}
 
 	public StructLayerInfo(byte quality, byte hasReplacement, byte replacement) {
-		super();
 		this.quality = quality;
 		this.hasReplacement = hasReplacement;
 		this.replacement = replacement;
+	}
+
+	public StructLayerInfo(BinaryReader reader) {
+		this.quality = reader.readInt8();
+		this.hasReplacement = reader.readInt8();
+		this.replacement = reader.readInt8();
 	}
 
 	public boolean hasReplacement() {

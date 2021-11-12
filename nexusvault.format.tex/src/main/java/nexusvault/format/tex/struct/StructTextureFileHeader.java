@@ -10,10 +10,16 @@ import kreed.io.util.BinaryReader;
 import kreed.reflection.struct.Order;
 import kreed.reflection.struct.StructField;
 import kreed.reflection.struct.StructUtil;
-import nexusvault.shared.exception.IntegerOverflowException;
 import nexusvault.shared.exception.SignatureMismatchException;
+import nexusvault.shared.exception.StructException;
 
 public final class StructTextureFileHeader {
+
+	static {
+		if (StructUtil.sizeOf(StructTextureFileHeader.class) != 0x70) {
+			throw new StructException();
+		}
+	}
 
 	public static final String STR_SIGNATURE = "GFX";
 	public static final int SIGNATURE = 'G' << 16 | 'F' << 8 | 'X';
@@ -108,10 +114,6 @@ public final class StructTextureFileHeader {
 	}
 
 	public StructTextureFileHeader(BinaryReader reader) {
-		if (reader == null) {
-			throw new IllegalArgumentException("reader must not be null");
-		}
-
 		final long headerStart = reader.getPosition();
 		final long headerEnd = headerStart + SIZE_IN_BYTES;
 
@@ -135,13 +137,13 @@ public final class StructTextureFileHeader {
 		for (int i = 0; i < this.layerInfos.length; ++i) {
 			this.layerInfos[i] = new StructLayerInfo(reader.readInt8(), reader.readInt8(), reader.readInt8());
 			if (this.layerInfos[i].getQuality() < 0 || 100 < this.layerInfos[i].getQuality()) {
-				throw new IntegerOverflowException(this.layerInfos[i].toString());
+				throw new StructException(this.layerInfos[i].toString());
 			}
 		}
 
 		this.imageSizesCount = reader.readInt32();
 		if (this.imageSizesCount > 12) {
-			throw new IllegalStateException("Number of compressed mips out of bound.");
+			throw new StructException("Number of compressed mips out of bound.");
 		}
 
 		this.imageSizes = new int[13];
@@ -152,7 +154,7 @@ public final class StructTextureFileHeader {
 		this.unk_06C = reader.readInt32();
 
 		if (reader.getPosition() != headerEnd) {
-			throw new IllegalStateException("Expected number of bytes " + SIZE_IN_BYTES + " read bytes: " + (reader.getPosition() - headerStart));
+			throw new StructException("Expected number of bytes " + SIZE_IN_BYTES + " read bytes: " + (reader.getPosition() - headerStart));
 		}
 	}
 

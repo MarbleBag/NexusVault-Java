@@ -3,7 +3,6 @@ package nexusvault.format.tex.jpg.old;
 import java.util.Objects;
 
 import nexusvault.format.tex.jpg.tool.Constants;
-import nexusvault.format.tex.jpg.tool.StackSet;
 
 final class BaseStackWriter implements ImageRegionWriter {
 

@@ -4,6 +4,7 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.Collections;
 import java.util.EnumSet;
+import java.util.Map;
 import java.util.Set;
 
 import nexusvault.format.tex.AbstractTextureImageWriter;
@@ -12,6 +13,9 @@ import nexusvault.format.tex.TextureImage;
 import nexusvault.format.tex.TextureImageWriter;
 import nexusvault.format.tex.struct.StructTextureFileHeader;
 
+/**
+ * Thread-Safe
+ */
 public final class UncompressedTextureImageWriter extends AbstractTextureImageWriter implements TextureImageWriter {
 
 	private final Set<TexType> acceptedTypes = Collections.unmodifiableSet(EnumSet.of(TexType.ARGB_1, TexType.ARGB_2, TexType.RGB, TexType.GRAYSCALE));
@@ -22,11 +26,7 @@ public final class UncompressedTextureImageWriter extends AbstractTextureImageWr
 	}
 
 	@Override
-	public ByteBuffer writeTexture(TexType target, TextureImage[] images) {
-		assertTexType(target);
-		assertImageOrder(images);
-		assertImageData(images);
-
+	public ByteBuffer writeTextureAfterValidation(TexType target, TextureImage[] images, Map<String, Object> config) {
 		final var header = new StructTextureFileHeader(true);
 		header.width = images[images.length - 1].getImageWidth();
 		header.height = images[images.length - 1].getImageHeight();
@@ -59,18 +59,6 @@ public final class UncompressedTextureImageWriter extends AbstractTextureImageWr
 
 		output.flip();
 		return output;
-	}
-
-	private void assertTexType(TexType target) {
-		switch (target) {
-			case ARGB_1:
-			case ARGB_2:
-			case RGB:
-			case GRAYSCALE:
-				return;
-			default:
-				throw new IllegalArgumentException(String.format("TexType %s is not supported by this writer", target));
-		}
 	}
 
 	private UncompressedImageEncoder getEncoder(TexType target) {
