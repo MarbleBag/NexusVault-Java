@@ -6,70 +6,92 @@ import static kreed.reflection.struct.DataType.UBIT_32;
 import static kreed.reflection.struct.DataType.UBIT_64;
 
 import kreed.io.util.BinaryReader;
+import kreed.reflection.struct.Order;
 import kreed.reflection.struct.StructField;
 import kreed.reflection.struct.StructUtil;
 import nexusvault.shared.exception.NotUsedForPaddingException;
 import nexusvault.shared.exception.SignatureMismatchException;
+import nexusvault.shared.exception.StructException;
 
 public final class StructTableFileHeader {
+
+	static {
+		if (StructUtil.sizeOf(StructTableFileHeader.class) != 0x60) {
+			throw new StructException();
+		}
+	}
 
 	public static final int SIGNATURE = 'D' << 24 | 'T' << 16 | 'B' << 8 | 'L';
 
 	public final static int SIZE_IN_BYTES = StructUtil.sizeOf(StructTableFileHeader.class) /* 96 */;
 
 	/** int32; 'DTBL' */
+	@Order(1)
 	@StructField(BIT_32)
 	public int signature; // 0x000
 
 	/** uint32; */
+	@Order(2)
 	@StructField(BIT_32)
 	public long version; // 0x004
 
-	/** uint32; number of UTF-16 encoded characters, aligned to 16 byte */
+	/** uint32; number of UTF-16 encoded characters, aligned to 16 byte and null terminated */
+	@Order(3)
 	@StructField(UBIT_32) // maybe a int64
 	public long nameLength; // 0x008
 
 	/** uint32; */
+	@Order(4)
 	@StructField(BIT_32)
 	private int padding1; // 0x00C
 
 	/** uint64; */
+	@Order(5)
 	@StructField(UBIT_64)
 	public long unk1; // 0x010
 
 	/** uint32; Size of one record in bytes */
+	@Order(6)
 	@StructField(UBIT_32) // maybe a int64
 	public long recordSize; // 0x018
 
 	/** uint32; */
+	@Order(7)
 	@StructField(BIT_32)
 	private int padding2; // 0x01C
 
 	/** uint64; number of fields */
+	@Order(8)
 	@StructField(UBIT_64)
 	public long fieldCount; // 0x020
 
 	/** uint64; Start offset for the first field */
+	@Order(9)
 	@StructField(UBIT_64)
 	public long fieldOffset; // 0x028
 
 	/** uint32; number of records */
+	@Order(10)
 	@StructField(UBIT_32) // maybe a int64
 	public long recordCount; // 0x030
 
 	/** uint32; */
+	@Order(11)
 	@StructField(BIT_32)
 	private int padding3; // 0x034
 
 	/** uint64; Size of all records in bytes */
+	@Order(12)
 	@StructField(UBIT_64)
 	public long totalRecordSize; // 0x038
 
 	/** uint64; Start offset for the first record */
+	@Order(13)
 	@StructField(UBIT_64)
 	public long recordOffset; // 0x040
 
 	/** uint64; */
+	@Order(14)
 	@StructField(UBIT_64)
 	public long lookupCount; // 0x048
 
@@ -78,10 +100,12 @@ public final class StructTableFileHeader {
 	 *
 	 * record Id to record idx, -1 means no index
 	 **/
+	@Order(15)
 	@StructField(UBIT_64)
 	public long lookupOffset; // 0x050
 
 	/** uint64; */
+	@Order(16)
 	@StructField(BIT_64)
 	private long padding4; // 0x058
 
@@ -89,10 +113,6 @@ public final class StructTableFileHeader {
 	}
 
 	public StructTableFileHeader(BinaryReader reader) {
-		if (reader == null) {
-			throw new IllegalArgumentException("'reader' must not be null");
-		}
-
 		final long headerStart = reader.getPosition();
 		final long headerEnd = headerStart + SIZE_IN_BYTES;
 
@@ -118,20 +138,20 @@ public final class StructTableFileHeader {
 		this.padding4 = reader.readInt64(); // o:96
 
 		if (this.padding1 != 0) {
-			throw new NotUsedForPaddingException(this.getClass().getSimpleName());
+			throw new NotUsedForPaddingException("padding1");
 		}
 		if (this.padding2 != 0) {
-			throw new NotUsedForPaddingException(this.getClass().getSimpleName());
+			throw new NotUsedForPaddingException("padding2");
 		}
 		if (this.padding3 != 0) {
-			throw new NotUsedForPaddingException(this.getClass().getSimpleName());
+			throw new NotUsedForPaddingException("padding3");
 		}
 		if (this.padding4 != 0) {
-			throw new NotUsedForPaddingException(this.getClass().getSimpleName());
+			throw new NotUsedForPaddingException("padding4");
 		}
 
 		if (reader.getPosition() != headerEnd) {
-			throw new IllegalStateException("Expected number of bytes " + SIZE_IN_BYTES + " read bytes: " + (reader.getPosition() - headerStart));
+			throw new StructException("Expected number of bytes " + SIZE_IN_BYTES + " read bytes: " + (reader.getPosition() - headerStart));
 		}
 	}
 
