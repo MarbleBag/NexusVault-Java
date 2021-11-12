@@ -7,22 +7,29 @@ import kreed.reflection.struct.DataType;
 import kreed.reflection.struct.Order;
 import kreed.reflection.struct.StructField;
 import kreed.reflection.struct.StructUtil;
+import nexusvault.shared.exception.StructException;
 
 public final class StructArchiveEntry {
+
+	static {
+		if (StructUtil.sizeOf(StructArchiveEntry.class) != 0x20) {
+			throw new StructException();
+		}
+	}
 
 	public static final int SIZE_IN_BYTES = StructUtil.sizeOf(StructArchiveEntry.class);
 
 	@Order(1)
 	@StructField(DataType.UBIT_32)
-	public long packIdx;
+	public long packIdx; // 0x00
 
 	@Order(2)
 	@StructField(value = DataType.BIT_8, length = 20)
-	public byte[] hash;
+	public byte[] hash; // 0x04
 
 	@Order(3)
 	@StructField(DataType.UBIT_64)
-	public long size;
+	public long size; // 0x18
 
 	public StructArchiveEntry() {
 
@@ -53,15 +60,15 @@ public final class StructArchiveEntry {
 
 	@Override
 	public String toString() {
-		return "StructArchiveEntry [blockIndex=" + packIdx + ", shaHash=" + Arrays.toString(hash) + ", size=" + size + "]";
+		return "StructArchiveEntry [blockIndex=" + this.packIdx + ", shaHash=" + Arrays.toString(this.hash) + ", size=" + this.size + "]";
 	}
 
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = (prime * result) + Arrays.hashCode(hash);
-		result = (prime * result) + Objects.hash(packIdx, size);
+		result = prime * result + Arrays.hashCode(this.hash);
+		result = prime * result + Objects.hash(this.packIdx, this.size);
 		return result;
 	}
 
@@ -77,7 +84,7 @@ public final class StructArchiveEntry {
 			return false;
 		}
 		final StructArchiveEntry other = (StructArchiveEntry) obj;
-		return Arrays.equals(hash, other.hash) && (packIdx == other.packIdx) && (size == other.size);
+		return Arrays.equals(this.hash, other.hash) && this.packIdx == other.packIdx && this.size == other.size;
 	}
 
 }

@@ -4,17 +4,17 @@ import kreed.reflection.struct.DataType;
 import kreed.reflection.struct.Order;
 import kreed.reflection.struct.StructField;
 import kreed.reflection.struct.StructUtil;
+import nexusvault.shared.exception.StructException;
 
 public final class StructArchiveFile {
 
-	public static void main(String[] arg) {
-		System.out.println(StructUtil.analyzeStruct(StructArchiveFile.class, true));
+	static {
 		if (StructUtil.sizeOf(StructArchiveFile.class) != 0x230) {
-			throw new IllegalStateException();
+			throw new StructException();
 		}
 	}
 
-	public final static int FILE_SIGNATURE = ('P' << 24) | ('A' << 16) | ('C' << 8) | 'K';
+	public final static int FILE_SIGNATURE = 'P' << 24 | 'A' << 16 | 'C' << 8 | 'K';
 
 	public final static int SIZE_IN_BYTES = StructUtil.sizeOf(StructArchiveFile.class);
 

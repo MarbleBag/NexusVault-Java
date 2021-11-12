@@ -6,8 +6,15 @@ import kreed.reflection.struct.DataType;
 import kreed.reflection.struct.Order;
 import kreed.reflection.struct.StructField;
 import kreed.reflection.struct.StructUtil;
+import nexusvault.shared.exception.StructException;
 
 public final class StructPackHeader {
+
+	static {
+		if (StructUtil.sizeOf(StructRootBlock.class) != 0x10) {
+			throw new StructException();
+		}
+	}
 
 	public static final int SIZE_IN_BYTES = StructUtil.sizeOf(StructPackHeader.class);
 
@@ -30,20 +37,20 @@ public final class StructPackHeader {
 
 	@Override
 	public String toString() {
-		return "StructPackHeader [offset=" + offset + ", size=" + size + "]";
+		return "StructPackHeader [offset=" + this.offset + ", size=" + this.size + "]";
 	}
 
 	public long getOffset() {
-		return offset;
+		return this.offset;
 	}
 
 	public long getSize() {
-		return size;
+		return this.size;
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(offset, size);
+		return Objects.hash(this.offset, this.size);
 	}
 
 	@Override
@@ -58,7 +65,7 @@ public final class StructPackHeader {
 			return false;
 		}
 		final StructPackHeader other = (StructPackHeader) obj;
-		return (offset == other.offset) && (size == other.size);
+		return this.offset == other.offset && this.size == other.size;
 	}
 
 }

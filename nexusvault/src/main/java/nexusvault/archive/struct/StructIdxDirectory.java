@@ -6,8 +6,15 @@ import kreed.reflection.struct.DataType;
 import kreed.reflection.struct.Order;
 import kreed.reflection.struct.StructField;
 import kreed.reflection.struct.StructUtil;
+import nexusvault.shared.exception.StructException;
 
 public final class StructIdxDirectory {
+
+	static {
+		if (StructUtil.sizeOf(StructIdxDirectory.class) != 0x08) {
+			throw new StructException();
+		}
+	}
 
 	public static final int SIZE_IN_BYTES = StructUtil.sizeOf(StructIdxDirectory.class);
 
@@ -30,7 +37,7 @@ public final class StructIdxDirectory {
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(directoryIndex, nameOffset);
+		return Objects.hash(this.directoryIndex, this.nameOffset);
 	}
 
 	@Override
@@ -45,16 +52,16 @@ public final class StructIdxDirectory {
 			return false;
 		}
 		final StructIdxDirectory other = (StructIdxDirectory) obj;
-		return (directoryIndex == other.directoryIndex) && (nameOffset == other.nameOffset);
+		return this.directoryIndex == other.directoryIndex && this.nameOffset == other.nameOffset;
 	}
 
 	@Override
 	public String toString() {
 		final StringBuilder builder = new StringBuilder();
 		builder.append("StructIdxDirectory [nameOffset=");
-		builder.append(nameOffset);
+		builder.append(this.nameOffset);
 		builder.append(", directoryIndex=");
-		builder.append(directoryIndex);
+		builder.append(this.directoryIndex);
 		builder.append("]");
 		return builder.toString();
 	}
