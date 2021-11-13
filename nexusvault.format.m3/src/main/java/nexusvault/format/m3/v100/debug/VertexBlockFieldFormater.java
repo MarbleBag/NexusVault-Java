@@ -38,22 +38,22 @@ public final class VertexBlockFieldFormater implements FieldFormater {
 			try {
 				final Table table = createInitialTable();
 				processVertices(table, debugger);
-				out.setOutput(table);
+				this.out.setOutput(table);
 			} finally {
-				vertexFields = null;
+				this.vertexFields = null;
 			}
 		}
 
 		private Table createInitialTable() {
 			final List<TableColumn> columns = new LinkedList<>();
-			vertexFields = new LinkedList<>();
-			columns.add(new TableColumn("Mesh #", "Mesh"));
+			this.vertexFields = new LinkedList<>();
+			columns.add(new TableColumn("Mesh #", "Mesh", null));
 			for (final VertexFieldOld vertexField : VertexFieldOld.values()) {
-				if (!geometry.isVertexFieldAvailable(vertexField)) {
+				if (!this.geometry.isVertexFieldAvailable(vertexField)) {
 					continue;
 				}
-				vertexFields.add(vertexField);
-				final TableColumn column = new TableColumn(vertexField.name(), vertexField.name());
+				this.vertexFields.add(vertexField);
+				final TableColumn column = new TableColumn(vertexField.name(), vertexField.name(), null);
 				column.setArrayAnnotation(vertexField.getValueCount());
 				columns.add(column);
 			}
@@ -63,31 +63,31 @@ public final class VertexBlockFieldFormater implements FieldFormater {
 		@SuppressWarnings("unchecked")
 		private void processVertices(Table table, DebugInfo debugger) {
 
-			final List<StructMesh> meshes = (List) debugger.loadStructs(geometry.meshes.getOffset(), geometry.meshes.getTypeOfElement(),
-					geometry.meshes.getArraySize());
+			final List<StructMesh> meshes = (List) debugger.loadStructs(this.geometry.meshes.getOffset(), this.geometry.meshes.getTypeOfElement(),
+					this.geometry.meshes.getArraySize());
 
-			final int vertexBlockSize = geometry.vertexBlockSizeInBytes;
+			final int vertexBlockSize = this.geometry.vertexBlockSizeInBytes;
 			final BinaryReader modelData = new ByteBufferBinaryReader(debugger.getDataModel().getData());
 
 			for (int i = 0; i < meshes.size(); ++i) {
 				final StructMesh mesh = meshes.get(i);
-				final long vertexBlockStart = geometry.vertexBlockData.getOffset() + (mesh.startVertex * vertexBlockSize);
+				final long vertexBlockStart = this.geometry.vertexBlockData.getOffset() + mesh.startVertex * vertexBlockSize;
 
 				for (int j = 0; j < mesh.vertexCount; ++j) {
-					final long vertexPosition = vertexBlockStart + (j * vertexBlockSize);
+					final long vertexPosition = vertexBlockStart + j * vertexBlockSize;
 					modelData.seek(Seek.BEGIN, vertexPosition);
 
 					final TableRow newRow = table.addNewRow();
 
 					table.getColumn("Mesh").getCell(newRow).addEntry(String.format("Mesh %d", i));
 
-					for (final VertexFieldOld vertexField : vertexFields) {
+					for (final VertexFieldOld vertexField : this.vertexFields) {
 						final TableColumn column = table.getColumn(vertexField.name());
 						final TableCell cell = column.getCell(newRow);
 
 						switch (vertexField) {
 							case LOCATION:
-								switch (geometry.getVertexFieldLocationType()) {
+								switch (this.geometry.getVertexFieldLocationType()) {
 									case INT16:
 										cell.addEntry(modelData.readInt16());
 										cell.addEntry(modelData.readInt16());

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import nexusvault.format.m3.v100.BytePositionTracker;
+import nexusvault.format.m3.v100.debug.Table.DataType;
 import nexusvault.format.m3.v100.debug.Table.TableCell;
 import nexusvault.format.m3.v100.debug.Table.TableColumn;
 import nexusvault.format.m3.v100.debug.Table.TableRow;
@@ -26,9 +27,9 @@ public final class SingleDataArrayFormatTask implements Task {
 	public void runTask(DebugInfo debugger) {
 		final Table table = createInitialTable();
 		final BytePositionTracker data = debugger.getDataModel();
-		data.setPosition(offset);
+		data.setPosition(this.offset);
 
-		final byte[][] loadedData = new byte[numberOfElements][sizeOfElement];
+		final byte[][] loadedData = new byte[this.numberOfElements][this.sizeOfElement];
 
 		for (final byte[] line : loadedData) {
 			data.getData().get(line);
@@ -36,19 +37,19 @@ public final class SingleDataArrayFormatTask implements Task {
 
 		for (final byte[] line : loadedData) {
 			final TableRow nextRow = table.addNewRow();
-			for (int c = 0; c < sizeOfElement; ++c) {
+			for (int c = 0; c < this.sizeOfElement; ++c) {
 				final TableColumn column = table.getColumn(c);
 				final TableCell cell = column.getCell(nextRow);
-				cell.addEntry((line[c] & 0xFF));
+				cell.addEntry(line[c] & 0xFF);
 			}
 		}
-		out.setOutput(table);
+		this.out.setOutput(table);
 	}
 
 	private Table createInitialTable() {
-		final List<TableColumn> columns = new ArrayList<>(sizeOfElement);
-		for (int i = 0; i < sizeOfElement; ++i) {
-			columns.add(new TableColumn("Column " + i, "" + i));
+		final List<TableColumn> columns = new ArrayList<>(this.sizeOfElement);
+		for (int i = 0; i < this.sizeOfElement; ++i) {
+			columns.add(new TableColumn("Column " + i, "" + i, DataType.UBYTE));
 		}
 		return new Table(columns);
 	}

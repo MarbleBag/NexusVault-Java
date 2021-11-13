@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import nexusvault.format.m3.v100.BytePositionTracker;
+import nexusvault.format.m3.v100.debug.Table.DataType;
 import nexusvault.format.m3.v100.debug.Table.TableCell;
 import nexusvault.format.m3.v100.debug.Table.TableColumn;
 import nexusvault.format.m3.v100.debug.Table.TableRow;
@@ -29,44 +30,44 @@ public final class DoubleDataArrayFormatTask implements Task {
 	public void runTask(DebugInfo debugger) {
 		final Table table = createInitialTable();
 
-		final byte[][] dataA = loadData(debugger.getDataModel(), offsetA, sizeOfElementA);
-		final byte[][] dataB = loadData(debugger.getDataModel(), offsetB, sizeOfElementB);
+		final byte[][] dataA = loadData(debugger.getDataModel(), this.offsetA, this.sizeOfElementA);
+		final byte[][] dataB = loadData(debugger.getDataModel(), this.offsetB, this.sizeOfElementB);
 
-		for (int rowIdx = 0; rowIdx < numberOfElements; ++rowIdx) {
+		for (int rowIdx = 0; rowIdx < this.numberOfElements; ++rowIdx) {
 			final TableRow nextRow = table.addNewRow();
 
 			final byte[] dataARow = dataA[rowIdx];
 			final byte[] dataBRow = dataB[rowIdx];
 
-			for (int columnIdx = 0; columnIdx < sizeOfElementA; ++columnIdx) {
+			for (int columnIdx = 0; columnIdx < this.sizeOfElementA; ++columnIdx) {
 				final TableColumn column = table.getColumn("A" + columnIdx);
 				final TableCell cell = column.getCell(nextRow);
-				cell.addEntry((dataARow[columnIdx] & 0xFF));
+				cell.addEntry(dataARow[columnIdx] & 0xFF);
 			}
-			for (int columnIdx = 0; columnIdx < sizeOfElementB; ++columnIdx) {
+			for (int columnIdx = 0; columnIdx < this.sizeOfElementB; ++columnIdx) {
 				final TableColumn column = table.getColumn("B" + columnIdx);
 				final TableCell cell = column.getCell(nextRow);
-				cell.addEntry((dataBRow[columnIdx] & 0xFF));
+				cell.addEntry(dataBRow[columnIdx] & 0xFF);
 			}
 		}
-		out.setOutput(table);
+		this.out.setOutput(table);
 	}
 
 	private Table createInitialTable() {
-		final List<TableColumn> columns = new ArrayList<>(sizeOfElementA + sizeOfElementB);
-		for (int i = 0; i < sizeOfElementA; ++i) {
-			columns.add(new TableColumn("Block A Column " + i, "A" + i));
+		final List<TableColumn> columns = new ArrayList<>(this.sizeOfElementA + this.sizeOfElementB);
+		for (int i = 0; i < this.sizeOfElementA; ++i) {
+			columns.add(new TableColumn("Block A Column " + i, "A" + i, DataType.UBYTE));
 		}
-		columns.add(new TableColumn("Padding", "Padding"));
-		for (int i = 0; i < sizeOfElementB; ++i) {
-			columns.add(new TableColumn("Block B Column " + i, "B" + i));
+		columns.add(new TableColumn("Padding", "Padding", DataType.NONE));
+		for (int i = 0; i < this.sizeOfElementB; ++i) {
+			columns.add(new TableColumn("Block B Column " + i, "B" + i, DataType.UBYTE));
 		}
 		return new Table(columns);
 	}
 
 	private byte[][] loadData(final BytePositionTracker data, long offset, int sizeOfElement) {
 		data.setPosition(offset);
-		final byte[][] loadedData = new byte[numberOfElements][sizeOfElement];
+		final byte[][] loadedData = new byte[this.numberOfElements][sizeOfElement];
 		for (final byte[] line : loadedData) {
 			data.getData().get(line);
 		}

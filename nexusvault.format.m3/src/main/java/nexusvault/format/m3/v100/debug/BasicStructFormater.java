@@ -9,6 +9,7 @@ import java.util.Map;
 
 import kreed.reflection.struct.FieldExtractor;
 import kreed.reflection.struct.StructField;
+import nexusvault.format.m3.v100.debug.Table.DataType;
 import nexusvault.format.m3.v100.debug.Table.TableCell;
 import nexusvault.format.m3.v100.debug.Table.TableColumn;
 import nexusvault.format.m3.v100.debug.Table.TableRow;
@@ -21,11 +22,11 @@ public final class BasicStructFormater implements StructFormater {
 	private final Map<String, FieldFormater> fieldFormaterByName;
 
 	public BasicStructFormater() {
-		fieldFormaters = new Class2ObjectLookup<>(null);
-		fieldFormaterByName = new HashMap<>();
+		this.fieldFormaters = new Class2ObjectLookup<>(null);
+		this.fieldFormaterByName = new HashMap<>();
 
-		fieldFormaters.setLookUp(ArrayTypePointer.class, new ATPFieldFormater());
-		fieldFormaters.setLookUp(DoubleArrayTypePointer.class, new DATPFieldFormater());
+		this.fieldFormaters.setLookUp(ArrayTypePointer.class, new ATPFieldFormater());
+		this.fieldFormaters.setLookUp(DoubleArrayTypePointer.class, new DATPFieldFormater());
 
 		final List<Class<?>> baseTypes = new ArrayList<>();
 		baseTypes.add(Object.class);
@@ -38,7 +39,7 @@ public final class BasicStructFormater implements StructFormater {
 
 		final UntypedFieldFormater untypedFieldFormater = new UntypedFieldFormater();
 		for (final Class<?> c : baseTypes) {
-			fieldFormaters.setLookUp(c, untypedFieldFormater);
+			this.fieldFormaters.setLookUp(c, untypedFieldFormater);
 		}
 	}
 
@@ -83,13 +84,13 @@ public final class BasicStructFormater implements StructFormater {
 	}
 
 	private FieldFormater getFieldFormater(Field field) {
-		FieldFormater formater = fieldFormaterByName.get(field.getName());
+		FieldFormater formater = this.fieldFormaterByName.get(field.getName());
 		if (formater != null) {
 			return formater;
 		}
 
 		final Class<?> fieldType = field.getType().isArray() ? field.getType().getComponentType() : field.getType();
-		formater = fieldFormaters.getLookUp(fieldType);
+		formater = this.fieldFormaters.getLookUp(fieldType);
 		if (formater == null) {
 			// if (fieldType.isPrimitive()) {
 			// formater = new UntypedFieldFormater();
@@ -110,9 +111,10 @@ public final class BasicStructFormater implements StructFormater {
 		// headers.add(new TableColumn("Model"));
 		// headers.add(new TableColumn("Struct Name"));
 		for (final Field field : fields) {
-			final TableColumn header = new TableColumn(field.getName(), field.getName());
+			final var fieldAnnotation = field.getAnnotation(StructField.class);
+			final TableColumn header = new TableColumn(field.getName(), field.getName(), DataType.resolveType(field.getType(), fieldAnnotation.value()));
 			if (field.getType().isArray()) {
-				final int size = field.getAnnotation(StructField.class).length();
+				final int size = fieldAnnotation.length();
 				header.setArrayAnnotation(size);
 			}
 			headers.add(header);

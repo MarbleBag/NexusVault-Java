@@ -3,10 +3,11 @@ package nexusvault.format.m3.v100.debug;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
-public final class Table {
+public final class Table implements Iterable<Table.TableRow> {
 
 	public static final class TableCell {
 		private final TableColumn column;
@@ -18,54 +19,150 @@ public final class Table {
 		}
 
 		public void addEntry(Object value) {
-			row.addEntry(column, value);
+			this.row.addEntry(this.column, value);
 		}
 
 		public void addEntries(Collection<? extends Object> value) {
-			row.addEntries(column, value);
+			this.row.addEntries(this.column, value);
 		}
 
 		public TableColumn getColumn() {
-			return column;
+			return this.column;
 		}
 
 		public List<Object> getEntries() {
-			return row.getEntries(column);
+			return this.row.getEntries(this.column);
 		}
 
 		public TableRow getRow() {
-			return row;
+			return this.row;
 		}
 
+	}
+
+	public static enum DataType {
+		NONE,
+		UBYTE,
+		BYTE,
+		SHORT,
+		USHORT,
+		INT,
+		UINT,
+		LONG,
+		ULONG,
+		HFLOAT,
+		FLOAT,
+		DOUBLE,
+		STRUCT;
+
+		protected static DataType resolveType(Class<?> fieldType, kreed.reflection.struct.DataType structType) {
+			switch (structType) {
+				case BIT_8:
+					return BYTE;
+				case UBIT_8:
+					return UBYTE;
+				case UBIT_16:
+					return USHORT;
+				case BIT_16:
+					if (isFloat(fieldType) || isDouble(fieldType)) {
+						return HFLOAT;
+					}
+					return SHORT;
+				case BIT_24:
+				case BIT_32:
+					if (isFloat(fieldType) || isDouble(fieldType)) {
+						return FLOAT;
+					}
+					return INT;
+				case UBIT_24:
+				case UBIT_32:
+					return UINT;
+				case BIT_64:
+					if (isDouble(fieldType)) {
+						return DOUBLE;
+					}
+					return LONG;
+				case UBIT_64:
+					return ULONG;
+				case STRUCT:
+					return DataType.STRUCT;
+				default:
+					return NONE;
+			}
+		}
+
+		private static boolean isByte(Class<?> type) {
+			if (type.isArray()) {
+				return isByte(type.getComponentType());
+			}
+			return byte.class.equals(type) || Byte.class.equals(type);
+		}
+
+		private static boolean isShort(Class<?> type) {
+			if (type.isArray()) {
+				return isShort(type.getComponentType());
+			}
+			return short.class.equals(type) || Short.class.equals(type);
+		}
+
+		private static boolean isInt(Class<?> type) {
+			if (type.isArray()) {
+				return isInt(type.getComponentType());
+			}
+			return int.class.equals(type) || Integer.class.equals(type);
+		}
+
+		private static boolean isLong(Class<?> type) {
+			if (type.isArray()) {
+				return isLong(type.getComponentType());
+			}
+			return long.class.equals(type) || Long.class.equals(type);
+		}
+
+		private static boolean isDouble(Class<?> type) {
+			if (type.isArray()) {
+				return isDouble(type.getComponentType());
+			}
+			return double.class.equals(type) || Double.class.equals(type);
+		}
+
+		private static boolean isFloat(Class<?> type) {
+			if (type.isArray()) {
+				return isFloat(type.getComponentType());
+			}
+			return float.class.equals(type) || Float.class.equals(type);
+		}
 	}
 
 	public static final class TableColumn {
 		private final String columnId;
 		private final String columnName;
+		private final DataType dataType;
 		private int index;
 
 		private int maxNumberOfEntries = 1;
 		private final List<String> subHeader;
 
-		public TableColumn(String columnName) {
-			this(columnName, null);
+		public TableColumn(String columnName, DataType dataType) {
+			this(columnName, null, dataType);
 		}
 
-		public TableColumn(String columnName, String columnId) {
+		public TableColumn(String columnName, String columnId, DataType dataType) {
 			if (columnName == null) {
 				throw new IllegalArgumentException("'columnName' must not be null");
 			}
 			this.columnName = columnName;
 			this.columnId = columnId == null ? "" : columnId;
+			this.dataType = dataType;
 
-			subHeader = new ArrayList<>(0);
+			this.subHeader = new ArrayList<>(0);
 		}
 
 		public void addSubHeader(String subColumn) {
 			if (subColumn == null) {
 				throw new IllegalArgumentException("'subHeader' must not be null");
 			}
-			subHeader.add(subColumn);
+			this.subHeader.add(subColumn);
 		}
 
 		public TableCell getCell(TableRow row) {
@@ -73,27 +170,31 @@ public final class Table {
 		}
 
 		public String getColumnName() {
-			return columnName;
+			return this.columnName;
 		}
 
 		public String getId() {
-			return columnId;
+			return this.columnId;
 		}
 
 		public int getIndex() {
-			return index;
+			return this.index;
+		}
+
+		public DataType getDataType() {
+			return this.dataType;
 		}
 
 		public int getMaxNumberOfEntries() {
-			return maxNumberOfEntries;
+			return this.maxNumberOfEntries;
 		}
 
 		public List<String> getSubHeader() {
-			return Collections.unmodifiableList(subHeader);
+			return Collections.unmodifiableList(this.subHeader);
 		}
 
 		public void setArrayAnnotation(int size) {
-			maxNumberOfEntries = size;
+			this.maxNumberOfEntries = size;
 		}
 
 		void updateIndex(int index) {
@@ -101,10 +202,10 @@ public final class Table {
 		}
 
 		TableColumn cloneColumn() {
-			final TableColumn clone = new TableColumn(columnName, columnId);
-			clone.subHeader.addAll(subHeader);
-			clone.maxNumberOfEntries = maxNumberOfEntries;
-			clone.index = index;
+			final TableColumn clone = new TableColumn(this.columnName, this.columnId, this.dataType);
+			clone.subHeader.addAll(this.subHeader);
+			clone.maxNumberOfEntries = this.maxNumberOfEntries;
+			clone.index = this.index;
 			return clone;
 		}
 
@@ -124,36 +225,36 @@ public final class Table {
 		}
 
 		public int getIndex() {
-			return index;
+			return this.index;
 		}
 
 		void addEntry(TableColumn column, Object value) {
-			if (row[column.getIndex()] == null) {
-				row[column.getIndex()] = new LinkedList<>();
+			if (this.row[column.getIndex()] == null) {
+				this.row[column.getIndex()] = new LinkedList<>();
 			} else {
-				if (row[column.getIndex()].size() >= column.getMaxNumberOfEntries()) {
+				if (this.row[column.getIndex()].size() >= column.getMaxNumberOfEntries()) {
 					throw new IllegalArgumentException("Column " + column.getId() + " can only have up to " + column.getMaxNumberOfEntries());
 				}
 			}
-			row[column.getIndex()].add(value);
+			this.row[column.getIndex()].add(value);
 		}
 
 		public void addEntries(TableColumn column, Collection<? extends Object> value) {
-			if (row[column.getIndex()] == null) {
-				row[column.getIndex()] = new LinkedList<>();
+			if (this.row[column.getIndex()] == null) {
+				this.row[column.getIndex()] = new LinkedList<>();
 			} else {
-				if ((row[column.getIndex()].size() + value.size()) > column.getMaxNumberOfEntries()) {
+				if (this.row[column.getIndex()].size() + value.size() > column.getMaxNumberOfEntries()) {
 					throw new IllegalArgumentException("Column " + column.getId() + " can only have up to " + column.getMaxNumberOfEntries());
 				}
 			}
-			row[column.getIndex()].addAll(value);
+			this.row[column.getIndex()].addAll(value);
 		}
 
 		List<Object> getEntries(TableColumn column) {
-			if (row[column.getIndex()] == null) {
+			if (this.row[column.getIndex()] == null) {
 				return Collections.emptyList();
 			}
-			return Collections.unmodifiableList(row[column.getIndex()]);
+			return Collections.unmodifiableList(this.row[column.getIndex()]);
 		}
 	}
 
@@ -164,21 +265,21 @@ public final class Table {
 
 	public Table(List<TableColumn> columns) {
 		// columns = new HashMap<>();
-		sortedColumns = new ArrayList<>();
+		this.sortedColumns = new ArrayList<>();
 
 		for (final TableColumn column : columns) {
-			column.updateIndex(sortedColumns.size());
-			sortedColumns.add(column);
+			column.updateIndex(this.sortedColumns.size());
+			this.sortedColumns.add(column);
 		}
 
-		model = new ArrayList<>(24);
+		this.model = new ArrayList<>(24);
 	}
 
 	@SuppressWarnings("unchecked")
 	public TableRow addNewRow() {
-		final List<Object>[] row = new List[sortedColumns.size()];
-		final int index = model.size();
-		model.add(row);
+		final List<Object>[] row = new List[this.sortedColumns.size()];
+		final int index = this.model.size();
+		this.model.add(row);
 		return new TableRow(index, row);
 	}
 
@@ -187,11 +288,11 @@ public final class Table {
 	}
 
 	public TableColumn getColumn(int index) {
-		return sortedColumns.get(index);
+		return this.sortedColumns.get(index);
 	}
 
 	public TableColumn getColumn(String columnId) {
-		for (final TableColumn column : sortedColumns) {
+		for (final TableColumn column : this.sortedColumns) {
 			if (column.getId().equals(columnId)) {
 				return column;
 			}
@@ -200,18 +301,36 @@ public final class Table {
 	}
 
 	public int getColumnCount() {
-		return sortedColumns.size();
+		return this.sortedColumns.size();
 	}
 
 	public TableRow getRow(int index) {
-		if ((index < 0) || (model.size() <= index)) {
-			throw new IndexOutOfBoundsException(String.format("Index out of bound. Allowed range [0,%)", model.size()));
+		if (index < 0 || this.model.size() <= index) {
+			throw new IndexOutOfBoundsException(String.format("Index out of bound. Allowed range [0,%)", this.model.size()));
 		}
-		return new TableRow(index, model.get(index));
+		return new TableRow(index, this.model.get(index));
+	}
+
+	@Override
+	public Iterator<TableRow> iterator() {
+		final var iterator = this.model.iterator();
+		return new Iterator<>() {
+			int idx = 0;
+
+			@Override
+			public boolean hasNext() {
+				return iterator.hasNext();
+			}
+
+			@Override
+			public TableRow next() {
+				return new TableRow(this.idx++, iterator.next());
+			}
+		};
 	}
 
 	public int getRowCount() {
-		return model.size();
+		return this.model.size();
 	}
 
 	@Override
