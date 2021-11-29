@@ -104,7 +104,7 @@ public final class TableWriter {
 			}
 
 			// number of records * size + all strings
-			header.totalRecordSize = strOffset; // strOffset points to the end of the last written string, so this works.
+			header.totalRecordsSize = strOffset; // strOffset points to the end of the last written string, so this works.
 			writer.seek(Seek.CURRENT, writeRecordPosition + strOffset - writer.getPosition());
 		}
 

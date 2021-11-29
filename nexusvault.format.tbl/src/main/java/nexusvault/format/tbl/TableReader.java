@@ -1,6 +1,7 @@
 package nexusvault.format.tbl;
 
 import java.nio.ByteBuffer;
+import java.util.HashMap;
 
 import kreed.io.util.BinaryReader;
 import kreed.io.util.ByteBufferBinaryReader;
@@ -51,6 +52,8 @@ public final class TableReader {
 
 		final var entries = new Object[(int) header.recordCount][];
 
+		final var stringCache = new HashMap<Integer, String>();
+
 		final long readRecordsPosition = readPostHeaderPosition + header.recordOffset;
 		for (var i = 0; i < header.recordCount; ++i) {
 			reader.seek(Seek.BEGIN, readRecordsPosition + i * header.recordSize);
@@ -77,12 +80,16 @@ public final class TableReader {
 						if (reader.getPosition() % 8 != 0) {
 							reader.readInt32(); // padding, all strings are 8 byte aligned.
 						}
-
 						final long strOffset = reader.readInt64();
-						final long readPosition = reader.getPosition();
-						reader.seek(Seek.BEGIN, readRecordsPosition + strOffset);
-						record[j] = Text.readNullTerminatedUTF16(reader);
-						reader.seek(Seek.BEGIN, readPosition);
+						if (stringCache.containsKey(Integer.valueOf((int) strOffset))) {
+							record[j] = stringCache.get(Integer.valueOf((int) strOffset));
+						} else {
+							final long readPosition = reader.getPosition();
+							reader.seek(Seek.BEGIN, readRecordsPosition + strOffset);
+							record[j] = Text.readNullTerminatedUTF16(reader);
+							reader.seek(Seek.BEGIN, readPosition);
+							stringCache.put(Integer.valueOf((int) strOffset), (String) record[j]);
+						}
 						break;
 					default:
 						throw new TableException(String.format("Unknow data type: '%s'", columns[j].dataType));
