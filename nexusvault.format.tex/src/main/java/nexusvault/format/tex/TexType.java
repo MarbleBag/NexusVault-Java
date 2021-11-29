@@ -3,7 +3,7 @@ package nexusvault.format.tex;
 import nexusvault.format.tex.struct.StructTextureFileHeader;
 
 public enum TexType {
-	UNKNOWN(null, null, null) {
+	UNKNOWN(-1, false, -1) {
 		@Override
 		protected boolean matches(int format, boolean isCompressed, int compressionFormat) {
 			return false;
@@ -12,56 +12,56 @@ public enum TexType {
 	/**
 	 * Chroma subsampling &amp; typical jpg color space transformation with one additional color channel
 	 */
-	JPEG_TYPE_1(null, true, 0),
+	JPEG_TYPE_1(-1, true, 0),
 	/**
 	 * Four color channels and no color space transformation
 	 */
-	JPEG_TYPE_2(null, true, 1),
+	JPEG_TYPE_2(-1, true, 1),
 	/**
 	 * typical jpg color space transformation with one additional color channel
 	 */
-	JPEG_TYPE_3(null, true, 2),
+	JPEG_TYPE_3(-1, true, 2),
 	/** identical to {@link #ARGB_2} */
-	ARGB_1(0, false, null),
+	ARGB_1(0, false, -1),
 	/** identical to {@link #ARGB_1} */
-	ARGB_2(1, false, null),
-	RGB(5, false, null),
-	GRAYSCALE(6, false, null),
-	DXT1(13, false, null),
-	DXT3(14, false, null),
-	DXT5(15, false, null);
+	ARGB_2(1, false, -1),
+	RGB(5, false, -1),
+	GRAYSCALE(6, false, -1),
+	DXT1(13, false, -1),
+	DXT3(14, false, -1),
+	DXT5(15, false, -1);
 
-	private Integer format;
-	private Boolean compressed;
-	private Integer compressionFormat;
+	private int format;
+	private boolean isJpg;
+	private int jpgFormat;
 
-	private TexType(Integer format, Boolean compressed, Integer compressionFormat) {
+	private TexType(int format, boolean isJpg, int jpgFormat) {
 		this.format = format;
-		this.compressed = compressed;
-		this.compressionFormat = compressionFormat;
+		this.isJpg = isJpg;
+		this.jpgFormat = jpgFormat;
 	}
 
 	public int getFormat() {
-		return this.format == 0 ? 0 : this.format.intValue();
+		return this.format;
 	}
 
-	public boolean isCompressed() {
-		return this.compressed == null ? false : this.compressed.booleanValue();
+	public boolean isJpg() {
+		return this.isJpg;
 	}
 
-	public int getCompressionFormat() {
-		return this.compressionFormat == null ? 0 : this.compressionFormat.intValue();
+	public int getJpgFormat() {
+		return this.jpgFormat;
 	}
 
-	protected boolean matches(int format, boolean isCompressed, int compressionFormat) {
-		final boolean formatMatch = this.format == null || this.format != null && this.format == format;
-		final boolean compressionMatch = this.compressed == null || this.compressed != null && this.compressed == isCompressed;
-		final boolean compFormatMatch = this.compressionFormat == null || this.compressionFormat != null && this.compressionFormat == compressionFormat;
-		return formatMatch && compressionMatch && compFormatMatch;
+	protected boolean matches(int format, boolean isJpg, int jpgFormat) {
+		if (isJpg == this.isJpg) {
+			return jpgFormat == this.jpgFormat;
+		}
+		return format == this.format;
 	}
 
 	public static TexType resolve(StructTextureFileHeader header) {
-		return resolve(header.format, header.isCompressed, header.compressionFormat);
+		return resolve(header.format, header.isJpg, header.jpgFormat);
 	}
 
 	public static TexType resolve(String name) {
@@ -74,9 +74,9 @@ public enum TexType {
 		return UNKNOWN;
 	}
 
-	public static TexType resolve(int format, boolean isCompressed, int compressionFormat) {
+	public static TexType resolve(int format, boolean isJpg, int jpgFormat) {
 		for (final TexType f : TexType.values()) {
-			if (f.matches(format, isCompressed, compressionFormat)) {
+			if (f.matches(format, isJpg, jpgFormat)) {
 				return f;
 			}
 		}

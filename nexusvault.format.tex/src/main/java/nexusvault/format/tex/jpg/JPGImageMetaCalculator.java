@@ -14,15 +14,15 @@ final class JPGImageMetaCalculator implements ImageMetaCalculator {
 		if (mipmapIndex < 0 || header.mipMaps <= mipmapIndex) {
 			throw new IndexOutOfBoundsException(String.format("'idx' out of bounds. Range [0;%d). Got %d", header.mipMaps, mipmapIndex));
 		}
-		if (header.mipMaps != header.imageSizesCount) {
+		if (header.mipMaps != header.mipmapSizesCount) {
 			throw new IndexOutOfBoundsException(String.format("'header.imageSizesCount' and 'header.mipMaps' need to be qual. MipMaps: %d, ImageSizeCount:",
-					header.mipMaps, header.imageSizesCount));
+					header.mipMaps, header.mipmapSizesCount));
 		}
 
-		final int length = header.imageSizes[mipmapIndex];
+		final int length = header.mipmapSizes[mipmapIndex];
 		int offset = 0;
 		for (int i = 0; i < mipmapIndex; ++i) {
-			offset += header.imageSizes[i];
+			offset += header.mipmapSizes[i];
 		}
 
 		int width = header.width >> header.mipMaps - mipmapIndex - 1;

@@ -40,8 +40,8 @@ public final class DXTTextureImageWriter extends AbstractTextureImageWriter impl
 		// header.sides = ?;
 		header.mipMaps = images.length;
 		header.format = target.getFormat();
-		header.isCompressed = target.isCompressed();
-		header.compressionFormat = target.getCompressionFormat();
+		header.isJpg = target.isJpg();
+		header.jpgFormat = target.getJpgFormat();
 		// header.imageSizesCount = images.length; //Not used for dxt textures
 
 		final var dxtCompression = getCompressionType(target);

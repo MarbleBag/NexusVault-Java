@@ -22,6 +22,17 @@ public final class ColorModelConverter {
 		return dst;
 	}
 
+	public static byte[] convertBGRToARGB(byte[] src) {
+		final byte[] dst = new byte[src.length / 3 * 4];
+		for (int s = 0, d = 0; d < dst.length; s += 3, d += 4) {
+			dst[d + 0] = (byte) 0xFF;
+			dst[d + 3] = src[s + 0];
+			dst[d + 2] = src[s + 1];
+			dst[d + 1] = src[s + 2];
+		}
+		return dst;
+	}
+
 	public static byte[] convertARGBToABGR(byte[] src) {
 		final byte[] dst = new byte[src.length];
 		for (int d = 0; d < dst.length; d += 4) {
@@ -70,6 +81,19 @@ public final class ColorModelConverter {
 		return dst;
 	}
 
+	public static byte[] convertABGRToGrayscale(byte[] src) {
+		final byte[] dst = new byte[src.length / 4];
+		for (int s = 0, d = 0; d < dst.length; s += 4, d += 1) {
+			final var a = src[s + 0]; // not used in grayscale
+			final var b = src[s + 1];
+			final var g = src[s + 2];
+			final var r = src[s + 3];
+			final var luminosity = Math.min(255, Math.max(0, Math.round(0.21f * r + 0.72f * g + 0.07f * b)));
+			dst[d] = (byte) luminosity;
+		}
+		return dst;
+	}
+
 	public static byte[] convertGrayscaleToARGB(byte[] src) {
 		final byte[] dst = new byte[src.length * 4];
 		for (int s = 0, d = 0; d < dst.length; s += 1, d += 4) {
@@ -87,6 +111,16 @@ public final class ColorModelConverter {
 			dst[d + 0] = src[s + 1];
 			dst[d + 1] = src[s + 2];
 			dst[d + 2] = src[s + 3];
+		}
+		return dst;
+	}
+
+	public static byte[] convertABGRToRGB(byte[] src) {
+		final byte[] dst = new byte[src.length / 4 * 3];
+		for (int s = 0, d = 0; d < dst.length; s += 4, d += 3) {
+			dst[d + 2] = src[s + 1];
+			dst[d + 1] = src[s + 2];
+			dst[d + 0] = src[s + 3];
 		}
 		return dst;
 	}
@@ -118,6 +152,18 @@ public final class ColorModelConverter {
 			final var r = src[s + 0];
 			final var g = src[s + 1];
 			final var b = src[s + 2];
+			final var luminosity = Math.min(255, Math.max(0, Math.round(0.21f * r + 0.72f * g + 0.07f * b)));
+			dst[d] = (byte) luminosity;
+		}
+		return dst;
+	}
+
+	public static byte[] convertBGRToGrayscale(byte[] src) {
+		final byte[] dst = new byte[src.length / 3];
+		for (int s = 0, d = 0; d < dst.length; s += 3, d += 1) {
+			final var b = src[s + 0];
+			final var g = src[s + 1];
+			final var r = src[s + 2];
 			final var luminosity = Math.min(255, Math.max(0, Math.round(0.21f * r + 0.72f * g + 0.07f * b)));
 			dst[d] = (byte) luminosity;
 		}

@@ -34,8 +34,8 @@ public final class UncompressedTextureImageWriter extends AbstractTextureImageWr
 		// header.sides = ?;
 		header.mipMaps = images.length;
 		header.format = target.getFormat();
-		header.isCompressed = target.isCompressed();
-		header.compressionFormat = target.getCompressionFormat();
+		header.isJpg = target.isJpg();
+		header.jpgFormat = target.getJpgFormat();
 		// header.imageSizesCount = images.length; //Not used for uncompressed textures
 
 		final var encoder = getEncoder(target);

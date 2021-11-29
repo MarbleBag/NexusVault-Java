@@ -10,11 +10,11 @@ public final class JPGDecoder {
 	private final JPGImageDecoder decoder;
 
 	public JPGDecoder(StructTextureFileHeader header) {
-		decoder = buildDecoder(header);
+		this.decoder = buildDecoder(header);
 	}
 
-	public byte[] decode(BinaryReader input, /* int byteLength, */ int width, int height) {
-		return decoder.decode(input, /* byteLength, */ width, height);
+	public byte[] decode(BinaryReader input, int width, int height) {
+		return this.decoder.decode(input, width, height);
 	}
 
 	private JPGImageDecoder buildDecoder(StructTextureFileHeader header) {
@@ -26,11 +26,11 @@ public final class JPGDecoder {
 		final var quantTables = new float[Constants.NUMBER_OF_LAYERS][];
 		final var layerType = Constants.TYPE_PER_LAYER[constantIdx];
 		for (int i = 0; i < Constants.NUMBER_OF_LAYERS; ++i) {
-			final var layerInfo = header.layerInfos[i];
-			quantTables[i] = Constants.getAdjustedQuantTable(layerType[i], layerInfo.getQuality());
-			layerHasDefault[i] = layerInfo.hasReplacement();
+			final var channelInfo = header.jpgChannelInfos[i];
+			quantTables[i] = Constants.getAdjustedQuantTable(layerType[i], channelInfo.getQuality());
+			layerHasDefault[i] = channelInfo.hasDefaultColor();
 			if (layerHasDefault[i]) {
-				layerDefault[i] = layerInfo.getReplacement();
+				layerDefault[i] = channelInfo.getDefaultColor();
 			}
 		}
 

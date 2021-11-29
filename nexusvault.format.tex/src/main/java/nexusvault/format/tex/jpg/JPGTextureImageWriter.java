@@ -95,49 +95,49 @@ public final class JPGTextureImageWriter extends AbstractTextureImageWriter impl
 		// header.sides = ?;
 		header.mipMaps = images.length;
 		header.format = target.getFormat();
-		header.isCompressed = target.isCompressed();
-		header.compressionFormat = target.getCompressionFormat();
-		header.imageSizesCount = images.length;
+		header.isJpg = target.isJpg();
+		header.jpgFormat = target.getJpgFormat();
+		header.mipmapSizesCount = images.length;
 
 		{
 			final var quality = (byte) config.getOrDefault(CONFIG_QUALITY, 100);
-			header.layerInfos[0].setQuality((byte) config.getOrDefault(CONFIG_QUALITY_LAYER1, quality));
-			header.layerInfos[1].setQuality((byte) config.getOrDefault(CONFIG_QUALITY_LAYER2, quality));
-			header.layerInfos[2].setQuality((byte) config.getOrDefault(CONFIG_QUALITY_LAYER3, quality));
-			header.layerInfos[3].setQuality((byte) config.getOrDefault(CONFIG_QUALITY_LAYER4, quality));
+			header.jpgChannelInfos[0].setQuality((byte) config.getOrDefault(CONFIG_QUALITY_LAYER1, quality));
+			header.jpgChannelInfos[1].setQuality((byte) config.getOrDefault(CONFIG_QUALITY_LAYER2, quality));
+			header.jpgChannelInfos[2].setQuality((byte) config.getOrDefault(CONFIG_QUALITY_LAYER3, quality));
+			header.jpgChannelInfos[3].setQuality((byte) config.getOrDefault(CONFIG_QUALITY_LAYER4, quality));
 		}
 
 		if (config.containsKey(CONFIG_VALUE_LAYER1)) {
-			header.layerInfos[0].hasReplacement(true);
-			header.layerInfos[0].setReplacement((byte) config.get(CONFIG_VALUE_LAYER1));
+			header.jpgChannelInfos[0].hasDefaultColor(true);
+			header.jpgChannelInfos[0].setDefaultColor((byte) config.get(CONFIG_VALUE_LAYER1));
 		}
 
 		if (config.containsKey(CONFIG_VALUE_LAYER2)) {
-			header.layerInfos[1].hasReplacement(true);
-			header.layerInfos[1].setReplacement((byte) config.get(CONFIG_VALUE_LAYER2));
+			header.jpgChannelInfos[1].hasDefaultColor(true);
+			header.jpgChannelInfos[1].setDefaultColor((byte) config.get(CONFIG_VALUE_LAYER2));
 		}
 
 		if (config.containsKey(CONFIG_VALUE_LAYER3)) {
-			header.layerInfos[2].hasReplacement(true);
-			header.layerInfos[2].setReplacement((byte) config.get(CONFIG_VALUE_LAYER3));
+			header.jpgChannelInfos[2].hasDefaultColor(true);
+			header.jpgChannelInfos[2].setDefaultColor((byte) config.get(CONFIG_VALUE_LAYER3));
 		}
 
 		if (config.containsKey(CONFIG_VALUE_LAYER4)) {
-			header.layerInfos[3].hasReplacement(true);
-			header.layerInfos[3].setReplacement((byte) config.get(CONFIG_VALUE_LAYER4));
+			header.jpgChannelInfos[3].hasDefaultColor(true);
+			header.jpgChannelInfos[3].setDefaultColor((byte) config.get(CONFIG_VALUE_LAYER4));
 		}
 
 		final var encoder = new JPGEncoder(target, //
 				new boolean[] { //
-						header.layerInfos[0].hasReplacement(), //
-						header.layerInfos[1].hasReplacement(), //
-						header.layerInfos[2].hasReplacement(), //
-						header.layerInfos[3].hasReplacement() //
+						header.jpgChannelInfos[0].hasDefaultColor(), //
+						header.jpgChannelInfos[1].hasDefaultColor(), //
+						header.jpgChannelInfos[2].hasDefaultColor(), //
+						header.jpgChannelInfos[3].hasDefaultColor() //
 				}, new int[] { //
-						header.layerInfos[0].getQuality(), //
-						header.layerInfos[1].getQuality(), //
-						header.layerInfos[2].getQuality(), //
-						header.layerInfos[3].getQuality() //
+						header.jpgChannelInfos[0].getQuality(), //
+						header.jpgChannelInfos[1].getQuality(), //
+						header.jpgChannelInfos[2].getQuality(), //
+						header.jpgChannelInfos[3].getQuality() //
 				});
 
 		final var imageData = new ByteBuffer[images.length];
@@ -146,8 +146,8 @@ public final class JPGTextureImageWriter extends AbstractTextureImageWriter impl
 			final var image = images[i];
 			final var encodedImageData = encoder.encode(image.getImageData(), image.getImageWidth(), image.getImageHeight());
 			final var paddedLength = ByteAlignmentUtil.alignTo16Byte(encodedImageData.remaining());
-			header.imageSizes[i] = paddedLength;
-			paddedImageDataSize += header.imageSizes[i];
+			header.mipmapSizes[i] = paddedLength;
+			paddedImageDataSize += header.mipmapSizes[i];
 			imageData[i] = encodedImageData;
 		}
 
@@ -155,7 +155,7 @@ public final class JPGTextureImageWriter extends AbstractTextureImageWriter impl
 		kreed.reflection.struct.StructUtil.writeStruct(header, output, true);
 
 		for (var i = 0; i < images.length; ++i) {
-			final var remainder = header.imageSizes[i] - imageData[i].remaining();
+			final var remainder = header.mipmapSizes[i] - imageData[i].remaining();
 			output.put(imageData[i]);
 			for (var j = 0; j < remainder; ++j) {
 				output.put((byte) 0xFF);

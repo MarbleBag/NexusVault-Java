@@ -56,12 +56,12 @@ public final class AllInOneJPGDecoder {
 		this.lastStackId = 0;
 
 		for (int i = 0; i < Constants.NUMBER_OF_LAYERS; ++i) {
-			final var layerInfo = header.layerInfos[i];
+			final var layerInfo = header.jpgChannelInfos[i];
 			this.dcValues[i] = 0;
 			this.quantTables[i] = Constants.getAdjustedQuantTable(this.typePerLayer[i], layerInfo.getQuality());
-			this.hasDefaultForLayer[i] = layerInfo.hasReplacement();
+			this.hasDefaultForLayer[i] = layerInfo.hasDefaultColor();
 			if (this.hasDefaultForLayer[i]) {
-				this.defaultForLayer[i] = layerInfo.getReplacement();
+				this.defaultForLayer[i] = layerInfo.getDefaultColor();
 			}
 		}
 

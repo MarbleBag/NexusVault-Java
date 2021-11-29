@@ -5,7 +5,7 @@ import java.util.EnumSet;
 import java.util.Set;
 
 import kreed.io.util.BinaryReader;
-import kreed.io.util.LimitedBinaryReader;
+import kreed.io.util.BinaryReaderView;
 import kreed.io.util.Seek;
 import nexusvault.format.tex.AbstractTextureImageReader;
 import nexusvault.format.tex.ImageMetaInformation;
@@ -32,7 +32,7 @@ public final class JPGTextureImageReader2 extends AbstractTextureImageReader imp
 		final ImageMetaInformation meta = getImageInformation(header, imageIdx);
 		final var decoder = new JPGDecoder(header);
 		source.seek(Seek.BEGIN, meta.offset);
-		source = new LimitedBinaryReader(source, meta.length);
+		source = new BinaryReaderView(source, meta.length, false);
 		final byte[] data = decoder.decode(source, meta.width, meta.height);
 		return new TextureImage(meta.width, meta.height, TextureImageFormat.ARGB, data);
 	}
