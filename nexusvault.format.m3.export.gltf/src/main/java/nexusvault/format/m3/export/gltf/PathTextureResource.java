@@ -19,8 +19,10 @@ public final class PathTextureResource extends TextureResource {
 	@Override
 	public Path writeImageTo(Path outputDirectory) throws IOException {
 		final var dst = outputDirectory.resolve(this.source.getFileName());
+		if (this.source.equals(dst)) {
+			return dst;
+		}
 		Files.copy(this.source, dst, StandardCopyOption.REPLACE_EXISTING);
-		final var relativePath = dst.subpath(outputDirectory.getNameCount() - 1, dst.getNameCount());
-		return relativePath;
+		return dst;
 	}
 }

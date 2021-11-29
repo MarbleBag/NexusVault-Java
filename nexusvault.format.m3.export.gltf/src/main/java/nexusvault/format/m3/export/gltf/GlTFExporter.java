@@ -46,7 +46,6 @@ public final class GlTFExporter {
 
 	private Path outputDirectory;
 	private Path binaryBufferFile;
-	private Path textureDirectory;
 
 	private Model model;
 	private GlTF gltfModel;
@@ -353,14 +352,8 @@ public final class GlTFExporter {
 	}
 
 	private void writeTextureData() throws IOException {
-		if (this.textureDirectory == null) {
-			this.textureDirectory = getOutputDirectory().resolve(getModelName() + "_textures");
-			Files.createDirectories(this.textureDirectory);
-			if (!Files.isDirectory(this.textureDirectory)) {
-				throw new IOException("Unable to create texture directory '" + this.textureDirectory + "'");
-			}
-
-			this.textureManager = new TextureManager(this.textureDirectory, this.gltfModel, this.monitor);
+		if (this.textureManager == null) {
+			this.textureManager = new TextureManager(getOutputDirectory(), this.gltfModel, this.monitor);
 		}
 
 		for (final var textures : this.model.getTextures()) {
@@ -501,14 +494,7 @@ public final class GlTFExporter {
 
 			Files.deleteIfExists(this.binaryBufferFile);
 			Files.createFile(this.binaryBufferFile);
-
-			if (this.monitor != null) {
-				try {
-					this.monitor.newFileCreated(this.binaryBufferFile);
-				} catch (final Throwable t) {
-					throw new OnAddFileException(t);
-				}
-			}
+			logFileCreation(this.binaryBufferFile);
 		}
 	}
 
@@ -531,6 +517,17 @@ public final class GlTFExporter {
 		final GltfModelWriter gltfModelWriter = new GltfModelWriter();
 		final Path outputFile = getOutputDirectory().resolve(getModelName() + ".gltf");
 		gltfModelWriter.write(gltfModel, outputFile.toFile());
+		logFileCreation(outputFile);
+	}
+
+	private void logFileCreation(Path path) {
+		if (this.monitor != null) {
+			try {
+				this.monitor.newFileCreated(path);
+			} catch (final Throwable t) {
+				throw new OnAddFileException(t);
+			}
+		}
 	}
 
 }
