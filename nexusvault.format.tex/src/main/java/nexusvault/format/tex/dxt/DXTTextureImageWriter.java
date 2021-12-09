@@ -36,13 +36,13 @@ public final class DXTTextureImageWriter extends AbstractTextureImageWriter impl
 		final var header = new StructTextureFileHeader(true);
 		header.width = images[images.length - 1].getImageWidth();
 		header.height = images[images.length - 1].getImageHeight();
-		// header.depth = ?;
-		// header.sides = ?;
+		header.depth = (int) config.getOrDefault(CONFIG_DEPTH, 1);
+		header.sides = (int) config.getOrDefault(CONFIG_SIDES, 1);
 		header.mipMaps = images.length;
 		header.format = target.getFormat();
 		header.isJpg = target.isJpg();
 		header.jpgFormat = target.getJpgFormat();
-		// header.imageSizesCount = images.length; //Not used for dxt textures
+		header.mipmapSizesCount = 0; // Not used for dxt textures
 
 		final var dxtCompression = getCompressionType(target);
 		final var imageData = new byte[images.length][];

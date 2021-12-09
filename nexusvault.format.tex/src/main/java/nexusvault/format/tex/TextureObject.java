@@ -2,6 +2,12 @@ package nexusvault.format.tex;
 
 public interface TextureObject {
 
+	int getVersion();
+
+	int getDepth();
+
+	int getSides();
+
 	int getMipMapCount();
 
 	int getImageWidth();

@@ -30,13 +30,13 @@ public final class UncompressedTextureImageWriter extends AbstractTextureImageWr
 		final var header = new StructTextureFileHeader(true);
 		header.width = images[images.length - 1].getImageWidth();
 		header.height = images[images.length - 1].getImageHeight();
-		// header.depth = ?;
-		// header.sides = ?;
+		header.depth = (int) config.getOrDefault(CONFIG_DEPTH, 1);
+		header.sides = (int) config.getOrDefault(CONFIG_SIDES, 1);
 		header.mipMaps = images.length;
 		header.format = target.getFormat();
 		header.isJpg = target.isJpg();
 		header.jpgFormat = target.getJpgFormat();
-		// header.imageSizesCount = images.length; //Not used for uncompressed textures
+		header.mipmapSizesCount = 0; // Not used for uncompressed textures
 
 		final var encoder = getEncoder(target);
 		final var imageData = new byte[images.length][];

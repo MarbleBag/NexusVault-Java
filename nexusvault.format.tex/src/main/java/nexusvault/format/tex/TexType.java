@@ -12,24 +12,24 @@ public enum TexType {
 	/**
 	 * Chroma subsampling &amp; typical jpg color space transformation with one additional color channel
 	 */
-	JPEG_TYPE_1(-1, true, 0),
+	JPEG_TYPE_1(0, true, 0),
 	/**
 	 * Four color channels and no color space transformation
 	 */
-	JPEG_TYPE_2(-1, true, 1),
+	JPEG_TYPE_2(0, true, 1),
 	/**
 	 * typical jpg color space transformation with one additional color channel
 	 */
-	JPEG_TYPE_3(-1, true, 2),
+	JPEG_TYPE_3(0, true, 2),
 	/** identical to {@link #ARGB_2} */
-	ARGB_1(0, false, -1),
+	ARGB_1(0, false, 0),
 	/** identical to {@link #ARGB_1} */
-	ARGB_2(1, false, -1),
-	RGB(5, false, -1),
-	GRAYSCALE(6, false, -1),
-	DXT1(13, false, -1),
-	DXT3(14, false, -1),
-	DXT5(15, false, -1);
+	ARGB_2(1, false, 0),
+	RGB(5, false, 0),
+	GRAYSCALE(6, false, 0),
+	DXT1(13, false, 0),
+	DXT3(14, false, 0),
+	DXT5(15, false, 0);
 
 	private int format;
 	private boolean isJpg;
@@ -54,7 +54,7 @@ public enum TexType {
 	}
 
 	protected boolean matches(int format, boolean isJpg, int jpgFormat) {
-		if (isJpg == this.isJpg) {
+		if (isJpg && this.isJpg) {
 			return jpgFormat == this.jpgFormat;
 		}
 		return format == this.format;

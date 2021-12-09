@@ -91,8 +91,8 @@ public final class JPGTextureImageWriter extends AbstractTextureImageWriter impl
 		final var header = new StructTextureFileHeader(true);
 		header.width = images[images.length - 1].getImageWidth();
 		header.height = images[images.length - 1].getImageHeight();
-		// header.depth = ?; // TODO
-		// header.sides = ?;
+		header.depth = (int) config.getOrDefault(CONFIG_DEPTH, 1);
+		header.sides = (int) config.getOrDefault(CONFIG_SIDES, 1);
 		header.mipMaps = images.length;
 		header.format = target.getFormat();
 		header.isJpg = target.isJpg();
