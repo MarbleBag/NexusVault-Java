@@ -38,7 +38,7 @@ public final class TextureImageSplitter {
 			final byte[] originalData = original.getImageData();
 			final int imageWidth = original.getImageWidth();
 			final int imageHeight = original.getImageHeight();
-			final int pixelCount = originalData.length / 4;
+			final int pixelCount = originalData.length / original.getImageFormat().getBytesPerPixel();
 
 			final List<TextureSplitInfo> splitInfos = getSplitInfo();
 			final byte[][] out = new byte[splitInfos.size()][];
@@ -124,9 +124,9 @@ public final class TextureImageSplitter {
 			final byte diffuseG = originalData[idx * 4 + 2];
 			final byte diffuseB = originalData[idx * 4 + 3];
 
-			out[0][idx * 4 + 0] = diffuseR;
-			out[0][idx * 4 + 1] = diffuseG;
-			out[0][idx * 4 + 2] = diffuseB;
+			out[0][idx * 3 + 0] = diffuseR;
+			out[0][idx * 3 + 1] = diffuseG;
+			out[0][idx * 3 + 2] = diffuseB;
 
 			out[1][idx] = roughness;
 		}

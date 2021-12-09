@@ -21,9 +21,9 @@ public enum TexType {
 	 * typical jpg color space transformation with one additional color channel
 	 */
 	JPG3(0, true, 2),
-	/** identical to {@link #ARGB_2} */
+	/** identical to {@link #ARGB2} */
 	ARGB1(0, false, 0),
-	/** identical to {@link #ARGB_1} */
+	/** identical to {@link #ARGB1} */
 	ARGB2(1, false, 0),
 	RGB(5, false, 0),
 	GRAYSCALE(6, false, 0),

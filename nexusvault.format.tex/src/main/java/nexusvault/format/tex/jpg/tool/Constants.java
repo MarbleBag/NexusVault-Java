@@ -4,6 +4,12 @@ import nexusvault.format.tex.TexType;
 import nexusvault.format.tex.jpg.huffman.HuffmanTable;
 
 public final class Constants {
+
+	public enum SignalType {
+		LUMINANCE,
+		CHROMINANCE
+	}
+
 	// uint8
 	private final static int[] HUFF_DC_LUMA_BITS = { 0, 1, 5, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0 };
 	private final static int[] HUFF_DC_LUMA_VALS = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
@@ -69,24 +75,14 @@ public final class Constants {
 
 	public final static int[] ZIGZAG = ZigZagPatternBuilder.calculateRowFirstZigZagIndices(BLOCK_WIDTH, BLOCK_HEIGHT);
 
-	private final static HuffmanTable CHROMA_DC_HUFFMAN = new HuffmanTable(HUFF_DC_CHROMA_BITS, HUFF_DC_CHROMA_VALS);
-	private final static HuffmanTable CHROMA_AC_HUFFMAN = new HuffmanTable(HUFF_AC_CHROMA_BITS, HUFF_AC_CHROMA_VALS);
-	private final static HuffmanTable LUMA_DC_HUFFMAN = new HuffmanTable(HUFF_DC_LUMA_BITS, HUFF_DC_LUMA_VALS);
-	private final static HuffmanTable LUMA_AC_HUFFMAN = new HuffmanTable(HUFF_AC_LUMA_BITS, HUFF_AC_LUMA_VALS);
-
 	private final static HuffmanTable[][] HUFFMAN_TABLES;
-
-	public enum SignalType {
-		LUMINANCE,
-		CHROMINANCE
-	}
 
 	static {
 		HUFFMAN_TABLES = new HuffmanTable[2][2];
-		HUFFMAN_TABLES[SignalType.LUMINANCE.ordinal()][0] = LUMA_DC_HUFFMAN;
-		HUFFMAN_TABLES[SignalType.LUMINANCE.ordinal()][1] = LUMA_AC_HUFFMAN;
-		HUFFMAN_TABLES[SignalType.CHROMINANCE.ordinal()][0] = LUMA_DC_HUFFMAN;
-		HUFFMAN_TABLES[SignalType.CHROMINANCE.ordinal()][1] = CHROMA_AC_HUFFMAN;
+		HUFFMAN_TABLES[SignalType.LUMINANCE.ordinal()][0] = new HuffmanTable(HUFF_DC_LUMA_BITS, HUFF_DC_LUMA_VALS);
+		HUFFMAN_TABLES[SignalType.LUMINANCE.ordinal()][1] = new HuffmanTable(HUFF_AC_LUMA_BITS, HUFF_AC_LUMA_VALS);
+		HUFFMAN_TABLES[SignalType.CHROMINANCE.ordinal()][0] = new HuffmanTable(HUFF_DC_CHROMA_BITS, HUFF_DC_CHROMA_VALS);
+		HUFFMAN_TABLES[SignalType.CHROMINANCE.ordinal()][1] = new HuffmanTable(HUFF_AC_CHROMA_BITS, HUFF_AC_CHROMA_VALS);
 	}
 
 	public static HuffmanTable getHuffmanTable(SignalType type, int clazz) {
