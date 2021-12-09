@@ -6,19 +6,16 @@ import java.util.stream.Stream;
 import kreed.io.util.BinaryReader;
 import nexusvault.format.tex.TexType;
 import nexusvault.format.tex.TextureImageFormat;
+import nexusvault.format.tex.jpg.dct.FastIntegerIDCT;
+import nexusvault.format.tex.jpg.huffman.BinaryReaderBitSupplier;
+import nexusvault.format.tex.jpg.huffman.HuffmanDecoder;
+import nexusvault.format.tex.jpg.huffman.HuffmanDecoder.BitSupply;
+import nexusvault.format.tex.jpg.huffman.HuffmanTable;
 import nexusvault.format.tex.jpg.tool.Constants;
-import nexusvault.format.tex.jpg.tool.Constants.LayerType;
-import nexusvault.format.tex.jpg.tool.FastIntegerIDCT;
-import nexusvault.format.tex.jpg.tool.HuffmanTable;
-import nexusvault.format.tex.jpg.tool.StackSet;
-import nexusvault.format.tex.jpg.tool.decoder.BinaryReaderBitSupplier;
-import nexusvault.format.tex.jpg.tool.decoder.BitSupply;
-import nexusvault.format.tex.jpg.tool.decoder.HuffmanDecoder;
+import nexusvault.format.tex.jpg.tool.Constants.SignalType;
 import nexusvault.format.tex.struct.StructTextureFileHeader;
 
 public final class AllInOneJPGDecoder {
-
-	private final HuffmanDecoder decoder = new HuffmanDecoder();
 
 	private final int[] decoderOutput = new int[Constants.BLOCK_SIZE];
 	private final int[] dcValues = new int[Constants.NUMBER_OF_LAYERS];
@@ -26,7 +23,7 @@ public final class AllInOneJPGDecoder {
 	private final boolean[] hasDefaultForLayer = new boolean[Constants.NUMBER_OF_LAYERS];
 	private final byte[] defaultForLayer = new byte[Constants.NUMBER_OF_LAYERS];
 
-	private LayerType[] typePerLayer;
+	private SignalType[] typePerLayer;
 	private int[] offsetsPerLayer;
 	private int[] blocksPerLayer;
 
@@ -59,12 +56,12 @@ public final class AllInOneJPGDecoder {
 		this.lastStackId = 0;
 
 		for (int i = 0; i < Constants.NUMBER_OF_LAYERS; ++i) {
-			final var layerInfo = header.layerInfos[i];
+			final var layerInfo = header.jpgChannelInfos[i];
 			this.dcValues[i] = 0;
 			this.quantTables[i] = Constants.getAdjustedQuantTable(this.typePerLayer[i], layerInfo.getQuality());
-			this.hasDefaultForLayer[i] = layerInfo.hasReplacement();
+			this.hasDefaultForLayer[i] = layerInfo.hasDefaultColor();
 			if (this.hasDefaultForLayer[i]) {
-				this.defaultForLayer[i] = layerInfo.getReplacement();
+				this.defaultForLayer[i] = layerInfo.getDefaultColor();
 			}
 		}
 
@@ -85,11 +82,11 @@ public final class AllInOneJPGDecoder {
 
 	private ImageRegionWriter getImageRegionWriter(TexType texType) {
 		switch (texType) {
-			case JPEG_TYPE_1:
+			case JPG1:
 				return new ChromaSubsampleStackWriter(new Type0And2PixelComposition());
-			case JPEG_TYPE_2:
+			case JPG2:
 				return new BaseStackWriter(new Type1PixelComposition());
-			case JPEG_TYPE_3:
+			case JPG3:
 				return new BaseStackWriter(new Type0And2PixelComposition());
 			default:
 				throw new IllegalArgumentException("TexType " + texType + " is not supported");
@@ -155,10 +152,10 @@ public final class AllInOneJPGDecoder {
 	}
 
 	private void decodeNextBlock(int layerIdx) {
-		final LayerType type = this.typePerLayer[layerIdx];
+		final SignalType type = this.typePerLayer[layerIdx];
 		final HuffmanTable dc = Constants.getHuffmanTable(type, 0);
 		final HuffmanTable ac = Constants.getHuffmanTable(type, 1);
-		this.decoder.decode(dc, ac, this.source, this.decoderOutput, 0, Constants.BLOCK_SIZE);
+		HuffmanDecoder.decode(dc, ac, this.source, this.decoderOutput, 0, Constants.BLOCK_SIZE);
 	}
 
 	private void transferDecodeToData(int layerId, int[] data, int dataOffset) {
@@ -188,7 +185,7 @@ public final class AllInOneJPGDecoder {
 
 	private void shiftAndClamp(int layerIdx, int[] data, int dataOffset) {
 		switch (this.typePerLayer[layerIdx]) {
-			case CHROMA:
+			case CHROMINANCE:
 				shiftAndClamp(data, dataOffset, 0, -256, 255);
 				break;
 			case LUMINANCE:

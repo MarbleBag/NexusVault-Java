@@ -1,6 +1,7 @@
 package nexusvault.format.m3.export.gltf.internal;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
@@ -12,16 +13,27 @@ import nexusvault.format.m3.export.gltf.ResourceBundle;
 
 public final class TextureManager {
 
-	private final Path textureDirectory;
+	private final Path outputDir;
+	private final Path textureDir;
 	private final GlTF gltfModel;
 	private final GlTFExportMonitor monitor;
 
 	private final Map<String, int[]> textureLookup = new HashMap<>();
 
-	public TextureManager(Path textureDirectory, GlTF gltfModel, GlTFExportMonitor monitor) {
-		this.textureDirectory = textureDirectory;
+	public TextureManager(Path outputDir, GlTF gltfModel, GlTFExportMonitor monitor) throws IOException {
 		this.gltfModel = gltfModel;
 		this.monitor = monitor;
+		this.outputDir = outputDir;
+		this.textureDir = outputDir.relativize(outputDir.resolve("textures"));
+
+		Files.createDirectories(getTextureDir());
+		if (!Files.isDirectory(getTextureDir())) {
+			throw new IOException("Unable to create texture directory '" + getTextureDir() + "'");
+		}
+	}
+
+	public Path getTextureDir() {
+		return this.outputDir.resolve(this.textureDir);
 	}
 
 	private String getTextureName(String textureId) {
@@ -45,13 +57,14 @@ public final class TextureManager {
 		for (var i = 0; i < textureResources.size(); ++i) {
 			final var textureResource = textureResources.get(i);
 
-			final var imageLocation = textureResource.writeImageTo(this.textureDirectory);
+			var imageLocation = textureResource.writeImageTo(getTextureDir());
 
 			try {
 				if (imageLocation.isAbsolute()) {
 					this.monitor.newFileCreated(imageLocation);
+					imageLocation = this.outputDir.relativize(imageLocation);
 				} else {
-					this.monitor.newFileCreated(this.textureDirectory.resolve(imageLocation.subpath(1, imageLocation.getNameCount())));
+					this.monitor.newFileCreated(getTextureDir().resolve(imageLocation));
 				}
 			} catch (final Exception e) {
 

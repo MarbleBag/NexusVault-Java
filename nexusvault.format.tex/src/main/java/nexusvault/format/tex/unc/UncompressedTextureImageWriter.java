@@ -4,6 +4,7 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.Collections;
 import java.util.EnumSet;
+import java.util.Map;
 import java.util.Set;
 
 import nexusvault.format.tex.AbstractTextureImageWriter;
@@ -12,9 +13,12 @@ import nexusvault.format.tex.TextureImage;
 import nexusvault.format.tex.TextureImageWriter;
 import nexusvault.format.tex.struct.StructTextureFileHeader;
 
+/**
+ * Thread-Safe
+ */
 public final class UncompressedTextureImageWriter extends AbstractTextureImageWriter implements TextureImageWriter {
 
-	private final Set<TexType> acceptedTypes = Collections.unmodifiableSet(EnumSet.of(TexType.ARGB_1, TexType.ARGB_2, TexType.RGB, TexType.GRAYSCALE));
+	private final Set<TexType> acceptedTypes = Collections.unmodifiableSet(EnumSet.of(TexType.ARGB1, TexType.ARGB2, TexType.RGB, TexType.GRAYSCALE));
 
 	@Override
 	public Set<TexType> getAcceptedTexTypes() {
@@ -22,21 +26,17 @@ public final class UncompressedTextureImageWriter extends AbstractTextureImageWr
 	}
 
 	@Override
-	public ByteBuffer writeTexture(TexType target, TextureImage[] images) {
-		assertTexType(target);
-		assertImageOrder(images);
-		assertImageData(images);
-
+	public ByteBuffer writeTextureAfterValidation(TexType target, TextureImage[] images, Map<String, Object> config) {
 		final var header = new StructTextureFileHeader(true);
 		header.width = images[images.length - 1].getImageWidth();
 		header.height = images[images.length - 1].getImageHeight();
-		// header.depth = ?;
-		// header.sides = ?;
+		header.depth = (int) config.getOrDefault(CONFIG_DEPTH, 1);
+		header.sides = (int) config.getOrDefault(CONFIG_SIDES, 1);
 		header.mipMaps = images.length;
 		header.format = target.getFormat();
-		header.isCompressed = target.isCompressed();
-		header.compressionFormat = target.getCompressionFormat();
-		// header.imageSizesCount = images.length; //Not used for uncompressed textures
+		header.isJpg = target.isJpg();
+		header.jpgFormat = target.getJpgFormat();
+		header.mipmapSizesCount = 0; // Not used for uncompressed textures
 
 		final var encoder = getEncoder(target);
 		final var imageData = new byte[images.length][];
@@ -61,22 +61,10 @@ public final class UncompressedTextureImageWriter extends AbstractTextureImageWr
 		return output;
 	}
 
-	private void assertTexType(TexType target) {
-		switch (target) {
-			case ARGB_1:
-			case ARGB_2:
-			case RGB:
-			case GRAYSCALE:
-				return;
-			default:
-				throw new IllegalArgumentException(String.format("TexType %s is not supported by this writer", target));
-		}
-	}
-
 	private UncompressedImageEncoder getEncoder(TexType target) {
 		switch (target) {
-			case ARGB_1:
-			case ARGB_2:
+			case ARGB1:
+			case ARGB2:
 				return new ARGB8888ImageEncoder();
 			case RGB:
 				return new RGB565ImageEncoder();

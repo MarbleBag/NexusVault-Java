@@ -1,6 +1,6 @@
 package nexusvault.format.tex;
 
-public class TextureDataEncoderNotFoundException extends TextureException {
+public final class TextureDataEncoderNotFoundException extends TextureException {
 
 	private static final long serialVersionUID = 3771128651987236198L;
 

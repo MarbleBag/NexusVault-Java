@@ -1,7 +1,5 @@
 package nexusvault.format.tex.jpg.old;
 
-import nexusvault.format.tex.jpg.tool.StackSet;
-
 final class StackResourceHandler {
 	private final int sizeInBlocks;
 

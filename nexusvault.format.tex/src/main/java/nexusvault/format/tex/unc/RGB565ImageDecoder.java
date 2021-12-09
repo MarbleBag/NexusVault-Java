@@ -8,6 +8,9 @@ import kreed.io.util.BinaryReader;
 import nexusvault.format.tex.TexType;
 import nexusvault.format.tex.TextureImageFormat;
 
+/**
+ * Thread-Safe
+ */
 final class RGB565ImageDecoder implements UncompressedImageDecoder {
 
 	private final Set<TexType> acceptedTypes = Collections.unmodifiableSet(EnumSet.of(TexType.RGB));

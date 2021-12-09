@@ -1,6 +1,8 @@
 package nexusvault.format.tex;
 
-public class TextureException extends RuntimeException {
+import nexusvault.shared.exception.NexusVaultException;
+
+public abstract class TextureException extends NexusVaultException {
 
 	private static final long serialVersionUID = 4589409000959753398L;
 

@@ -5,7 +5,7 @@ import java.util.EnumSet;
 import java.util.Set;
 
 import kreed.io.util.BinaryReader;
-import kreed.io.util.LimitedBinaryReader;
+import kreed.io.util.BinaryReaderView;
 import kreed.io.util.Seek;
 import nexusvault.format.tex.AbstractTextureImageReader;
 import nexusvault.format.tex.ImageMetaInformation;
@@ -16,9 +16,12 @@ import nexusvault.format.tex.TextureImageReader;
 import nexusvault.format.tex.jpg.tool.decoder.JPGDecoder;
 import nexusvault.format.tex.struct.StructTextureFileHeader;
 
+/**
+ * Thread-Safe
+ */
 public final class JPGTextureImageReader2 extends AbstractTextureImageReader implements TextureImageReader {
 
-	private final Set<TexType> acceptedTypes = Collections.unmodifiableSet(EnumSet.of(TexType.JPEG_TYPE_1, TexType.JPEG_TYPE_2, TexType.JPEG_TYPE_3));
+	private final Set<TexType> acceptedTypes = Collections.unmodifiableSet(EnumSet.of(TexType.JPG1, TexType.JPG2, TexType.JPG3));
 
 	public JPGTextureImageReader2() {
 		super(new JPGImageMetaCalculator());
@@ -29,7 +32,7 @@ public final class JPGTextureImageReader2 extends AbstractTextureImageReader imp
 		final ImageMetaInformation meta = getImageInformation(header, imageIdx);
 		final var decoder = new JPGDecoder(header);
 		source.seek(Seek.BEGIN, meta.offset);
-		source = new LimitedBinaryReader(source, meta.length);
+		source = new BinaryReaderView(source, meta.length, false);
 		final byte[] data = decoder.decode(source, meta.width, meta.height);
 		return new TextureImage(meta.width, meta.height, TextureImageFormat.ARGB, data);
 	}

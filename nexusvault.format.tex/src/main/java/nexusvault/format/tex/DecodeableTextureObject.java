@@ -16,42 +16,57 @@ final class DecodeableTextureObject implements TextureObject {
 	}
 
 	@Override
+	public int getVersion() {
+		return this.header.version;
+	}
+
+	@Override
+	public int getDepth() {
+		return this.header.depth;
+	}
+
+	@Override
+	public int getSides() {
+		return this.header.sides;
+	}
+
+	@Override
 	public int getMipMapCount() {
-		return header.mipMaps;
+		return this.header.mipMaps;
 	}
 
 	@Override
 	public int getImageWidth() {
-		return header.width;
+		return this.header.width;
 	}
 
 	@Override
 	public int getImageHeight() {
-		return header.height;
+		return this.header.height;
 	}
 
 	@Override
 	public TexType getTextureDataType() {
-		return TexType.resolve(header);
+		return TexType.resolve(this.header);
 	}
 
 	@Override
 	public TextureImageFormat getTextureImageFormat() {
-		return reader.getImageFormat();
+		return this.reader.getImageFormat();
 	}
 
 	@Override
 	public byte[] getImageData(int idx) {
-		return reader.getUnprocessedImageData(header, data, computeMipIndex(idx));
+		return this.reader.getUnprocessedImageData(this.header, this.data, computeMipIndex(idx));
 	}
 
 	@Override
 	public TextureImage getImage(int idx) {
-		return reader.read(header, data, computeMipIndex(idx));
+		return this.reader.read(this.header, this.data, computeMipIndex(idx));
 	}
 
 	private int computeMipIndex(int idx) {
-		return header.mipMaps - 1 - idx;
+		return this.header.mipMaps - 1 - idx;
 	}
 
 }

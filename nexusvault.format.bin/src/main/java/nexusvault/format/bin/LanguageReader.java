@@ -30,7 +30,7 @@ public final class LanguageReader {
 			throw new SignatureMismatchException("language file", StructFileHeader.SIGNATURE, header.signature);
 		}
 
-		if (header.version < 4) {
+		if (header.version != 4) {
 			throw new VersionMismatchException("language file", 4, header.version);
 		}
 
@@ -95,7 +95,7 @@ public final class LanguageReader {
 		final LanguageEntry[] entries = new LanguageEntry[(int) header.entryCount];
 		for (int i = 0; i < offsetEntries.length; ++i) {
 			final StructEntry structEntry = offsetEntries[i];
-			source.seek(Seek.BEGIN, StructFileHeader.SIZE_IN_BYTES + header.textOffset + (structEntry.characterOffset * 2));
+			source.seek(Seek.BEGIN, StructFileHeader.SIZE_IN_BYTES + header.textOffset + structEntry.characterOffset * 2);
 			final String text = TextUtil.extractNullTerminatedUTF16(source);
 			entries[i] = new PreloadedLanguageEntry(structEntry.id, text);
 		}

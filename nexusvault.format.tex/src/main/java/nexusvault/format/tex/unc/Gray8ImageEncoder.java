@@ -2,21 +2,35 @@ package nexusvault.format.tex.unc;
 
 import nexusvault.format.tex.TextureConversionException;
 import nexusvault.format.tex.TextureImageFormat;
+import nexusvault.format.tex.util.ColorModelConverter;
 
 final class Gray8ImageEncoder implements UncompressedImageEncoder {
 
 	@Override
 	public byte[] encode(byte[] source, int width, int height, TextureImageFormat format) {
+		final var expectedSize = TextureImageFormat.GRAYSCALE.getBytesPerPixel() * width * height;
+
+		byte[] encoded = null;
 		switch (format) {
 			case ARGB:
-				return encodeARGB(source, width, height);
+				encodeARGB(source, width, height);
+				encoded = ColorModelConverter.convertARGBToGrayscale(source);
+				break;
 			case RGB:
-				return encodeRGB(source, width, height);
+				encoded = encodeRGB(source, width, height);
+				break;
 			case GRAYSCALE:
-				return encodeGray(source, width, height);
+
+				encoded = encodeGray(source, width, height);
+				break;
 			default:
 				throw new TextureConversionException(/* TODO */);
 		}
+
+		if (encoded.length != expectedSize) {
+
+		}
+		return encoded;
 	}
 
 	/**

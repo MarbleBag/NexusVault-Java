@@ -10,10 +10,16 @@ import kreed.io.util.BinaryReader;
 import kreed.reflection.struct.Order;
 import kreed.reflection.struct.StructField;
 import kreed.reflection.struct.StructUtil;
-import nexusvault.shared.exception.IntegerOverflowException;
 import nexusvault.shared.exception.SignatureMismatchException;
+import nexusvault.shared.exception.StructException;
 
 public final class StructTextureFileHeader {
+
+	static {
+		if (StructUtil.sizeOf(StructTextureFileHeader.class) != 0x70) {
+			throw new StructException();
+		}
+	}
 
 	public static final String STR_SIGNATURE = "GFX";
 	public static final int SIGNATURE = 'G' << 16 | 'F' << 8 | 'X';
@@ -66,23 +72,23 @@ public final class StructTextureFileHeader {
 
 	@Order(9)
 	@StructField(BIT_32)
-	public boolean isCompressed; // 0x20
+	public boolean isJpg; // 0x20
 
 	@Order(10)
 	@StructField(BIT_32)
-	public int compressionFormat; // 0x24
+	public int jpgFormat; // 0x24
 
 	@Order(11)
 	@StructField(value = STRUCT, length = 4)
-	public StructLayerInfo[] layerInfos; // 0x28
+	public StructJpgChannel[] jpgChannelInfos; // 0x28
 
 	@Order(12)
 	@StructField(BIT_32)
-	public int imageSizesCount; // 0x34
+	public int mipmapSizesCount; // 0x34
 
 	@Order(13)
 	@StructField(value = BIT_32, length = 13)
-	public int[] imageSizes; // 0x38
+	public int[] mipmapSizes; // 0x38
 
 	@Order(14)
 	@StructField(BIT_32)
@@ -97,21 +103,19 @@ public final class StructTextureFileHeader {
 		}
 
 		this.signature = StructTextureFileHeader.SIGNATURE;
-		this.version = 1;
-		this.layerInfos = new StructLayerInfo[4];
-		for (int i = 0; i < this.layerInfos.length; ++i) {
-			this.layerInfos[i] = new StructLayerInfo();
-			this.layerInfos[i].hasReplacement(false);
-			this.layerInfos[i].setQuality(100);
+		this.version = 3;
+		this.depth = 1;
+		this.sides = 1;
+		this.jpgChannelInfos = new StructJpgChannel[4];
+		for (int i = 0; i < this.jpgChannelInfos.length; ++i) {
+			this.jpgChannelInfos[i] = new StructJpgChannel();
+			this.jpgChannelInfos[i].hasDefaultColor(false);
+			this.jpgChannelInfos[i].setQuality(100);
 		}
-		this.imageSizes = new int[13];
+		this.mipmapSizes = new int[13];
 	}
 
 	public StructTextureFileHeader(BinaryReader reader) {
-		if (reader == null) {
-			throw new IllegalArgumentException("reader must not be null");
-		}
-
 		final long headerStart = reader.getPosition();
 		final long headerEnd = headerStart + SIZE_IN_BYTES;
 
@@ -128,36 +132,36 @@ public final class StructTextureFileHeader {
 		this.mipMaps = reader.readInt32();
 		this.format = reader.readInt32();
 
-		this.isCompressed = reader.readInt32() != 0;
-		this.compressionFormat = reader.readInt32();
+		this.isJpg = reader.readInt32() != 0;
+		this.jpgFormat = reader.readInt32();
 
-		this.layerInfos = new StructLayerInfo[4];
-		for (int i = 0; i < this.layerInfos.length; ++i) {
-			this.layerInfos[i] = new StructLayerInfo(reader.readInt8(), reader.readInt8(), reader.readInt8());
-			if (this.layerInfos[i].getQuality() < 0 || 100 < this.layerInfos[i].getQuality()) {
-				throw new IntegerOverflowException(this.layerInfos[i].toString());
+		this.jpgChannelInfos = new StructJpgChannel[4];
+		for (int i = 0; i < this.jpgChannelInfos.length; ++i) {
+			this.jpgChannelInfos[i] = new StructJpgChannel(reader.readInt8(), reader.readInt8(), reader.readInt8());
+			if (this.jpgChannelInfos[i].getQuality() < 0 || 100 < this.jpgChannelInfos[i].getQuality()) {
+				throw new StructException(this.jpgChannelInfos[i].toString());
 			}
 		}
 
-		this.imageSizesCount = reader.readInt32();
-		if (this.imageSizesCount > 12) {
-			throw new IllegalStateException("Number of compressed mips out of bound.");
+		this.mipmapSizesCount = reader.readInt32();
+		if (this.mipmapSizesCount > 12) {
+			throw new StructException("Number of compressed mips out of bound.");
 		}
 
-		this.imageSizes = new int[13];
-		for (int i = 0; i < this.imageSizes.length; ++i) {
-			this.imageSizes[i] = reader.readInt32();
+		this.mipmapSizes = new int[13];
+		for (int i = 0; i < this.mipmapSizes.length; ++i) {
+			this.mipmapSizes[i] = reader.readInt32();
 		}
 
 		this.unk_06C = reader.readInt32();
 
 		if (reader.getPosition() != headerEnd) {
-			throw new IllegalStateException("Expected number of bytes " + SIZE_IN_BYTES + " read bytes: " + (reader.getPosition() - headerStart));
+			throw new StructException("Expected number of bytes " + SIZE_IN_BYTES + " read bytes: " + (reader.getPosition() - headerStart));
 		}
 	}
 
-	public StructLayerInfo getLayer(int idx) {
-		return this.layerInfos[idx];
+	public StructJpgChannel getLayer(int idx) {
+		return this.jpgChannelInfos[idx];
 	}
 
 	@Override
@@ -180,15 +184,15 @@ public final class StructTextureFileHeader {
 		builder.append(", format=");
 		builder.append(this.format);
 		builder.append(", isCompressed=");
-		builder.append(this.isCompressed);
+		builder.append(this.isJpg);
 		builder.append(", compressionFormat=");
-		builder.append(this.compressionFormat);
+		builder.append(this.jpgFormat);
 		builder.append(", layerInfos=");
-		builder.append(Arrays.toString(this.layerInfos));
+		builder.append(Arrays.toString(this.jpgChannelInfos));
 		builder.append(", imageSizesCount=");
-		builder.append(this.imageSizesCount);
+		builder.append(this.mipmapSizesCount);
 		builder.append(", imageSizes=");
-		builder.append(Arrays.toString(this.imageSizes));
+		builder.append(Arrays.toString(this.mipmapSizes));
 		builder.append(", unk_06C=");
 		builder.append(this.unk_06C);
 		builder.append("]");
@@ -199,10 +203,10 @@ public final class StructTextureFileHeader {
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + Arrays.hashCode(this.imageSizes);
-		result = prime * result + Arrays.hashCode(this.layerInfos);
-		result = prime * result + Objects.hash(this.compressionFormat, this.depth, this.format, this.height, this.imageSizesCount, this.isCompressed,
-				this.mipMaps, this.sides, this.signature, this.unk_06C, this.version, this.width);
+		result = prime * result + Arrays.hashCode(this.mipmapSizes);
+		result = prime * result + Arrays.hashCode(this.jpgChannelInfos);
+		result = prime * result + Objects.hash(this.jpgFormat, this.depth, this.format, this.height, this.mipmapSizesCount, this.isJpg, this.mipMaps,
+				this.sides, this.signature, this.unk_06C, this.version, this.width);
 		return result;
 	}
 
@@ -218,9 +222,9 @@ public final class StructTextureFileHeader {
 			return false;
 		}
 		final StructTextureFileHeader other = (StructTextureFileHeader) obj;
-		return this.compressionFormat == other.compressionFormat && this.depth == other.depth && this.format == other.format && this.height == other.height
-				&& Arrays.equals(this.imageSizes, other.imageSizes) && this.imageSizesCount == other.imageSizesCount && this.isCompressed == other.isCompressed
-				&& Arrays.equals(this.layerInfos, other.layerInfos) && this.mipMaps == other.mipMaps && this.sides == other.sides
+		return this.jpgFormat == other.jpgFormat && this.depth == other.depth && this.format == other.format && this.height == other.height
+				&& Arrays.equals(this.mipmapSizes, other.mipmapSizes) && this.mipmapSizesCount == other.mipmapSizesCount && this.isJpg == other.isJpg
+				&& Arrays.equals(this.jpgChannelInfos, other.jpgChannelInfos) && this.mipMaps == other.mipMaps && this.sides == other.sides
 				&& this.signature == other.signature && this.unk_06C == other.unk_06C && this.version == other.version && this.width == other.width;
 	}
 

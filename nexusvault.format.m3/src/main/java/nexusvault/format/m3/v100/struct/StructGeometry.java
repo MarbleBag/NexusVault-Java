@@ -204,6 +204,10 @@ public final class StructGeometry implements VisitableStruct {
 		process.process(fileReader, dataPosition, this.unk_offset_0B8);
 	}
 
+	/**
+	 * @see VertexField
+	 * @deprecated
+	 */
 	@Deprecated
 	public static enum VertexFieldOld {
 		/** Contains the location of the vertex. How this field is read depends on {@link StructGeometry#getVertexFieldLocationType()} */
@@ -252,6 +256,10 @@ public final class StructGeometry implements VisitableStruct {
 		}
 	}
 
+	/**
+	 * @see VertexField
+	 * @deprecated
+	 */
 	@Deprecated
 	public static enum VertexFieldLocationType {
 		/** 3 x float32 values, xyz */

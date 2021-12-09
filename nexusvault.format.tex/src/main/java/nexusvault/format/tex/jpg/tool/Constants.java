@@ -1,20 +1,20 @@
 package nexusvault.format.tex.jpg.tool;
 
-import java.util.LinkedList;
-import java.util.List;
-
 import nexusvault.format.tex.TexType;
+import nexusvault.format.tex.jpg.huffman.HuffmanTable;
 
 public final class Constants {
-	private Constants() {
-		throw new UnsupportedOperationException();
+
+	public enum SignalType {
+		LUMINANCE,
+		CHROMINANCE
 	}
 
 	// uint8
-	private final static int[] HUFF_DC_LUM_BITS = { 0, 1, 5, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0 };
-	private final static int[] HUFF_DC_LUM_VALS = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
-	private final static int[] HUFF_AC_LUM_BITS = { 0, 2, 1, 3, 3, 2, 4, 3, 5, 5, 4, 4, 0, 0, 1, 125 };
-	private final static int[] HUFF_AC_LUM_VALS = { 0x01, 0x02, 0x03, 0x00, 0x04, 0x11, 0x05, 0x12, 0x21, 0x31, 0x41, 0x06, 0x13, 0x51, 0x61, 0x07, 0x22, 0x71,
+	private final static int[] HUFF_DC_LUMA_BITS = { 0, 1, 5, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0 };
+	private final static int[] HUFF_DC_LUMA_VALS = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
+	private final static int[] HUFF_AC_LUMA_BITS = { 0, 2, 1, 3, 3, 2, 4, 3, 5, 5, 4, 4, 0, 0, 1, 125 };
+	private final static int[] HUFF_AC_LUMA_VALS = { 0x01, 0x02, 0x03, 0x00, 0x04, 0x11, 0x05, 0x12, 0x21, 0x31, 0x41, 0x06, 0x13, 0x51, 0x61, 0x07, 0x22, 0x71,
 			0x14, 0x32, 0x81, 0x91, 0xa1, 0x08, 0x23, 0x42, 0xb1, 0xc1, 0x15, 0x52, 0xd1, 0xf0, 0x24, 0x33, 0x62, 0x72, 0x82, 0x09, 0x0a, 0x16, 0x17, 0x18,
 			0x19, 0x1a, 0x25, 0x26, 0x27, 0x28, 0x29, 0x2a, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39, 0x3a, 0x43, 0x44, 0x45, 0x46, 0x47, 0x48, 0x49, 0x4a, 0x53,
 			0x54, 0x55, 0x56, 0x57, 0x58, 0x59, 0x5a, 0x63, 0x64, 0x65, 0x66, 0x67, 0x68, 0x69, 0x6a, 0x73, 0x74, 0x75, 0x76, 0x77, 0x78, 0x79, 0x7a, 0x83,
@@ -35,7 +35,7 @@ public final class Constants {
 			0xd4, 0xd5, 0xd6, 0xd7, 0xd8, 0xd9, 0xda, 0xe2, 0xe3, 0xe4, 0xe5, 0xe6, 0xe7, 0xe8, 0xe9, 0xea, 0xf2, 0xf3, 0xf4, 0xf5, 0xf6, 0xf7, 0xf8, 0xf9,
 			0xfa };
 
-	private final static int[] QUANT_TABLE_LUM = { 16, 11, 10, 16, 24, 40, 51, 61, 12, 12, 14, 19, 26, 58, 60, 55, 14, 13, 16, 24, 40, 57, 69, 56, 14, 17, 22,
+	private final static int[] QUANT_TABLE_LUMA = { 16, 11, 10, 16, 24, 40, 51, 61, 12, 12, 14, 19, 26, 58, 60, 55, 14, 13, 16, 24, 40, 57, 69, 56, 14, 17, 22,
 			29, 51, 87, 80, 62, 18, 22, 37, 56, 68, 109, 103, 77, 24, 35, 55, 64, 81, 104, 113, 92, 49, 64, 78, 87, 103, 121, 120, 101, 72, 92, 95, 98, 112,
 			100, 103, 99 };
 
@@ -53,10 +53,10 @@ public final class Constants {
 	public final static int[] MAX_BLOCKS_PER_LAYER = { 4, 1, 1 };
 	public final static boolean[][] LAYER_IS_SUBSAMPLED = { { false, true, true, false }, { false, false, false, false }, { false, false, false, false } };
 
-	public final static LayerType[][] TYPE_PER_LAYER = { //
-			{ LayerType.LUMINANCE, LayerType.CHROMA, LayerType.CHROMA, LayerType.LUMINANCE }, //
-			{ LayerType.LUMINANCE, LayerType.LUMINANCE, LayerType.LUMINANCE, LayerType.LUMINANCE }, //
-			{ LayerType.LUMINANCE, LayerType.CHROMA, LayerType.CHROMA, LayerType.LUMINANCE } };
+	public final static SignalType[][] TYPE_PER_LAYER = { //
+			{ SignalType.LUMINANCE, SignalType.CHROMINANCE, SignalType.CHROMINANCE, SignalType.LUMINANCE }, //
+			{ SignalType.LUMINANCE, SignalType.LUMINANCE, SignalType.LUMINANCE, SignalType.LUMINANCE }, //
+			{ SignalType.LUMINANCE, SignalType.CHROMINANCE, SignalType.CHROMINANCE, SignalType.LUMINANCE } };
 
 	public final static boolean[][] LAYER_WITH_POSSIBLE_DEFAULT_VALUES = { //
 			{ false, false, false, false }, //
@@ -77,37 +77,24 @@ public final class Constants {
 
 	private final static HuffmanTable[][] HUFFMAN_TABLES;
 
-	public enum LayerType {
-		LUMINANCE,
-		CHROMA
-	}
-
 	static {
-		final List<DHTPackage> packages = new LinkedList<>();
-
-		packages.add(new DHTPackage(LayerType.LUMINANCE.ordinal(), 0, HUFF_DC_LUM_BITS, HUFF_DC_LUM_VALS));
-		packages.add(new DHTPackage(LayerType.LUMINANCE.ordinal(), 1, HUFF_AC_LUM_BITS, HUFF_AC_LUM_VALS));
-
-		packages.add(new DHTPackage(LayerType.CHROMA.ordinal(), 0, HUFF_DC_CHROMA_BITS, HUFF_DC_CHROMA_VALS));
-		packages.add(new DHTPackage(LayerType.CHROMA.ordinal(), 1, HUFF_AC_CHROMA_BITS, HUFF_AC_CHROMA_VALS));
-
 		HUFFMAN_TABLES = new HuffmanTable[2][2];
-		for (int i = 0; i < packages.size(); ++i) {
-			final DHTPackage p = packages.get(i);
-			HUFFMAN_TABLES[p.destinationId][p.tableClass] = new HuffmanTable(p);
-		}
+		HUFFMAN_TABLES[SignalType.LUMINANCE.ordinal()][0] = new HuffmanTable(HUFF_DC_LUMA_BITS, HUFF_DC_LUMA_VALS);
+		HUFFMAN_TABLES[SignalType.LUMINANCE.ordinal()][1] = new HuffmanTable(HUFF_AC_LUMA_BITS, HUFF_AC_LUMA_VALS);
+		HUFFMAN_TABLES[SignalType.CHROMINANCE.ordinal()][0] = new HuffmanTable(HUFF_DC_CHROMA_BITS, HUFF_DC_CHROMA_VALS);
+		HUFFMAN_TABLES[SignalType.CHROMINANCE.ordinal()][1] = new HuffmanTable(HUFF_AC_CHROMA_BITS, HUFF_AC_CHROMA_VALS);
 	}
 
-	public static HuffmanTable getHuffmanTable(LayerType type, int clazz) {
+	public static HuffmanTable getHuffmanTable(SignalType type, int clazz) {
 		return HUFFMAN_TABLES[type.ordinal()][clazz];
 	}
 
-	public static int[] getQuantTable(LayerType type) {
+	public static int[] getQuantTable(SignalType type) {
 		switch (type) {
-			case CHROMA:
+			case CHROMINANCE:
 				return QUANT_TABLE_CHROMA;
 			case LUMINANCE:
-				return QUANT_TABLE_LUM;
+				return QUANT_TABLE_LUMA;
 			default:
 				throw new UnsupportedOperationException();
 		}
@@ -123,17 +110,17 @@ public final class Constants {
 		return adjustedQuantTable;
 	}
 
-	public static float[] getAdjustedQuantTable(LayerType type, int factor) {
+	public static float[] getAdjustedQuantTable(SignalType type, int factor) {
 		return adjustQuantTable(Constants.getQuantTable(type), factor);
 	}
 
 	public static int getArrayIndexForType(TexType texType) {
 		switch (texType) {
-			case JPEG_TYPE_1:
+			case JPG1:
 				return 0;
-			case JPEG_TYPE_2:
+			case JPG2:
 				return 1;
-			case JPEG_TYPE_3:
+			case JPG3:
 				return 2;
 			default:
 				throw new IllegalArgumentException("TexType " + texType + " is not supported");

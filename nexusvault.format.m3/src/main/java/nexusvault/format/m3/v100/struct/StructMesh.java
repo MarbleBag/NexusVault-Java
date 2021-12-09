@@ -76,17 +76,17 @@ public final class StructMesh implements VisitableStruct {
 	public byte[] gap_020; // 0x20
 
 	/**
-	 * Seems only be used for playable race models. <br>
-	 * It seems that the used <code>IDs</code> are identical across all checked occurrences. <br>
+	 *
 	 * The <code>IDs</code> is assigned to meshes, which describe a specific area of a model, for example: left hand, right hand, neck, etc. <br>
-	 * It is reasonable to assume that this <code>ID</code> is used to blend out meshes if, for example, the model wears gear. This still needs to be checked.
-	 * The information may be part of a item model or may be found in a .tbl defining said item.
+	 * Seems only be used for playable race models. <br>
+	 * It is reasonable to assume that this <code>ID</code> is used to blend out meshes if, for example, the model wears gear. The Ids can be found in the
+	 * <b>ModelCluster.tbl</b>
 	 *
 	 * @see MeshToBodyPart
 	 */
 	@Order(12)
 	@StructField(value = DataType.UBIT_8)
-	public byte meshAnatomyId; // 0x22
+	public byte modelClusterId; // 0x22
 
 	@Order(13)
 	@StructField(value = DataType.BIT_8, length = 29)

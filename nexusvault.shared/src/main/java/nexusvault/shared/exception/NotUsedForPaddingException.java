@@ -1,6 +1,9 @@
 package nexusvault.shared.exception;
 
-public class NotUsedForPaddingException extends IllegalArgumentException {
+/**
+ * A field is considered 'padding' if it's value across all files does not change.
+ */
+public final class NotUsedForPaddingException extends StructException {
 
 	private static final long serialVersionUID = -3460835862590178820L;
 

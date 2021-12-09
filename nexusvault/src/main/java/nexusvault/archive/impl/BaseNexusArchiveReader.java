@@ -224,7 +224,7 @@ public final class BaseNexusArchiveReader implements NexusArchive {
 				}
 
 				if (reader instanceof ByteBufferBinaryReader) {
-					result = ((ByteBufferBinaryReader) reader).getSource();
+					result = ((ByteBufferBinaryReader) reader).getDecoratedObject();
 				} else {
 					final byte[] buffer = new byte[(int) reader.size()];
 					reader.readInt8(buffer, 0, buffer.length);

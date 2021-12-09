@@ -15,11 +15,6 @@
 		</dependency>
 		<dependency>
 			<groupId>kreed</groupId>
-			<artifactId>kreed.io.util</artifactId>
-			<version>[1,)</version>
-		</dependency>
-		<dependency>
-			<groupId>kreed</groupId>
 			<artifactId>kreed.reflection.struct</artifactId>
 			<version>[1,)</version>
 		</dependency>

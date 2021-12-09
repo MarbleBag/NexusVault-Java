@@ -7,8 +7,15 @@ import kreed.reflection.struct.DataType;
 import kreed.reflection.struct.Order;
 import kreed.reflection.struct.StructField;
 import kreed.reflection.struct.StructUtil;
+import nexusvault.shared.exception.StructException;
 
 public final class StructIdxFile {
+
+	static {
+		if (StructUtil.sizeOf(StructIdxFile.class) != 0x38) {
+			throw new StructException();
+		}
+	}
 
 	public static final int SIZE_IN_BYTES = StructUtil.sizeOf(StructIdxFile.class);
 
@@ -64,8 +71,8 @@ public final class StructIdxFile {
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = (prime * result) + Arrays.hashCode(hash);
-		result = (prime * result) + Objects.hash(compressedSize, flags, nameOffset, uncompressedSize, unk_034, writeTime);
+		result = prime * result + Arrays.hashCode(this.hash);
+		result = prime * result + Objects.hash(this.compressedSize, this.flags, this.nameOffset, this.uncompressedSize, this.unk_034, this.writeTime);
 		return result;
 	}
 
@@ -81,27 +88,28 @@ public final class StructIdxFile {
 			return false;
 		}
 		final StructIdxFile other = (StructIdxFile) obj;
-		return (compressedSize == other.compressedSize) && (flags == other.flags) && Arrays.equals(hash, other.hash) && (nameOffset == other.nameOffset)
-				&& (uncompressedSize == other.uncompressedSize) && (unk_034 == other.unk_034) && (writeTime == other.writeTime);
+		return this.compressedSize == other.compressedSize && this.flags == other.flags && Arrays.equals(this.hash, other.hash)
+				&& this.nameOffset == other.nameOffset && this.uncompressedSize == other.uncompressedSize && this.unk_034 == other.unk_034
+				&& this.writeTime == other.writeTime;
 	}
 
 	@Override
 	public String toString() {
 		final StringBuilder builder = new StringBuilder();
 		builder.append("StructIdxFile [nameOffset=");
-		builder.append(nameOffset);
+		builder.append(this.nameOffset);
 		builder.append(", flags=");
-		builder.append(flags);
+		builder.append(this.flags);
 		builder.append(", writeTime=");
-		builder.append(writeTime);
+		builder.append(this.writeTime);
 		builder.append(", uncompressedSize=");
-		builder.append(uncompressedSize);
+		builder.append(this.uncompressedSize);
 		builder.append(", compressedSize=");
-		builder.append(compressedSize);
+		builder.append(this.compressedSize);
 		builder.append(", hash=");
-		builder.append(Arrays.toString(hash));
+		builder.append(Arrays.toString(this.hash));
 		builder.append(", unk_034=");
-		builder.append(unk_034);
+		builder.append(this.unk_034);
 		builder.append("]");
 		return builder.toString();
 	}

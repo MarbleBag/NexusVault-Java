@@ -1,6 +1,8 @@
 package nexusvault.format.tbl;
 
-public class TableException extends RuntimeException {
+import nexusvault.shared.exception.NexusVaultException;
+
+public class TableException extends NexusVaultException {
 
 	private static final long serialVersionUID = -8868653050581508889L;
 

@@ -1,6 +1,6 @@
 package nexusvault.format.tex;
 
-public class TextureConversionException extends TextureException {
+public final class TextureConversionException extends TextureException {
 
 	private static final long serialVersionUID = -7484677405271655866L;
 

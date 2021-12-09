@@ -45,7 +45,7 @@ final class InMemoryModelMesh implements ModelMesh {
 
 	@Override
 	public int getMeshToBodyPart() {
-		return 0xFF & this.structMesh.meshAnatomyId;
+		return 0xFF & this.structMesh.modelClusterId;
 	}
 
 	@Override

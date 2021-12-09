@@ -13,18 +13,32 @@ import nexusvault.format.tex.struct.StructTextureFileHeader;
  */
 public final class TextureImageSplitter {
 
-	private static interface Splitter {
-		List<TextureImage> split(TextureImage original);
+	private static final class TextureSplitInfo {
+		public final TextureImageFormat format;
+		public final TextureImageExpectedUseType type;
+
+		public TextureSplitInfo(TextureImageFormat format, TextureImageExpectedUseType type) {
+			super();
+			this.format = format;
+			this.type = type;
+		}
+
+		public TextureImageFormat getFormat() {
+			return this.format;
+		}
+
+		public TextureImageExpectedUseType getType() {
+			return this.type;
+		}
 	}
 
-	private static abstract class AbstSplitter implements Splitter {
+	private static abstract class Splitter {
 
-		@Override
-		public List<TextureImage> split(TextureImage original) {
+		public final List<TextureImage> split(TextureImage original) {
 			final byte[] originalData = original.getImageData();
 			final int imageWidth = original.getImageWidth();
 			final int imageHeight = original.getImageHeight();
-			final int pixelCount = originalData.length / 4;
+			final int pixelCount = originalData.length / original.getImageFormat().getBytesPerPixel();
 
 			final List<TextureSplitInfo> splitInfos = getSplitInfo();
 			final byte[][] out = new byte[splitInfos.size()][];
@@ -52,11 +66,11 @@ public final class TextureImageSplitter {
 		abstract void split(byte[][] out, byte[] originalData, int idx);
 	}
 
-	private static final class SplitterJPGType1 extends AbstSplitter {
+	private static final class SplitterJPGType1 extends Splitter {
 		private static final List<TextureSplitInfo> channels;
 		static {
 			final List<TextureSplitInfo> tmp = new ArrayList<>(2);
-			tmp.add(new TextureSplitInfo(TextureImageFormat.ARGB, TextureImageExpectedUseType.NORMAL));
+			tmp.add(new TextureSplitInfo(TextureImageFormat.RGB, TextureImageExpectedUseType.NORMAL));
 			tmp.add(new TextureSplitInfo(TextureImageFormat.GRAYSCALE, TextureImageExpectedUseType.METALLIC));
 			tmp.add(new TextureSplitInfo(TextureImageFormat.GRAYSCALE, TextureImageExpectedUseType.EMISSION));
 			channels = Collections.unmodifiableList(tmp);
@@ -68,21 +82,20 @@ public final class TextureImageSplitter {
 		}
 
 		@Override
-		protected void split(byte[][] out, byte[] originalData, int idx) {
-			final byte normalX = originalData[idx * 4 + 0];
-			final byte normalY = originalData[idx * 4 + 1];
-			final byte metallic = originalData[idx * 4 + 2];
-			final byte emission = originalData[idx * 4 + 3];
+		protected void split(byte[][] out, byte[] data, int idx) {
+			final byte normalX = data[idx * 4 + 0];
+			final byte normalY = data[idx * 4 + 1];
+			final byte metallic = data[idx * 4 + 2];
+			final byte emission = data[idx * 4 + 3];
 
 			final float x = (normalX & 0xFF) / 128f - 1;
 			final float y = (normalY & 0xFF) / 128f - 1;
 			final float z = (float) Math.sqrt(1 - x * x - y * y);
 			final int normalZ = Math.round(z * 255);
 
-			out[0][idx * 4 + 0] = (byte) 0xFF;
-			out[0][idx * 4 + 1] = normalX;
-			out[0][idx * 4 + 2] = normalY;
-			out[0][idx * 4 + 3] = (byte) Math.max(0, Math.min(0xFF, normalZ));
+			out[0][idx * 3 + 0] = normalX;
+			out[0][idx * 3 + 1] = normalY;
+			out[0][idx * 3 + 2] = (byte) Math.max(0, Math.min(0xFF, normalZ));
 
 			out[1][idx] = metallic;
 
@@ -90,11 +103,11 @@ public final class TextureImageSplitter {
 		}
 	}
 
-	private static final class SplitterJPGType0And2 extends AbstSplitter {
+	private static final class SplitterJPGType0And2 extends Splitter {
 		private static final List<TextureSplitInfo> channels;
 		static {
 			final List<TextureSplitInfo> tmp = new ArrayList<>(2);
-			tmp.add(new TextureSplitInfo(TextureImageFormat.ARGB, TextureImageExpectedUseType.DIFFUSE));
+			tmp.add(new TextureSplitInfo(TextureImageFormat.RGB, TextureImageExpectedUseType.DIFFUSE));
 			tmp.add(new TextureSplitInfo(TextureImageFormat.GRAYSCALE, TextureImageExpectedUseType.ROUGHNESS));
 			channels = Collections.unmodifiableList(tmp);
 		}
@@ -111,10 +124,9 @@ public final class TextureImageSplitter {
 			final byte diffuseG = originalData[idx * 4 + 2];
 			final byte diffuseB = originalData[idx * 4 + 3];
 
-			out[0][idx * 4 + 0] = (byte) 0xFF;
-			out[0][idx * 4 + 1] = diffuseR;
-			out[0][idx * 4 + 2] = diffuseG;
-			out[0][idx * 4 + 3] = diffuseB;
+			out[0][idx * 3 + 0] = diffuseR;
+			out[0][idx * 3 + 1] = diffuseG;
+			out[0][idx * 3 + 2] = diffuseB;
 
 			out[1][idx] = roughness;
 		}
@@ -152,9 +164,9 @@ public final class TextureImageSplitter {
 	 */
 	public boolean isSplitable(TexType texType) {
 		switch (texType) {
-			case JPEG_TYPE_1:
-			case JPEG_TYPE_2:
-			case JPEG_TYPE_3:
+			case JPG1:
+			case JPG2:
+			case JPG3:
 				return true;
 			default:
 				return false;
@@ -174,10 +186,10 @@ public final class TextureImageSplitter {
 	 */
 	public List<TextureImage> split(TextureImage image, TexType texType) {
 		switch (texType) {
-			case JPEG_TYPE_1:
-			case JPEG_TYPE_3:
+			case JPG1:
+			case JPG3:
 				return jpgType0And2.split(image);
-			case JPEG_TYPE_2:
+			case JPG2:
 				return jpgType1.split(image);
 			default:
 				return Collections.emptyList();

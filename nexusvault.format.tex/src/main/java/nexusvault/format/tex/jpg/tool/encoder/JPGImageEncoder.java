@@ -4,11 +4,14 @@ import java.util.stream.Stream;
 
 import kreed.io.util.BinaryWriter;
 import nexusvault.format.tex.TexType;
-import nexusvault.format.tex.jpg.TextureJPGEncodingException;
+import nexusvault.format.tex.TextureEncodingException;
+import nexusvault.format.tex.jpg.dct.FastDCT;
+import nexusvault.format.tex.jpg.huffman.BinaryWriterBitConsumer;
+import nexusvault.format.tex.jpg.huffman.HuffmanEncoder;
+import nexusvault.format.tex.jpg.huffman.HuffmanEncoderFault;
+import nexusvault.format.tex.jpg.huffman.HuffmanTable;
 import nexusvault.format.tex.jpg.tool.Constants;
-import nexusvault.format.tex.jpg.tool.Constants.LayerType;
-import nexusvault.format.tex.jpg.tool.FastDCT;
-import nexusvault.format.tex.jpg.tool.HuffmanTable;
+import nexusvault.format.tex.jpg.tool.Constants.SignalType;
 import nexusvault.format.tex.jpg.tool.ImageRegion;
 import nexusvault.format.tex.jpg.tool.MathUtil;
 import nexusvault.format.tex.jpg.tool.SampleUtil;
@@ -156,12 +159,11 @@ public final class JPGImageEncoder {
 		}
 	}
 
-	private final HuffmanEncoder encoder = new HuffmanEncoder();
 	private final int[] tmpBlockStorage = new int[Constants.BLOCK_SIZE];
 
 	private final TexType target;
 
-	private final LayerType[] layerType;
+	private final SignalType[] layerType;
 	private final int[] layerBlocks;
 	private final int[] layerOffset;
 	private final int[] layerDCValues;
@@ -222,7 +224,7 @@ public final class JPGImageEncoder {
 					try {
 						this.imageReader.read(image, ir.id, ir.data);
 					} catch (final Exception ex) {
-						throw new TextureJPGEncodingException(String.format("Region [%d]: read error", ir.id), ex);
+						throw new TextureEncodingException(String.format("Region [%d]: read error", ir.id), ex);
 					}
 				}) //
 				.peek(this::downsampleImageRegion) //
@@ -238,10 +240,10 @@ public final class JPGImageEncoder {
 
 	private PixelReader getPixelReader() {
 		switch (this.target) {
-			case JPEG_TYPE_1:
-			case JPEG_TYPE_3:
+			case JPG1:
+			case JPG3:
 				return new PixelReaderARGB2YCCY();
-			case JPEG_TYPE_2:
+			case JPG2:
 				return new PixelReaderARGB2YYYY();
 			default:
 				throw new IllegalArgumentException("TexType " + this.target + " is not supported");
@@ -279,7 +281,7 @@ public final class JPGImageEncoder {
 
 	private void shiftAndClamp(int layerIdx, int[] data, int dataOffset) {
 		switch (this.layerType[layerIdx]) {
-			case CHROMA:
+			case CHROMINANCE:
 				shiftAndClamp(data, dataOffset, 0, -256, 255);
 				break;
 			case LUMINANCE:
@@ -320,7 +322,7 @@ public final class JPGImageEncoder {
 				try {
 					encodeLayer(layerIdx, ir.data);
 				} catch (final HuffmanEncoderFault ex) {
-					throw new TextureJPGEncodingException(String.format("Region [%d] Layer [%d]: encoding error", ir.id, layerIdx), ex);
+					throw new TextureEncodingException(String.format("Region [%d] Layer [%d]: encoding error", ir.id, layerIdx), ex);
 				}
 			}
 		}
@@ -350,10 +352,10 @@ public final class JPGImageEncoder {
 	}
 
 	private void encodeBlock(int layerIdx, int[] dst) {
-		final LayerType type = this.layerType[layerIdx];
+		final SignalType type = this.layerType[layerIdx];
 		final HuffmanTable dc = Constants.getHuffmanTable(type, 0);
 		final HuffmanTable ac = Constants.getHuffmanTable(type, 1);
-		this.encoder.encode(dc, ac, this.encoderOutput, dst, 0, Constants.BLOCK_SIZE);
+		HuffmanEncoder.encode(dc, ac, this.encoderOutput, dst, 0, Constants.BLOCK_SIZE);
 	}
 
 }

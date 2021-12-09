@@ -16,12 +16,15 @@ import nexusvault.format.tex.jpg.old.AllInOneJPGDecoder;
 import nexusvault.format.tex.struct.StructTextureFileHeader;
 
 /**
+ * Thread-Safe
+ *
  * Uses the old implementation to read ws's jpgs. Faster than the new implementation, but also harder to read.
  */
 public final class JPGTextureImageReader extends AbstractTextureImageReader implements TextureImageReader {
 
-	private final Set<TexType> acceptedTypes = Collections.unmodifiableSet(EnumSet.of(TexType.JPEG_TYPE_1, TexType.JPEG_TYPE_2, TexType.JPEG_TYPE_3));
+	private final Set<TexType> acceptedTypes = Collections.unmodifiableSet(EnumSet.of(TexType.JPG1, TexType.JPG2, TexType.JPG3));
 	private final AllInOneJPGDecoder decoder = new AllInOneJPGDecoder();
+	private final Object _lock = new Object();
 
 	public JPGTextureImageReader() {
 		super(new JPGImageMetaCalculator());
@@ -29,12 +32,14 @@ public final class JPGTextureImageReader extends AbstractTextureImageReader impl
 
 	@Override
 	public TextureImage read(StructTextureFileHeader header, BinaryReader source, int imageIdx) {
-		final ImageMetaInformation meta = getImageInformation(header, imageIdx);
+		synchronized (this._lock) {
+			final ImageMetaInformation meta = getImageInformation(header, imageIdx);
 
-		source.seek(Seek.BEGIN, meta.offset);
-		final byte[] data = this.decoder.decode(header, source, meta.length, meta.width, meta.height);
+			source.seek(Seek.BEGIN, meta.offset);
+			final byte[] data = this.decoder.decode(header, source, meta.length, meta.width, meta.height);
 
-		return new TextureImage(meta.width, meta.height, TextureImageFormat.ARGB, data);
+			return new TextureImage(meta.width, meta.height, TextureImageFormat.ARGB, data);
+		}
 	}
 
 	@Override
