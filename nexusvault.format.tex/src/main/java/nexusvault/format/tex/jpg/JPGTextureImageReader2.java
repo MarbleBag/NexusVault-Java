@@ -21,7 +21,7 @@ import nexusvault.format.tex.struct.StructTextureFileHeader;
  */
 public final class JPGTextureImageReader2 extends AbstractTextureImageReader implements TextureImageReader {
 
-	private final Set<TexType> acceptedTypes = Collections.unmodifiableSet(EnumSet.of(TexType.JPEG_TYPE_1, TexType.JPEG_TYPE_2, TexType.JPEG_TYPE_3));
+	private final Set<TexType> acceptedTypes = Collections.unmodifiableSet(EnumSet.of(TexType.JPG1, TexType.JPG2, TexType.JPG3));
 
 	public JPGTextureImageReader2() {
 		super(new JPGImageMetaCalculator());

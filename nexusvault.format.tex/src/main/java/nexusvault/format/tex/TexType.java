@@ -12,19 +12,19 @@ public enum TexType {
 	/**
 	 * Chroma subsampling &amp; typical jpg color space transformation with one additional color channel
 	 */
-	JPEG_TYPE_1(0, true, 0),
+	JPG1(0, true, 0),
 	/**
 	 * Four color channels and no color space transformation
 	 */
-	JPEG_TYPE_2(0, true, 1),
+	JPG2(0, true, 1),
 	/**
 	 * typical jpg color space transformation with one additional color channel
 	 */
-	JPEG_TYPE_3(0, true, 2),
+	JPG3(0, true, 2),
 	/** identical to {@link #ARGB_2} */
-	ARGB_1(0, false, 0),
+	ARGB1(0, false, 0),
 	/** identical to {@link #ARGB_1} */
-	ARGB_2(1, false, 0),
+	ARGB2(1, false, 0),
 	RGB(5, false, 0),
 	GRAYSCALE(6, false, 0),
 	DXT1(13, false, 0),

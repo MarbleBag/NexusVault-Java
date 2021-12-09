@@ -103,7 +103,9 @@ public final class StructTextureFileHeader {
 		}
 
 		this.signature = StructTextureFileHeader.SIGNATURE;
-		this.version = 1;
+		this.version = 3;
+		this.depth = 1;
+		this.sides = 1;
 		this.jpgChannelInfos = new StructJpgChannel[4];
 		for (int i = 0; i < this.jpgChannelInfos.length; ++i) {
 			this.jpgChannelInfos[i] = new StructJpgChannel();
@@ -203,8 +205,8 @@ public final class StructTextureFileHeader {
 		int result = 1;
 		result = prime * result + Arrays.hashCode(this.mipmapSizes);
 		result = prime * result + Arrays.hashCode(this.jpgChannelInfos);
-		result = prime * result + Objects.hash(this.jpgFormat, this.depth, this.format, this.height, this.mipmapSizesCount, this.isJpg,
-				this.mipMaps, this.sides, this.signature, this.unk_06C, this.version, this.width);
+		result = prime * result + Objects.hash(this.jpgFormat, this.depth, this.format, this.height, this.mipmapSizesCount, this.isJpg, this.mipMaps,
+				this.sides, this.signature, this.unk_06C, this.version, this.width);
 		return result;
 	}
 

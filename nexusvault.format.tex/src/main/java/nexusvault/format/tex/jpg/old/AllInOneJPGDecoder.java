@@ -82,11 +82,11 @@ public final class AllInOneJPGDecoder {
 
 	private ImageRegionWriter getImageRegionWriter(TexType texType) {
 		switch (texType) {
-			case JPEG_TYPE_1:
+			case JPG1:
 				return new ChromaSubsampleStackWriter(new Type0And2PixelComposition());
-			case JPEG_TYPE_2:
+			case JPG2:
 				return new BaseStackWriter(new Type1PixelComposition());
-			case JPEG_TYPE_3:
+			case JPG3:
 				return new BaseStackWriter(new Type0And2PixelComposition());
 			default:
 				throw new IllegalArgumentException("TexType " + texType + " is not supported");

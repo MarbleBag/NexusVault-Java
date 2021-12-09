@@ -13,7 +13,7 @@ import nexusvault.format.tex.TextureImageFormat;
  */
 final class ARGB8888ImageDecoder implements UncompressedImageDecoder {
 
-	private final Set<TexType> acceptedTypes = Collections.unmodifiableSet(EnumSet.of(TexType.ARGB_1, TexType.ARGB_2));
+	private final Set<TexType> acceptedTypes = Collections.unmodifiableSet(EnumSet.of(TexType.ARGB1, TexType.ARGB2));
 
 	@Override
 	public byte[] decode(BinaryReader source, int byteLength) {

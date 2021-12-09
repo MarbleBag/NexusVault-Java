@@ -108,10 +108,10 @@ public final class JPGImageDecoder {
 
 	private PixelWriter getPixelWriter() {
 		switch (this.target) {
-			case JPEG_TYPE_1:
-			case JPEG_TYPE_3:
+			case JPG1:
+			case JPG3:
 				return new PixelWriterYCCY2ARGB();
-			case JPEG_TYPE_2:
+			case JPG2:
 				return new PixelWriterYYYY2ARGB();
 			default:
 				throw new IllegalArgumentException("TexType " + this.target + " is not supported");

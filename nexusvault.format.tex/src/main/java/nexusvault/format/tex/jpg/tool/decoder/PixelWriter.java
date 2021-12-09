@@ -19,7 +19,7 @@ interface PixelWriter {
 	/**
 	 * Converts jpg data into argb data without any additional steps in color transformation
 	 *
-	 * @see TexType#JPEG_TYPE_2
+	 * @see TexType#JPG2
 	 */
 	static final class PixelWriterYYYY2ARGB implements PixelWriter {
 		@Override
@@ -34,8 +34,8 @@ interface PixelWriter {
 	/**
 	 * Converts jpg data into argb data by applying a color transformation
 	 *
-	 * @see TexType#JPEG_TYPE_1
-	 * @see TexType#JPEG_TYPE_3
+	 * @see TexType#JPG1
+	 * @see TexType#JPG3
 	 */
 	static final class PixelWriterYCCY2ARGB implements PixelWriter {
 

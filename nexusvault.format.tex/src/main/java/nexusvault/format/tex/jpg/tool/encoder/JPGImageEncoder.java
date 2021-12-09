@@ -237,10 +237,10 @@ public final class JPGImageEncoder {
 
 	private PixelReader getPixelReader() {
 		switch (this.target) {
-			case JPEG_TYPE_1:
-			case JPEG_TYPE_3:
+			case JPG1:
+			case JPG3:
 				return new PixelReaderARGB2YCCY();
-			case JPEG_TYPE_2:
+			case JPG2:
 				return new PixelReaderARGB2YYYY();
 			default:
 				throw new IllegalArgumentException("TexType " + this.target + " is not supported");

@@ -77,7 +77,7 @@ public final class JPGTextureImageWriter extends AbstractTextureImageWriter impl
 	 */
 	public static final String CONFIG_VALUE_LAYER4 = "jpg.value.l4";
 
-	private final Set<TexType> acceptedTypes = Collections.unmodifiableSet(EnumSet.of(TexType.JPEG_TYPE_1, TexType.JPEG_TYPE_2, TexType.JPEG_TYPE_3));
+	private final Set<TexType> acceptedTypes = Collections.unmodifiableSet(EnumSet.of(TexType.JPG1, TexType.JPG2, TexType.JPG3));
 
 	@Override
 	public Set<TexType> getAcceptedTexTypes() {
@@ -100,31 +100,31 @@ public final class JPGTextureImageWriter extends AbstractTextureImageWriter impl
 		header.mipmapSizesCount = images.length;
 
 		{
-			final var quality = (byte) config.getOrDefault(CONFIG_QUALITY, 100);
-			header.jpgChannelInfos[0].setQuality((byte) config.getOrDefault(CONFIG_QUALITY_LAYER1, quality));
-			header.jpgChannelInfos[1].setQuality((byte) config.getOrDefault(CONFIG_QUALITY_LAYER2, quality));
-			header.jpgChannelInfos[2].setQuality((byte) config.getOrDefault(CONFIG_QUALITY_LAYER3, quality));
-			header.jpgChannelInfos[3].setQuality((byte) config.getOrDefault(CONFIG_QUALITY_LAYER4, quality));
+			final var quality = ((Number) config.getOrDefault(CONFIG_QUALITY, 100)).byteValue();
+			header.jpgChannelInfos[0].setQuality(((Number) config.getOrDefault(CONFIG_QUALITY_LAYER1, quality)).byteValue());
+			header.jpgChannelInfos[1].setQuality(((Number) config.getOrDefault(CONFIG_QUALITY_LAYER2, quality)).byteValue());
+			header.jpgChannelInfos[2].setQuality(((Number) config.getOrDefault(CONFIG_QUALITY_LAYER3, quality)).byteValue());
+			header.jpgChannelInfos[3].setQuality(((Number) config.getOrDefault(CONFIG_QUALITY_LAYER4, quality)).byteValue());
 		}
 
 		if (config.containsKey(CONFIG_VALUE_LAYER1)) {
 			header.jpgChannelInfos[0].hasDefaultColor(true);
-			header.jpgChannelInfos[0].setDefaultColor((byte) config.get(CONFIG_VALUE_LAYER1));
+			header.jpgChannelInfos[0].setDefaultColor(((Number) config.get(CONFIG_VALUE_LAYER1)).byteValue());
 		}
 
 		if (config.containsKey(CONFIG_VALUE_LAYER2)) {
 			header.jpgChannelInfos[1].hasDefaultColor(true);
-			header.jpgChannelInfos[1].setDefaultColor((byte) config.get(CONFIG_VALUE_LAYER2));
+			header.jpgChannelInfos[1].setDefaultColor(((Number) config.get(CONFIG_VALUE_LAYER2)).byteValue());
 		}
 
 		if (config.containsKey(CONFIG_VALUE_LAYER3)) {
 			header.jpgChannelInfos[2].hasDefaultColor(true);
-			header.jpgChannelInfos[2].setDefaultColor((byte) config.get(CONFIG_VALUE_LAYER3));
+			header.jpgChannelInfos[2].setDefaultColor(((Number) config.get(CONFIG_VALUE_LAYER3)).byteValue());
 		}
 
 		if (config.containsKey(CONFIG_VALUE_LAYER4)) {
 			header.jpgChannelInfos[3].hasDefaultColor(true);
-			header.jpgChannelInfos[3].setDefaultColor((byte) config.get(CONFIG_VALUE_LAYER4));
+			header.jpgChannelInfos[3].setDefaultColor(((Number) config.get(CONFIG_VALUE_LAYER4)).byteValue());
 		}
 
 		final var encoder = new JPGEncoder(target, //
@@ -143,12 +143,16 @@ public final class JPGTextureImageWriter extends AbstractTextureImageWriter impl
 		final var imageData = new ByteBuffer[images.length];
 		var paddedImageDataSize = 0;
 		for (var i = 0; i < images.length; ++i) {
-			final var image = images[i];
-			final var encodedImageData = encoder.encode(image.getImageData(), image.getImageWidth(), image.getImageHeight());
-			final var paddedLength = ByteAlignmentUtil.alignTo16Byte(encodedImageData.remaining());
-			header.mipmapSizes[i] = paddedLength;
-			paddedImageDataSize += header.mipmapSizes[i];
-			imageData[i] = encodedImageData;
+			try {
+				final var image = images[i];
+				final var encodedImageData = encoder.encode(image.getImageData(), image.getImageWidth(), image.getImageHeight());
+				final var paddedLength = ByteAlignmentUtil.alignTo16Byte(encodedImageData.remaining());
+				header.mipmapSizes[i] = paddedLength;
+				paddedImageDataSize += header.mipmapSizes[i];
+				imageData[i] = encodedImageData;
+			} catch (final Exception e) {
+				throw new TextureEncodingException(String.format("Unable to encode mipmap #%d", i + 1), e);
+			}
 		}
 
 		final var output = ByteBuffer.allocate(StructTextureFileHeader.SIZE_IN_BYTES + paddedImageDataSize).order(ByteOrder.LITTLE_ENDIAN);

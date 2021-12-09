@@ -18,7 +18,7 @@ import nexusvault.format.tex.struct.StructTextureFileHeader;
  */
 public final class UncompressedTextureImageWriter extends AbstractTextureImageWriter implements TextureImageWriter {
 
-	private final Set<TexType> acceptedTypes = Collections.unmodifiableSet(EnumSet.of(TexType.ARGB_1, TexType.ARGB_2, TexType.RGB, TexType.GRAYSCALE));
+	private final Set<TexType> acceptedTypes = Collections.unmodifiableSet(EnumSet.of(TexType.ARGB1, TexType.ARGB2, TexType.RGB, TexType.GRAYSCALE));
 
 	@Override
 	public Set<TexType> getAcceptedTexTypes() {
@@ -63,8 +63,8 @@ public final class UncompressedTextureImageWriter extends AbstractTextureImageWr
 
 	private UncompressedImageEncoder getEncoder(TexType target) {
 		switch (target) {
-			case ARGB_1:
-			case ARGB_2:
+			case ARGB1:
+			case ARGB2:
 				return new ARGB8888ImageEncoder();
 			case RGB:
 				return new RGB565ImageEncoder();

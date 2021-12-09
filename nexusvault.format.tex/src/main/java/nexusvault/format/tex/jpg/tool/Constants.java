@@ -129,11 +129,11 @@ public final class Constants {
 
 	public static int getArrayIndexForType(TexType texType) {
 		switch (texType) {
-			case JPEG_TYPE_1:
+			case JPG1:
 				return 0;
-			case JPEG_TYPE_2:
+			case JPG2:
 				return 1;
-			case JPEG_TYPE_3:
+			case JPG3:
 				return 2;
 			default:
 				throw new IllegalArgumentException("TexType " + texType + " is not supported");
