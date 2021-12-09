@@ -15,7 +15,7 @@ final class JPGImageMetaCalculator implements ImageMetaCalculator {
 			throw new IndexOutOfBoundsException(String.format("'idx' out of bounds. Range [0;%d). Got %d", header.mipMaps, mipmapIndex));
 		}
 		if (header.mipMaps != header.mipmapSizesCount) {
-			throw new IndexOutOfBoundsException(String.format("'header.imageSizesCount' and 'header.mipMaps' need to be qual. MipMaps: %d, ImageSizeCount:",
+			throw new IndexOutOfBoundsException(String.format("'header.imageSizesCount' and 'header.mipMaps' need to be qual. MipMaps: %d, ImageSizeCount: %d",
 					header.mipMaps, header.mipmapSizesCount));
 		}
 

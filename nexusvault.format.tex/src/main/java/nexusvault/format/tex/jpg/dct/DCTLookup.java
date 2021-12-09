@@ -1,4 +1,4 @@
-package nexusvault.format.tex.jpg.tool;
+package nexusvault.format.tex.jpg.dct;
 
 public final class DCTLookup {
 

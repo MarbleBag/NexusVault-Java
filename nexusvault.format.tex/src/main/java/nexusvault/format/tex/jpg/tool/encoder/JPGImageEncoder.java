@@ -5,10 +5,13 @@ import java.util.stream.Stream;
 import kreed.io.util.BinaryWriter;
 import nexusvault.format.tex.TexType;
 import nexusvault.format.tex.TextureEncodingException;
+import nexusvault.format.tex.jpg.dct.FastDCT;
+import nexusvault.format.tex.jpg.huffman.BinaryWriterBitConsumer;
+import nexusvault.format.tex.jpg.huffman.HuffmanEncoder;
+import nexusvault.format.tex.jpg.huffman.HuffmanEncoderFault;
+import nexusvault.format.tex.jpg.huffman.HuffmanTable;
 import nexusvault.format.tex.jpg.tool.Constants;
-import nexusvault.format.tex.jpg.tool.Constants.LayerType;
-import nexusvault.format.tex.jpg.tool.FastDCT;
-import nexusvault.format.tex.jpg.tool.HuffmanTable;
+import nexusvault.format.tex.jpg.tool.Constants.SignalType;
 import nexusvault.format.tex.jpg.tool.ImageRegion;
 import nexusvault.format.tex.jpg.tool.MathUtil;
 import nexusvault.format.tex.jpg.tool.SampleUtil;
@@ -160,7 +163,7 @@ public final class JPGImageEncoder {
 
 	private final TexType target;
 
-	private final LayerType[] layerType;
+	private final SignalType[] layerType;
 	private final int[] layerBlocks;
 	private final int[] layerOffset;
 	private final int[] layerDCValues;
@@ -278,7 +281,7 @@ public final class JPGImageEncoder {
 
 	private void shiftAndClamp(int layerIdx, int[] data, int dataOffset) {
 		switch (this.layerType[layerIdx]) {
-			case CHROMA:
+			case CHROMINANCE:
 				shiftAndClamp(data, dataOffset, 0, -256, 255);
 				break;
 			case LUMINANCE:
@@ -349,7 +352,7 @@ public final class JPGImageEncoder {
 	}
 
 	private void encodeBlock(int layerIdx, int[] dst) {
-		final LayerType type = this.layerType[layerIdx];
+		final SignalType type = this.layerType[layerIdx];
 		final HuffmanTable dc = Constants.getHuffmanTable(type, 0);
 		final HuffmanTable ac = Constants.getHuffmanTable(type, 1);
 		HuffmanEncoder.encode(dc, ac, this.encoderOutput, dst, 0, Constants.BLOCK_SIZE);

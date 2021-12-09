@@ -16,6 +16,7 @@ import nexusvault.format.tex.TextureImage;
 import nexusvault.format.tex.TextureImageFormat;
 import nexusvault.format.tex.TextureImageReader;
 import nexusvault.format.tex.struct.StructTextureFileHeader;
+import nexusvault.format.tex.util.ColorModelConverter;
 
 /**
  * Thread-Safe
@@ -49,21 +50,8 @@ public final class DXTTextureImageReader extends AbstractTextureImageReader impl
 		final var compressed = new byte[byteLength];
 		source.readInt8(compressed, 0, compressed.length);
 		final var decompressed = Squish.decompressImage(null, width, height, compressed, dxtCompression);
-		convertRGBAToARGB(decompressed);
+		ColorModelConverter.inplaceConvertRGBAToARGB(decompressed);
 		return decompressed;
-	}
-
-	private void convertRGBAToARGB(byte[] arr) {
-		for (int i = 0; i < arr.length; i += 4) {
-			final var r = arr[i + 0];
-			final var g = arr[i + 1];
-			final var b = arr[i + 2];
-			final var a = arr[i + 3];
-			arr[i + 0] = a;
-			arr[i + 1] = r;
-			arr[i + 2] = g;
-			arr[i + 3] = b;
-		}
 	}
 
 	private Squish.CompressionType getCompressionType(TexType target) {

@@ -1,10 +1,9 @@
-package nexusvault.format.tex.jpg.tool.decoder;
+package nexusvault.format.tex.jpg.huffman;
 
 import kreed.io.util.BinaryReader;
 import kreed.io.util.BinaryUnderflowException;
-import nexusvault.format.tex.jpg.tool.BitQueue;
 
-public final class BinaryReaderBitSupplier implements BitSupply {
+public final class BinaryReaderBitSupplier implements nexusvault.format.tex.jpg.huffman.HuffmanDecoder.BitSupply {
 
 	private final BinaryReader input;
 	private final BitQueue queue;

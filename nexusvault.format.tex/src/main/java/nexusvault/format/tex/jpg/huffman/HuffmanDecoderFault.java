@@ -1,4 +1,4 @@
-package nexusvault.format.tex.jpg.tool.decoder;
+package nexusvault.format.tex.jpg.huffman;
 
 public final class HuffmanDecoderFault extends RuntimeException {
 

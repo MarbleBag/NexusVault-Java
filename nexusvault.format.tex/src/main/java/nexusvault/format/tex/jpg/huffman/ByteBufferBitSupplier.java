@@ -1,10 +1,8 @@
-package nexusvault.format.tex.jpg.tool.decoder;
+package nexusvault.format.tex.jpg.huffman;
 
 import java.nio.ByteBuffer;
 
-import nexusvault.format.tex.jpg.tool.BitQueue;
-
-public final class ByteBufferBitSupplier implements BitSupply {
+public final class ByteBufferBitSupplier implements nexusvault.format.tex.jpg.huffman.HuffmanDecoder.BitSupply {
 
 	private final ByteBuffer input;
 	private final BitQueue queue;

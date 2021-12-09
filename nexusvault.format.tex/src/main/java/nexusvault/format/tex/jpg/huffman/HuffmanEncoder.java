@@ -1,15 +1,13 @@
-package nexusvault.format.tex.jpg.tool.encoder;
-
-import nexusvault.format.tex.jpg.tool.HuffmanTable;
+package nexusvault.format.tex.jpg.huffman;
 
 public final class HuffmanEncoder {
 	private HuffmanEncoder() {
 	}
 
-	private static void assertNotOutOfBounds(String argumentName, int value, int lowerBound, int upperBound) {
-		if (value < lowerBound || upperBound < value) {
-			throw new IllegalArgumentException(String.format("%s : %d is not within [%d; %d]", argumentName, value, lowerBound, upperBound));
-		}
+	public static interface BitConsumer {
+
+		void consume(int data, int numberOfBits);
+
 	}
 
 	public static void encode(HuffmanTable dc, HuffmanTable ac, BitConsumer consumer, int[] src, int srcOffset, int srcLength) {
@@ -86,6 +84,12 @@ public final class HuffmanEncoder {
 		}
 	}
 
+	private static void assertNotOutOfBounds(String argumentName, int value, int lowerBound, int upperBound) {
+		if (value < lowerBound || upperBound < value) {
+			throw new IllegalArgumentException(String.format("%s : %d is not within [%d; %d]", argumentName, value, lowerBound, upperBound));
+		}
+	}
+
 	private static int calculateBitLength(int value) {
 		if (value == 0) {
 			return 0;
@@ -93,9 +97,9 @@ public final class HuffmanEncoder {
 		return Integer.SIZE - Integer.numberOfLeadingZeros(Math.abs(value));
 	}
 
-	private static int convertToUnsigned(int data, int nBits) {
+	private static int convertToUnsigned(int data, int numberOfBits) {
 		if (data < 0) {
-			data = data - ((-1 << nBits) + 1);
+			data = data - ((-1 << numberOfBits) + 1);
 		}
 		return data;
 	}
@@ -103,9 +107,8 @@ public final class HuffmanEncoder {
 	private static void encode(HuffmanTable table, BitConsumer consumer, int value) {
 		final var huffValue = table.encode(value);
 		if (huffValue == null) {
-			final String tableName = String.format("(%d,%d)", table.getDHT().destinationId, table.getDHT().tableClass);
-			final String word = String.format("%2s", Integer.toBinaryString(value)).replaceAll(" ", "0");
-			throw new HuffmanEncoderFault("Encoding not found", String.format("Table %s contains no encoding for word %s", tableName, word));
+			final String decodedWord = String.format("%2s", Integer.toBinaryString(value)).replaceAll(" ", "0");
+			throw new HuffmanEncoderFault("Encoding not found", String.format("Table contains no encoding for word '%s'", decodedWord));
 		}
 		consumer.consume(huffValue.encodedWord, huffValue.encodedWordBitLength);
 	}

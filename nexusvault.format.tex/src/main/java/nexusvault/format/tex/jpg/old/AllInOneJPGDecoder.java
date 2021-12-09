@@ -6,13 +6,13 @@ import java.util.stream.Stream;
 import kreed.io.util.BinaryReader;
 import nexusvault.format.tex.TexType;
 import nexusvault.format.tex.TextureImageFormat;
+import nexusvault.format.tex.jpg.dct.FastIntegerIDCT;
+import nexusvault.format.tex.jpg.huffman.BinaryReaderBitSupplier;
+import nexusvault.format.tex.jpg.huffman.HuffmanDecoder;
+import nexusvault.format.tex.jpg.huffman.HuffmanDecoder.BitSupply;
+import nexusvault.format.tex.jpg.huffman.HuffmanTable;
 import nexusvault.format.tex.jpg.tool.Constants;
-import nexusvault.format.tex.jpg.tool.Constants.LayerType;
-import nexusvault.format.tex.jpg.tool.FastIntegerIDCT;
-import nexusvault.format.tex.jpg.tool.HuffmanTable;
-import nexusvault.format.tex.jpg.tool.decoder.BinaryReaderBitSupplier;
-import nexusvault.format.tex.jpg.tool.decoder.BitSupply;
-import nexusvault.format.tex.jpg.tool.decoder.HuffmanDecoder;
+import nexusvault.format.tex.jpg.tool.Constants.SignalType;
 import nexusvault.format.tex.struct.StructTextureFileHeader;
 
 public final class AllInOneJPGDecoder {
@@ -23,7 +23,7 @@ public final class AllInOneJPGDecoder {
 	private final boolean[] hasDefaultForLayer = new boolean[Constants.NUMBER_OF_LAYERS];
 	private final byte[] defaultForLayer = new byte[Constants.NUMBER_OF_LAYERS];
 
-	private LayerType[] typePerLayer;
+	private SignalType[] typePerLayer;
 	private int[] offsetsPerLayer;
 	private int[] blocksPerLayer;
 
@@ -152,7 +152,7 @@ public final class AllInOneJPGDecoder {
 	}
 
 	private void decodeNextBlock(int layerIdx) {
-		final LayerType type = this.typePerLayer[layerIdx];
+		final SignalType type = this.typePerLayer[layerIdx];
 		final HuffmanTable dc = Constants.getHuffmanTable(type, 0);
 		final HuffmanTable ac = Constants.getHuffmanTable(type, 1);
 		HuffmanDecoder.decode(dc, ac, this.source, this.decoderOutput, 0, Constants.BLOCK_SIZE);
@@ -185,7 +185,7 @@ public final class AllInOneJPGDecoder {
 
 	private void shiftAndClamp(int layerIdx, int[] data, int dataOffset) {
 		switch (this.typePerLayer[layerIdx]) {
-			case CHROMA:
+			case CHROMINANCE:
 				shiftAndClamp(data, dataOffset, 0, -256, 255);
 				break;
 			case LUMINANCE:

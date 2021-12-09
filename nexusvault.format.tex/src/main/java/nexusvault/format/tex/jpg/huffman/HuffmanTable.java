@@ -1,4 +1,4 @@
-package nexusvault.format.tex.jpg.tool;
+package nexusvault.format.tex.jpg.huffman;
 
 import java.util.Map;
 import java.util.TreeMap;
@@ -128,53 +128,48 @@ public final class HuffmanTable {
 
 	}
 
-	private final Map<HuffmanTable.HuffmanKey, HuffmanTable.HuffmanValue> decodeMapping;
-	private final Map<HuffmanTable.HuffmanKey, HuffmanTable.HuffmanValue> encodeMapping;
-	private final DHTPackage table;
+	private final Map<HuffmanTable.HuffmanKey, HuffmanTable.HuffmanValue> decodeMapping = new TreeMap<>();
+	private final Map<HuffmanTable.HuffmanKey, HuffmanTable.HuffmanValue> encodeMapping = new TreeMap<>();
+	private final int[][] codes = new int[16][];
 
-	public HuffmanTable(DHTPackage table) {
-		if (table == null) {
-			throw new IllegalArgumentException("'table' must not be null");
+	public HuffmanTable(int[] numberOfValues, int[] values) {
+		// sort values in categories
+		int pos = 0;
+		for (int i = 0; i < numberOfValues.length; ++i) {
+			this.codes[i] = new int[numberOfValues[i]];
+			for (int j = 0; j < numberOfValues[i]; ++j) {
+				this.codes[i][j] = values[pos++];
+			}
 		}
 
-		this.table = table;
-
-		this.decodeMapping = new TreeMap<>();
-		this.encodeMapping = new TreeMap<>();
-
-		buildDecodingMap();
-		buildEncodingMap();
+		buildHuffmanTree();
 	}
 
-	private void buildDecodingMap() {
+	private void buildHuffmanTree() {
+		// decoding
 		int encodedWord = 0;
-		for (int idx = 0; idx < this.table.codes.length; ++idx) {
+		for (int idx = 0; idx < this.codes.length; ++idx) {
 			final int encodedLength = idx + 1;
-			if (this.table.codes[idx].length > 1 << idx + 1) {
-				throw new IllegalArgumentException(String.format(
-						"DHTPackage error. Package contains %1$d words with a length of %2$d. This length only supports encoding for up to %3$d words.",
-						this.table.codes[idx].length, encodedLength, 1 << encodedLength));
+			if (this.codes[idx].length > 1 << idx + 1) {
+				throw new IllegalArgumentException(
+						String.format("Code error. Step %1$d contains %2$d words. With a bit length of %3$d only %4$d words are supported", idx + 1,
+								this.codes[idx].length, encodedLength, 1 << encodedLength));
 			}
 
-			for (int nIdx = 0; nIdx < this.table.codes[idx].length; ++nIdx) {
-				final int decodedWord = this.table.codes[idx][nIdx];
-				final HuffmanKey key = new HuffmanKey(encodedWord, encodedLength);
+			for (int nIdx = 0; nIdx < this.codes[idx].length; ++nIdx) {
+				final int decodedWord = this.codes[idx][nIdx];
+				final var key = new HuffmanKey(encodedWord, encodedLength);
 				this.decodeMapping.put(key, new HuffmanValue(encodedWord, encodedLength, decodedWord));
-				encodedWord = encodedWord + 1;
+				encodedWord += 1;
 			}
-			encodedWord = encodedWord << 1;
+			encodedWord <<= 1;
 		}
-	}
 
-	private void buildEncodingMap() {
+		// encoding
 		for (final var value : this.decodeMapping.values()) {
 			final var key = new HuffmanKey(value.decodedWord, Integer.SIZE);
 			this.encodeMapping.put(key, value);
 		}
-	}
-
-	public DHTPackage getDHT() {
-		return this.table;
 	}
 
 	/**
@@ -200,18 +195,18 @@ public final class HuffmanTable {
 	 * @return true when there is at least one decoding available
 	 */
 	public boolean hasDecodingForWordOfLength(int nBits) {
-		if (nBits < 0 || this.table.codes.length < nBits) {
+		if (nBits < 0 || this.codes.length < nBits) {
 			return false;
 		}
-		return this.table.codes[nBits - 1].length != 0;
+		return this.codes[nBits - 1].length != 0;
 	}
 
 	/**
 	 * @return minimal number of bits needed for decoding
 	 */
 	public int getDecodeMinLength() {
-		for (int i = 0; i < this.table.codes.length; ++i) {
-			if (this.table.codes[i].length != 0) {
+		for (int i = 0; i < this.codes.length; ++i) {
+			if (this.codes[i].length != 0) {
 				return i + 1;
 			}
 		}
@@ -222,8 +217,8 @@ public final class HuffmanTable {
 	 * @return maximal number of bits which can be used for decoding
 	 */
 	public int getDecodeMaxLength() {
-		for (int i = this.table.codes.length - 1; 0 <= i; --i) {
-			if (this.table.codes[i].length != 0) {
+		for (int i = this.codes.length - 1; 0 <= i; --i) {
+			if (this.codes[i].length != 0) {
 				return i + 1;
 			}
 		}

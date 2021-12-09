@@ -1,9 +1,8 @@
-package nexusvault.format.tex.jpg.tool.encoder;
+package nexusvault.format.tex.jpg.huffman;
 
 import kreed.io.util.BinaryWriter;
-import nexusvault.format.tex.jpg.tool.BitQueue;
 
-public final class BinaryWriterBitConsumer implements BitConsumer {
+public final class BinaryWriterBitConsumer implements nexusvault.format.tex.jpg.huffman.HuffmanEncoder.BitConsumer {
 
 	private final BinaryWriter output;
 	private final BitQueue queue;

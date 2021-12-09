@@ -1,16 +1,15 @@
-package nexusvault.format.tex.jpg.tool.decoder;
-
-import nexusvault.format.tex.jpg.tool.HuffmanTable;
-import nexusvault.format.tex.jpg.tool.HuffmanTable.HuffmanValue;
+package nexusvault.format.tex.jpg.huffman;
 
 public final class HuffmanDecoder {
 	private HuffmanDecoder() {
 	}
 
-	private static void assertNotOutOfBounds(String argumentName, int value, int lowerBound, int upperBound) {
-		if (value < lowerBound || upperBound < value) {
-			throw new IllegalArgumentException(String.format("%s : %d is not within [%d; %d]", argumentName, value, lowerBound, upperBound));
-		}
+	public static interface BitSupply {
+
+		boolean canSupply(int numberOfBits);
+
+		int supply(int numberOfBits);
+
 	}
 
 	public static void decode(HuffmanTable dc, HuffmanTable ac, BitSupply supplier, int[] dst, int dstOffset, int dstLength) {
@@ -84,6 +83,12 @@ public final class HuffmanDecoder {
 		return;
 	}
 
+	private static void assertNotOutOfBounds(String argumentName, int value, int lowerBound, int upperBound) {
+		if (value < lowerBound || upperBound < value) {
+			throw new IllegalArgumentException(String.format("%s : %d is not within [%d; %d]", argumentName, value, lowerBound, upperBound));
+		}
+	}
+
 	private static int decode(HuffmanTable decoder, BitSupply supplier) {
 		final int maxLength = decoder.getDecodeMaxLength();
 		final int minLength = decoder.getDecodeMinLength();
@@ -94,36 +99,34 @@ public final class HuffmanDecoder {
 
 		int word = 0;
 		int wordLength = 0;
-		int nBits = minLength;
+		int numberOfBits = minLength;
 
 		do {
-			if (!decoder.hasDecodingForWordOfLength(nBits)) {
-				nBits += 1;
+			if (!decoder.hasDecodingForWordOfLength(numberOfBits)) {
+				numberOfBits += 1;
 				continue;
 			}
 
-			final int diff = nBits - wordLength;
+			final int diff = numberOfBits - wordLength;
 			if (!supplier.canSupply(diff)) {
 				return 0;
 			}
 
 			word = word << diff | supplier.supply(diff);
 			wordLength += diff;
-			final HuffmanValue huffVal = decoder.decode(word, wordLength);
+			final var huffVal = decoder.decode(word, wordLength);
 			if (huffVal == null) {
-				nBits += 1;
+				numberOfBits += 1;
 				continue;
 			}
 			return huffVal.decodedWord;
 
-		} while (nBits <= maxLength);
+		} while (numberOfBits <= maxLength);
 
-		if (nBits > maxLength) {
-			final String tableName = String.format("(%d,%d)", decoder.getDHT().destinationId, decoder.getDHT().tableClass);
-			final String encodedWordName = String.format("%" + wordLength + "s", Integer.toBinaryString(word)).replaceAll(" ", "0");
-			throw new HuffmanDecoderFault("Decoding not found",
-					String.format("Decoder %s decodes words between %d and %d bits. Word %s with length %d has no match.", tableName, minLength, maxLength,
-							encodedWordName, wordLength));
+		if (numberOfBits > maxLength) {
+			final String encodedWord = String.format("%" + wordLength + "s", Integer.toBinaryString(word)).replaceAll(" ", "0");
+			throw new HuffmanDecoderFault("Decoding not found", String.format(
+					"Table contains words between %d and %d bits. Word '%s' with length %d has no match.", minLength, maxLength, encodedWord, wordLength));
 		}
 		return 0;
 	}

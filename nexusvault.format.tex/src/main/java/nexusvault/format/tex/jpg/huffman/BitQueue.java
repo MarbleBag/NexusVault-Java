@@ -1,4 +1,4 @@
-package nexusvault.format.tex.jpg.tool;
+package nexusvault.format.tex.jpg.huffman;
 
 public final class BitQueue {
 	private long bitQueue;

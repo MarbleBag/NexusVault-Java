@@ -68,6 +68,19 @@ public final class ColorModelConverter {
 		}
 	}
 
+	public static void inplaceConvertRGBAToARGB(byte[] arr) {
+		for (int i = 0; i < arr.length; i += 4) {
+			final var r = arr[i + 0];
+			final var g = arr[i + 1];
+			final var b = arr[i + 2];
+			final var a = arr[i + 3];
+			arr[i + 0] = a;
+			arr[i + 1] = r;
+			arr[i + 2] = g;
+			arr[i + 3] = b;
+		}
+	}
+
 	public static byte[] convertARGBToGrayscale(byte[] src) {
 		final byte[] dst = new byte[src.length / 4];
 		for (int s = 0, d = 0; d < dst.length; s += 4, d += 1) {
