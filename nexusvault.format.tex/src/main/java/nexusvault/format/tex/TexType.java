@@ -54,10 +54,11 @@ public enum TexType {
 	}
 
 	protected boolean matches(int format, boolean isJpg, int jpgFormat) {
-		if (isJpg && this.isJpg) {
-			return jpgFormat == this.jpgFormat;
+		if (this.isJpg) {
+			return isJpg && jpgFormat == this.jpgFormat;
+		} else {
+			return !isJpg && this.format == format;
 		}
-		return format == this.format;
 	}
 
 	public static TexType resolve(StructTextureFileHeader header) {
