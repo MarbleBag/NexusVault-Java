@@ -22,7 +22,6 @@ public final class TableWriter {
 		header.signature = StructTableFileHeader.SIGNATURE;
 		header.version = 0;
 		header.nameLength = table.name.length() + 1;
-		header.unk1 = table.unk1;
 
 		Text.writeNullTerminatedUTF16(writer, table.name);
 
@@ -35,7 +34,6 @@ public final class TableWriter {
 			final var columnData = new StructColumnData();
 			for (final Column column : table.columns) {
 				columnData.nameLength = column.name.length() + 1; // null terminated
-				columnData.unk1 = column.unk1;
 				columnData.nameOffset = nameOffset;
 				columnData.dataType = column.dataType.value;
 				columnData.unk2 = column.unk2;
