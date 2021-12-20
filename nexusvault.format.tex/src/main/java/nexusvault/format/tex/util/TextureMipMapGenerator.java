@@ -1,5 +1,6 @@
 package nexusvault.format.tex.util;
 
+import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 
 import nexusvault.format.tex.TextureImage;
@@ -27,6 +28,7 @@ public final class TextureMipMapGenerator {
 
 		final var output = new BufferedImage(newWidth, newHeight, input.getType());
 		final var g2d = output.createGraphics();
+		g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
 		g2d.drawImage(input, 0, 0, newWidth, newHeight, null);
 		g2d.dispose();
 
