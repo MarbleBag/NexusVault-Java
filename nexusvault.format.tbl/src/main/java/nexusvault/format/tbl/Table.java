@@ -8,14 +8,12 @@ public final class Table {
 	public Column[] columns;
 	public Object[][] entries;
 	public int[] lookup;
-	public long unk1;
 
-	public Table(String name, Column[] columns, Object[][] entries, int[] lookup, long unk1) {
+	public Table(String name, Column[] columns, Object[][] entries, int[] lookup) {
 		this.name = name;
 		this.columns = columns;
 		this.entries = entries;
 		this.lookup = lookup;
-		this.unk1 = unk1;
 	}
 
 	public Object[] getById(int id) {
@@ -33,7 +31,6 @@ public final class Table {
 		result = prime * result + Arrays.hashCode(this.columns);
 		result = prime * result + Arrays.deepHashCode(this.entries);
 		result = prime * result + Arrays.hashCode(this.lookup);
-		result = prime * result + Objects.hash(this.name, this.unk1);
 		return result;
 	}
 
@@ -50,7 +47,7 @@ public final class Table {
 		}
 		final Table other = (Table) obj;
 		return Arrays.equals(this.columns, other.columns) && Arrays.deepEquals(this.entries, other.entries) && Arrays.equals(this.lookup, other.lookup)
-				&& Objects.equals(this.name, other.name) && this.unk1 == other.unk1;
+				&& Objects.equals(this.name, other.name);
 	}
 
 	@Override
@@ -64,8 +61,6 @@ public final class Table {
 		builder.append(Arrays.toString(this.entries));
 		builder.append(", lookup=");
 		builder.append(Arrays.toString(this.lookup));
-		builder.append(", unk1=");
-		builder.append(this.unk1);
 		builder.append("]");
 		return builder.toString();
 	}

@@ -47,7 +47,7 @@ public final class TableReader {
 
 		final var columns = new Column[fields.length];
 		for (var i = 0; i < columns.length; ++i) {
-			columns[i] = new Column(fieldNames[i], fields[i].getDataType(), fields[i].unk1, fields[i].unk2);
+			columns[i] = new Column(fieldNames[i], fields[i].getDataType(), fields[i].unk2);
 		}
 
 		final var entries = new Object[(int) header.recordCount][];
@@ -105,7 +105,7 @@ public final class TableReader {
 			ByteBuffer.wrap(lookupByteArray).order(reader.getOrder()).asIntBuffer().get(lookup);
 		}
 
-		return new Table(tableName, columns, entries, lookup, header.unk1);
+		return new Table(tableName, columns, entries, lookup);
 	}
 
 }

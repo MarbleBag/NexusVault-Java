@@ -43,7 +43,7 @@ public final class StructTableFileHeader {
 	/**  */
 	@Order(4)
 	@StructField(UBIT_64)
-	public long unk1; // 0x010
+	public long padding_010; // 0x010
 
 	/** Size of a single record in bytes */
 	@Order(5)
@@ -86,7 +86,7 @@ public final class StructTableFileHeader {
 
 	@Order(13)
 	@StructField(BIT_64)
-	private long padding4; // 0x058
+	private long padding_058; // 0x058
 
 	public StructTableFileHeader() {
 	}
@@ -102,7 +102,7 @@ public final class StructTableFileHeader {
 
 		this.version = reader.readUInt32(); // o:8
 		this.nameLength = reader.readInt64(); // o:12
-		this.unk1 = reader.readInt64(); // o:24
+		this.padding_010 = reader.readInt64(); // o:24
 		this.recordSize = reader.readInt64(); // o:28
 		this.fieldCount = reader.readInt64(); // o:40
 		this.fieldOffset = reader.readInt64(); // o:48
@@ -111,10 +111,13 @@ public final class StructTableFileHeader {
 		this.recordOffset = reader.readInt64(); // o:72
 		this.lookupCount = reader.readInt64(); // o:80
 		this.lookupOffset = reader.readInt64(); // o:88
-		this.padding4 = reader.readInt64(); // o:96
+		this.padding_058 = reader.readInt64(); // o:96
 
-		if (this.padding4 != 0) {
-			throw new NotUsedForPaddingException("padding4");
+		if (this.padding_010 != 0) {
+			throw new NotUsedForPaddingException("padding_010");
+		}
+		if (this.padding_058 != 0) {
+			throw new NotUsedForPaddingException("padding_058");
 		}
 
 		if (reader.getPosition() != headerEnd) {
@@ -132,7 +135,7 @@ public final class StructTableFileHeader {
 		builder.append(", nameLength=");
 		builder.append(this.nameLength);
 		builder.append(", unk1=");
-		builder.append(this.unk1);
+		builder.append(this.padding_010);
 		builder.append(", recordSize=");
 		builder.append(this.recordSize);
 		builder.append(", fieldCount=");
@@ -156,7 +159,7 @@ public final class StructTableFileHeader {
 	@Override
 	public int hashCode() {
 		return Objects.hash(this.fieldCount, this.fieldOffset, this.lookupCount, this.lookupOffset, this.nameLength, this.recordCount, this.recordOffset,
-				this.recordSize, this.signature, this.totalRecordsSize, this.unk1, this.version);
+				this.recordSize, this.signature, this.totalRecordsSize, this.padding_010, this.version);
 	}
 
 	@Override
@@ -174,7 +177,7 @@ public final class StructTableFileHeader {
 		return this.fieldCount == other.fieldCount && this.fieldOffset == other.fieldOffset && this.lookupCount == other.lookupCount
 				&& this.lookupOffset == other.lookupOffset && this.nameLength == other.nameLength && this.recordCount == other.recordCount
 				&& this.recordOffset == other.recordOffset && this.recordSize == other.recordSize && this.signature == other.signature
-				&& this.totalRecordsSize == other.totalRecordsSize && this.unk1 == other.unk1 && this.version == other.version;
+				&& this.totalRecordsSize == other.totalRecordsSize && this.padding_010 == other.padding_010 && this.version == other.version;
 	}
 
 }
