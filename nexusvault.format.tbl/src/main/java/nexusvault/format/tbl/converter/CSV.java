@@ -29,7 +29,7 @@ public final class CSV {
 	}
 
 	public void write(Table table, Writer out) throws IOException {
-		out.append(table.name).append(this.elementDelimiter).append(Long.toString(table.unk1)).append("\n");
+		out.append(table.name).append("\n");
 		for (int i = 0; i < table.columns.length; ++i) {
 			if (i != 0) {
 				out.append(this.elementDelimiter);
@@ -37,7 +37,6 @@ public final class CSV {
 			out.append(table.columns[i].name);
 			out.append(" [");
 			out.append(table.columns[i].dataType.toString());
-			out.append(" ").append(Long.toString(table.columns[i].unk1));
 			out.append(" ").append(Long.toString(table.columns[i].unk2));
 			out.append("]");
 		}
@@ -57,13 +56,7 @@ public final class CSV {
 	public Table read(Reader in) throws IOException {
 		final var reader = new BufferedReader(in);
 
-		String tableName = null;
-		long tableUnk1 = 0;
-		{
-			final var elements = reader.readLine().split(this.elementDelimiter, -1);
-			tableName = elements[0];
-			tableUnk1 = Long.parseLong(elements[1]);
-		}
+		final String tableName = reader.readLine();
 
 		Column[] columns = null;
 		{
@@ -75,9 +68,8 @@ public final class CSV {
 				parts[1] = parts[1].substring(0, parts[1].length() - 1);
 				parts = parts[1].split(" ");
 				final var datatype = DataType.valueOf(parts[0]);
-				final var unk1 = Long.parseLong(parts[1]);
-				final var unk2 = Long.parseLong(parts[2]);
-				columns[i] = new Column(name, datatype, unk1, unk2);
+				final var unk2 = Long.parseLong(parts[1]);
+				columns[i] = new Column(name, datatype, unk2);
 			}
 		}
 
@@ -116,7 +108,7 @@ public final class CSV {
 		}
 
 		final var lookup = TableEntriesAndLookup.sortAndComputeLookup(entries);
-		return new Table(tableName, columns, entries, lookup, tableUnk1);
+		return new Table(tableName, columns, entries, lookup);
 	}
 
 }
