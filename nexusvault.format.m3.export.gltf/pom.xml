@@ -5,8 +5,8 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>nexusvault</groupId>
-	<artifactId>nexusvault.format.m3.export.gltf</artifactId>
-	<version>0.6.0</version>
+	<artifactId>nexusvault.export.m3.gltf</artifactId>
+	<version>0.7.0</version>
 
 	<properties>
 		<project.java.version>11</project.java.version>
@@ -25,18 +25,13 @@
 	<dependencies>
 		<dependency>
 			<groupId>nexusvault</groupId>
-			<artifactId>nexusvault.format.m3</artifactId>
-			<version>[0,)</version>
+			<artifactId>nexusvault</artifactId>
+			<version>[4,5)</version>
 		</dependency>
 		<dependency>
 			<groupId>de.javagl</groupId>
 			<artifactId>jgltf-model</artifactId>
 			<version>[2,3)</version>
-		</dependency>
-		<dependency>
-			<groupId>kreed</groupId>
-			<artifactId>kreed.io.util</artifactId>
-			<version>[1,2)</version>
 		</dependency>
 		<!--  
 		<dependency>
