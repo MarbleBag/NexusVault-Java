@@ -14,7 +14,7 @@ public final class Sampler {
 	 *            height of the image
 	 * @param srcImageWidth
 	 *            width of the image
-	 * @param srcImageRowGap
+	 * @param srcImageRowStride
 	 *            in case of interleaved images the number of indices to skip to reach the next row of the image
 	 * @param sampleScale
 	 *            only supports quadratic upsampling. 2 means 2x2, 3 means 3x3, etc
@@ -22,7 +22,7 @@ public final class Sampler {
 	 *            target array, needs to be big enough to hold the upsampled image.
 	 * @param dstOffset
 	 *            offet at whicht the image should start
-	 * @param dstImageRowGap
+	 * @param dstImageRowStride
 	 *            in case of interleaved images the number of indices to skip to reach the next row of the image
 	 */
 	public static void upsample(int[] src, int srcOffset, int srcImageWidth, int srcImageHeight, int srcImageRowStride, int sampleScale, //

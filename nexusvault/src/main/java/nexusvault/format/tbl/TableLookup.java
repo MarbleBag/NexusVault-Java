@@ -11,6 +11,8 @@ public final class TableLookup {
 	 * Sorts entries according to their ids (first column, low to high) and builds a lookup table based on the sorted array
 	 *
 	 * @param entries
+	 *            they will be sorted (inplace)
+	 * @return a lookup table for the now sorted entries
 	 */
 	public static int[] sortEntriesAndComputeLookup(Object[][] entries) {
 

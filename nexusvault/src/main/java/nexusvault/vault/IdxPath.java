@@ -110,7 +110,6 @@ public final class IdxPath implements Cloneable, Comparable<IdxPath>, Iterable<S
 	 * <li>If the input is an empty string: The returned path is equal to this path
 	 * <li>If the input is equal to the {@link #SEPARATOR separator}: The returned path is equal to {@link #getRoot()}
 	 * <li>If the input is equal to <code>..</code>: The returned path is equal to {@link #getParent()}
-	 * <li>If the input is a string: The returned path is equal to {@link #pathToChild(String)}
 	 * </ul>
 	 *
 	 * @param element
@@ -159,7 +158,6 @@ public final class IdxPath implements Cloneable, Comparable<IdxPath>, Iterable<S
 	 *            name of the sibling
 	 * @return the path to the sibling of this path
 	 * @see #getParent()
-	 * @see #pathToChild(String)
 	 */
 	public IdxPath pathToSibling(String siblingName) {
 		if (hasParent()) {
@@ -323,9 +321,7 @@ public final class IdxPath implements Cloneable, Comparable<IdxPath>, Iterable<S
 
 	/**
 	 * Two paths are equal, if and only if each pair of named elements fulfill {@link String#equalsIgnoreCase(String)}
-	 *
-	 * @param path
-	 *            with which this path is compared
+	 * 
 	 * @return true if the two paths are equal
 	 */
 	@Override

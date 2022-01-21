@@ -24,6 +24,8 @@ public final class FastDCT {
 	 *            row-major matrix 8x8
 	 * @param offset
 	 *            matrix start
+	 * @param rowStride
+	 *            distance between the start of two rows
 	 *
 	 */
 	public static void dct(int[] data, int offset, int rowStride) {

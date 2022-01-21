@@ -46,6 +46,21 @@ public interface Node {
 
 		/**
 		 * Sets only non-null values
+		 *
+		 * @param name
+		 *            file name
+		 * @param flags
+		 *            file specific flags
+		 * @param writeTime
+		 *            time of creation / modification
+		 * @param uncompressedSize
+		 *            uncompressed file size
+		 * @param compressedSize
+		 *            compressed file size
+		 * @param hash
+		 *            SHA-1 hash of file
+		 * @param unk_034
+		 *            unknown
 		 */
 		void overwrite(String name, Integer flags, Long writeTime, Long uncompressedSize, Long compressedSize, byte[] hash, Integer unk_034);
 
