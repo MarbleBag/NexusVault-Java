@@ -83,6 +83,12 @@ public final class FileAccessCache {
 			this.lastUsed = System.currentTimeMillis();
 			this.expiring = false;
 			if (this.stream == null || !this.stream.isOpen()) {
+				if (this.fileAccessOption.contains(StandardOpenOption.CREATE) || this.fileAccessOption.contains(StandardOpenOption.CREATE_NEW)) {
+					final var parent = this.filePath.getParent();
+					if (parent != null && !Files.exists(parent)) {
+						Files.createDirectories(parent);
+					}
+				}
 				this.stream = Files.newByteChannel(this.filePath, this.fileAccessOption);
 			}
 		}

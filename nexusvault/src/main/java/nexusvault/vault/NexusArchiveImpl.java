@@ -304,8 +304,8 @@ final class NexusArchiveImpl implements NexusArchive {
 		synchronized (this.synchronizationLock) {
 			dispose();
 			this.files = new NexusArchiveFiles(idxPath, arcPath);
-			this.indexFile.openFile(idxPath);
-			this.archiveFile.openFile(arcPath);
+			this.indexFile.open(idxPath);
+			this.archiveFile.open(arcPath);
 			this.isDisposed = false;
 			this.rootDirectory = new IdxDirectoryImpl(this, this.indexFile.getRoot());
 		}
@@ -320,8 +320,8 @@ final class NexusArchiveImpl implements NexusArchive {
 			this.isDisposed = true;
 
 			try {
-				this.indexFile.closeFile();
-				this.archiveFile.closeFile();
+				this.indexFile.close();
+				this.archiveFile.close();
 			} catch (final IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

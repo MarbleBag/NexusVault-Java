@@ -59,6 +59,11 @@ public abstract class PackException extends VaultException {
 			this.index = index;
 		}
 
+		public PackIndexInvalidException(long index, String msg) {
+			super(String.format("index: %s - %s", index, msg));
+			this.index = index;
+		}
+
 	}
 
 	private static final long serialVersionUID = 1L;

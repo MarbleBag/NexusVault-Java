@@ -1,5 +1,6 @@
 package nexusvault.vault.pack;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -36,7 +37,7 @@ import nexusvault.vault.struct.StructPackFileHeader;
 
 // TODO deletion is incomplete
 // TODO merge and split of file regions to not waste space
-public final class PackedFile {
+public final class PackedFile implements Closeable {
 
 	private static final int SIGNATURE = StructPackFileHeader.SIGNATURE;
 	private static final int VERSION = 1;
@@ -48,6 +49,16 @@ public final class PackedFile {
 		long offset;
 		long size;
 		long capacity;
+
+		@Override
+		public String toString() {
+			final StringBuilder builder = new StringBuilder();
+			builder.append("IndexEntry [offset=").append(this.offset);
+			builder.append(", size=").append(this.size);
+			builder.append(", capacity=").append(this.capacity);
+			builder.append("]");
+			return builder.toString();
+		}
 	}
 
 	private final List<IndexEntry> indexTable = new ArrayList<>();
@@ -252,11 +263,11 @@ public final class PackedFile {
 					* StructPackEntry.SIZE_IN_BYTES;
 
 			if (this.fileHeader.indexOffset == 0) {
-				final var index = createNewEntry(newCapacity);
-				this.tableIndex = index;
+				this.tableIndex = createNewEntry(newCapacity);
 			} else {
 				assertIndexIsValid(this.tableIndex);
 				final var entry = this.indexTable.get(this.tableIndex);
+				updateCapacity(entry);
 				final var expectedSize = this.indexTable.size() * StructPackEntry.SIZE_IN_BYTES;
 				if (entry.capacity < expectedSize) {
 					releaseEntry(this.tableIndex);
@@ -280,6 +291,7 @@ public final class PackedFile {
 				}
 			}
 
+			long lastWrittenPosition = 0;
 			for (int index = 1; index < this.indexTable.size(); index++) {
 				final var indexEntry = this.indexTable.get(index);
 				if (this.unusedIndices.contains(index)) {
@@ -291,9 +303,13 @@ public final class PackedFile {
 				writer.writeInt64(guard);
 				writer.seek(Seek.BEGIN, indexEntry.offset + indexEntry.capacity);
 				writer.writeInt64(guard);
+
+				if (lastWrittenPosition < writer.position()) {
+					lastWrittenPosition = writer.position();
+				}
 			}
 
-			this.fileHeader.endOfFile = writer.position();
+			this.fileHeader.endOfFile = lastWrittenPosition;
 			writer.seek(Seek.BEGIN, 0);
 			this.fileHeader.write(writer);
 		}
@@ -340,6 +356,19 @@ public final class PackedFile {
 		}
 	}
 
+	private void updateCapacity(IndexEntry entry) throws BinaryIOException, IOException {
+		if (entry.capacity != 0 || entry.offset == 0) {
+			return;
+		}
+
+		try (var reader = this.file.getFileReader()) {
+			reader.seek(Seek.BEGIN, entry.offset - Long.BYTES);
+			final var capacity = reader.readInt64();
+			entry.capacity = Math.abs(capacity);
+		}
+	}
+
+	@Override
 	public void close() throws IOException {
 		close(this.dirty);
 	}
@@ -414,6 +443,7 @@ public final class PackedFile {
 		assertIndexIsClaimed(index);
 		assertIndexIsNotTable(index);
 		final var entry = this.indexTable.get((int) index);
+		updateCapacity(entry);
 		return new BinaryWriterCounter(new BinaryWriterView(this.file.getFileWriter(), entry.offset, entry.capacity, true)) {
 			@Override
 			public void close() throws IOException {
@@ -433,6 +463,8 @@ public final class PackedFile {
 		assertIndexIsNotTable(index);
 
 		final var entry = this.indexTable.get((int) index);
+		updateCapacity(entry);
+
 		length = (int) Math.min(entry.capacity, Math.min(data.length - offset, length));
 		entry.size = length;
 
@@ -449,12 +481,14 @@ public final class PackedFile {
 		return createNewEntry(maxSize);
 	}
 
-	private int searchFreeEntry(long maxSize) {
+	private int searchFreeEntry(long maxSize) throws BinaryIOException, IOException {
 		int index = 0;
 		long prevCapacity = Long.MAX_VALUE;
 
 		for (final var idx : this.freeEntry) {
 			final var entry = this.indexTable.get(idx);
+			updateCapacity(entry);
+
 			if (maxSize <= entry.capacity && entry.capacity < prevCapacity) {
 				index = idx;
 				prevCapacity = entry.capacity;
@@ -565,16 +599,30 @@ public final class PackedFile {
 			}
 			set.add((long) index);
 		}
+
+		set.remove((long) this.tableIndex);
 		return set;
 	}
 
+	/**
+	 * Returns the maximal capacity in bytes of entry at the given index. It's not possible to write more bytes into an entry than it's capacity allows.
+	 *
+	 * @param index
+	 *            of entry
+	 * @return the maximal capacity (in bytes)
+	 * @throws IOException
+	 */
 	public long entryCapacity(long index) throws IOException {
 		assertFileIsOpen();
-		return this.indexTable.get((int) index).capacity;
+		assertIndexIsValid(index);
+		final var entry = this.indexTable.get((int) index);
+		updateCapacity(entry);
+		return entry.capacity;
 	}
 
 	public long entrySize(long index) throws IOException {
 		assertFileIsOpen();
+		assertIndexIsValid(index);
 		return this.indexTable.get((int) index).size;
 	}
 

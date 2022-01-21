@@ -1,9 +1,11 @@
 package nexusvault.vault.index;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
@@ -27,7 +29,7 @@ import nexusvault.vault.struct.StructIndexDirectory;
 import nexusvault.vault.struct.StructIndexFile;
 import nexusvault.vault.struct.StructIndexRootElement;
 
-public final class PackedIndexFile {
+public final class PackedIndexFile implements Closeable {
 
 	private static final int SIGNATURE = StructIndexRootElement.SIGNATURE_AIDX;
 	private static final int VERSION = 1;
@@ -35,15 +37,14 @@ public final class PackedIndexFile {
 	private StructIndexRootElement rootElement;
 	private DirectoryNodeImpl root;
 
-	private boolean isOpen;
 	private boolean dirty;
 
 	private final PackedFile file = new PackedFile();
 
-	private Set<Integer> deletedDirectories;
+	private final Set<Integer> deletedDirectories = new HashSet<>();
 
 	public PackedIndexFile(Path path) throws IOException {
-		openFile(path);
+		open(path);
 	}
 
 	public PackedIndexFile() {
@@ -53,10 +54,10 @@ public final class PackedIndexFile {
 		return this.root;
 	}
 
-	public void openFile(Path path) throws IOException {
+	public void open(Path path) throws IOException {
 		this.file.open(path);
 
-		if (this.file.getRootIndex() >= 0) {
+		if (this.file.getRootIndex() > 0) {
 			try (var reader = this.file.readEntry(this.file.getRootIndex())) {
 				this.rootElement = new StructIndexRootElement(reader);
 
@@ -84,7 +85,17 @@ public final class PackedIndexFile {
 			public void setName(String value) {
 
 			}
+
+			@Override
+			protected void setNeedUpdateFlag() {
+				super.setNeedUpdateFlag();
+				PackedIndexFile.this.dirty = true;
+			}
 		};
+	}
+
+	public boolean isOpen() {
+		return this.file.isOpen();
 	}
 
 	public void validateFile() throws BinaryIOException, IOException {
@@ -100,7 +111,8 @@ public final class PackedIndexFile {
 		this.rootElement.buildNumber = buildNumber;
 	}
 
-	public void closeFile() throws IOException {
+	@Override
+	public void close() throws IOException {
 		if (this.dirty) {
 			writeToFile();
 		}

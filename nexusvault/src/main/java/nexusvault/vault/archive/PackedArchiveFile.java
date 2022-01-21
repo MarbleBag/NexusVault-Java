@@ -1,5 +1,6 @@
 package nexusvault.vault.archive;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Arrays;
@@ -18,16 +19,16 @@ import nexusvault.vault.pack.PackedFile;
 import nexusvault.vault.struct.StructArchiveEntry;
 import nexusvault.vault.struct.StructArchiveRootElement;
 
-public final class PackedArchiveFile {
+public final class PackedArchiveFile implements Closeable {
 
 	private static final int SIGNATURE = StructArchiveRootElement.SIGNATURE_AARC;
 	private static final int VERSION = 2;
 
-	private static final class Hash {
+	private static final class HashKey {
 		private final byte[] value;
 		private final int computed;
 
-		public Hash(byte[] hash) {
+		public HashKey(byte[] hash) {
 			this.value = Objects.requireNonNull(hash, "argument: 'hash'");
 			this.computed = 31 + Arrays.hashCode(hash);
 		}
@@ -48,7 +49,7 @@ public final class PackedArchiveFile {
 			if (getClass() != obj.getClass()) {
 				return false;
 			}
-			final Hash other = (Hash) obj;
+			final HashKey other = (HashKey) obj;
 			return Arrays.equals(this.value, other.value);
 		}
 
@@ -69,11 +70,18 @@ public final class PackedArchiveFile {
 	}
 
 	private final PackedFile file = new PackedFile();
-	private final Map<Hash, Entry> entries = new HashMap<>();
+	private final Map<HashKey, Entry> entries = new HashMap<>();
 	private StructArchiveRootElement rootElement;
 	private boolean dirty;
 
-	public void openFile(Path path) throws ArchiveHashCollisionException, IOException {
+	public PackedArchiveFile() {
+	}
+
+	public PackedArchiveFile(Path path) throws ArchiveHashCollisionException, IOException {
+		open(path);
+	}
+
+	public void open(Path path) throws ArchiveHashCollisionException, IOException {
 		this.file.open(path);
 
 		if (this.file.getRootIndex() >= 0) {
@@ -100,7 +108,7 @@ public final class PackedArchiveFile {
 				final var index = reader.readUInt32();
 				final var hashBuffer = new byte[20];
 				reader.readInt8(hashBuffer, 0, hashBuffer.length);
-				final var hash = new Hash(hashBuffer);
+				final var hash = new HashKey(hashBuffer);
 				final var uncompressedSize = reader.readInt64();
 
 				if (uncompressedSize > Integer.MAX_VALUE) {
@@ -119,7 +127,8 @@ public final class PackedArchiveFile {
 		this.file.validateFile();
 	}
 
-	public void closeFile() throws IOException {
+	@Override
+	public void close() throws IOException {
 		try {
 			if (this.dirty) {
 				flush();
@@ -132,12 +141,12 @@ public final class PackedArchiveFile {
 		}
 	}
 
-	public boolean isFileOpen() {
+	public boolean isOpen() {
 		return this.file.isOpen();
 	}
 
 	private void assertFileIsOpen() throws IOException {
-		if (!isFileOpen()) {
+		if (!isOpen()) {
 			throw new FileClosedIOException();
 		}
 	}
@@ -177,7 +186,7 @@ public final class PackedArchiveFile {
 	public void writeData(byte[] hash, byte[] data, boolean allowOverwrite) throws ArchiveHashCollisionException, IOException {
 		assertFileIsOpen();
 
-		final var hashKey = new Hash(hash);
+		final var hashKey = new HashKey(hash);
 		final var length = data.length;
 		var entry = this.entries.get(hashKey);
 		if (entry == null) {
@@ -202,8 +211,8 @@ public final class PackedArchiveFile {
 	public void replaceHash(byte[] oldHash, byte[] newHash) throws ArchiveHashCollisionException, ArchiveHashNotFoundException, IOException {
 		assertFileIsOpen();
 
-		final var oldKey = new Hash(oldHash);
-		final var newKey = new Hash(newHash);
+		final var oldKey = new HashKey(oldHash);
+		final var newKey = new HashKey(newHash);
 		if (this.entries.containsKey(newKey)) {
 			throw new ArchiveHashCollisionException(); // TODO
 		}
@@ -218,7 +227,7 @@ public final class PackedArchiveFile {
 	public void deleteData(byte[] hash) throws ArchiveHashNotFoundException, IOException {
 		assertFileIsOpen();
 
-		final var key = new Hash(hash);
+		final var key = new HashKey(hash);
 		final var entry = this.entries.remove(key);
 		if (entry == null) {
 			throw new ArchiveHashNotFoundException(String.format("No entry found for hash %s", key));
@@ -230,7 +239,7 @@ public final class PackedArchiveFile {
 	public byte[] getData(byte[] hash) throws ArchiveHashNotFoundException, IOException {
 		assertFileIsOpen();
 
-		final var key = new Hash(hash);
+		final var key = new HashKey(hash);
 		final var entry = this.entries.get(key);
 		if (entry == null) {
 			throw new ArchiveHashNotFoundException(String.format("No entry found for hash %s", key));
@@ -240,7 +249,7 @@ public final class PackedArchiveFile {
 
 	public boolean hasData(byte[] hash) throws IOException {
 		assertFileIsOpen();
-		return this.entries.containsKey(new Hash(hash));
+		return this.entries.containsKey(new HashKey(hash));
 	}
 
 	public int getNumberOfEntries() throws IOException {

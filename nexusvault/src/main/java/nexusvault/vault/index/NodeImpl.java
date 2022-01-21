@@ -26,6 +26,9 @@ abstract class NodeImpl implements Node {
 			super(parent, name);
 			this.directoryIndex = directoryIndex;
 			this.childsLoaded = directoryIndex <= 0;
+			if (directoryIndex <= 0) {
+				setNeedUpdateFlag();
+			}
 		}
 
 		private List<NodeImpl> internalChilds() {
