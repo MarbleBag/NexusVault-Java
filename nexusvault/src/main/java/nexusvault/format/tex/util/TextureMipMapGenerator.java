@@ -10,6 +10,19 @@ public final class TextureMipMapGenerator {
 	}
 
 	public static Image[] buildMipMaps(Image src, int numberOfMipMaps) {
+		if (numberOfMipMaps == 0) {
+			throw new IllegalArgumentException("Argument: 'numberofMipMaps' must not be 0");
+		}
+
+		if (numberOfMipMaps == 1) {
+			return new Image[] { src };
+		}
+
+		if (numberOfMipMaps < 0) {
+			final var value = Math.min(src.getWidth(), src.getHeight());
+			numberOfMipMaps = (int) Math.ceil(Math.log(value) / Math.log(2));
+		}
+
 		final var tmp = new BufferedImage[numberOfMipMaps];
 		tmp[0] = AwtImageConverter.convertToBufferedImage(src);
 		for (int i = 1; i < numberOfMipMaps; ++i) {
