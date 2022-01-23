@@ -1,0 +1,160 @@
+typedef byte int8;
+typedef ubyte uint8;
+
+struct Area{
+    struct AreaFileHeader{
+            char signature[4];
+            uint version;
+    } header;
+    
+    struct PackageHeader{
+        uint32 signature;
+        uint32 size; // size of the following data
+    };
+
+    struct AssetProperty{
+        uint64 id; // 0x000
+        uint32 unk_value_008; // 0x008
+        uint32 unk_value_00C; // 0x00C
+        uint32 unk_value_010; // 0x010
+        uint32 pathOffsetStart; // 0x014 - from start of this struct
+        uint32 pathOffsetEnd; // 0x018 - from start of this struct
+        float assetScale; // 0x01C
+        float assetQuaterion[4]; // 0x020
+        float assetTranslation[3]; // 0x030
+        uint32 unknown[5]; // 0x03C
+        uint32 color_1; // 0x050
+        uint32 color_2; // 0x054
+        uint32 unk_value_058; // 0x058
+        uint32 unk_value_05C; // 0x05C
+        uint32 color_3; // 0x060
+        uint32 unk_value_064; // 0x064
+        //wstring assetPath; // 0x068
+        wchar_t test[(pathOffsetEnd-pathOffsetStart) / 2];
+
+    } ;
+
+    struct Package_pORP{
+        uint32 propCount;
+        AssetProperty prop[propCount]<optimize=false>;
+        uint32 unk_value_0EC; // 0x0EC
+        uint32 unk_value_0F0; // 0x0F0
+        uint32 unk_value_0F4; // 0x0F0
+        uint32 unk_value_0F8; // 0x0F0
+    };
+
+    struct Entry_CHNK_Cell{
+        uint32 signature;
+        uint32 size;
+        uint8 data[size];
+    };
+
+    struct Entry_CHNK_Cell_PROP{
+        uint32 signature;
+        uint32 size;
+        uint32 propId[size/4] <optimize=false>;
+    };
+
+    struct Entry_CHNK{        
+        uint32 size : 24;
+        uint32 index : 8;
+        
+        local uint32 readIdxEnd = FTell() + size;
+        local uint32 flagSizes[32] = {722, 16, 8450, 8450, 8450, 0, 64, 16,
+                                       4225, 0, 0, 0, 0, 4624, 0, 0,
+                                       0, 0, 0, 0, 0, 0, 0, 0,
+                                       0, 0, 0, 0, 0, 0, 0, 0}; 
+
+        uint32 flags <format=binary>;
+
+
+
+        local uint32 i, flag;
+        for(i=0; i<32; ++i){
+            flag = flags & (1 << i);
+            if(flag==0) continue;
+            switch(flag){
+                case 00000001h:
+                    uint16 heighmap[19*19]; // 722 bytes
+                    break;
+                case 00000002h: //texture ids?
+                    uint32 textureIds[4];
+                    break;
+                case 00000004h: //blend map?
+                    uint16 map_unk_4h[65*65]; // 8450 bytes
+                    break;
+                case 00000008h: //color map?
+                    uint16 map_unk_8h[65*65]; // 8450 bytes
+                    break;
+                case 00000010h:
+                    uint16 map_unk_10h[65*65]; // 8450 bytes
+                    break;
+                case 00000100h:
+                    uint8 map_unk_100h[65*65]; // 4225 bytes
+                    break;
+                case 10000000h:
+                    uint32 areaId[4];
+                    break;
+            
+                default: //unknown
+                    if(flagSizes[i] == 0){
+                        Printf("Unknown flag: %d at %Xh\n", flag, startof(this));                        
+                        FSkip(startof(this) + this.size + 4);
+                    }else{
+                        struct UnkData(uint32 size){
+                            uint8 data[size];
+                        };
+                        UnkData unknown(flagSizes[i]) <bgcolor=0000FFh>;
+                        //FSkip(flagSizes[i]);
+                    }
+            }
+        }
+
+        local uint32 sig;
+        while(FTell() < readIdxEnd){
+            sig = ReadUInt();
+            switch(sig){
+                case 50524F50h: //PROP
+                    Entry_CHNK_Cell_PROP chunk;
+                    break;
+                default:
+                    Entry_CHNK_Cell chunk;
+            }
+        }
+    };
+
+    struct Package_CHNK (uint32 size){        
+        local uint64 readIdxEnd = FTell() + size;
+        while(FTell() < readIdxEnd){
+            Entry_CHNK chunk;
+            FSeek(startof(chunk) + 4 + chunk.size);
+        }
+    };
+
+    struct Package_TRUC(uint32 size){
+        uint8 unk[size];
+    };
+
+    local uint64 fileSize = FileSize();
+
+    while(fileSize >= FTell() + sizeof(PackageHeader)){
+        PackageHeader package <bgcolor=0x00AAFF>;     
+        if( FileSize() < FTell() + package.size)
+            break;
+
+        switch(package.signature){
+            case 43484E4Bh: //CHNK
+                Package_CHNK entry(package.size) <bgcolor=cLtGreen, optimize=false>;
+                break;
+            case 50524F70h: //PROp
+                Package_pORP entry <bgcolor=cLtGray, optimize=false>;
+                break;
+            case 43555254h: //TRUC
+                Package_TRUC entry(package.size) <bgcolor=cLtRed, optimize=false>;
+                break;
+        }
+
+        FSeek(startof(package) + sizeof(PackageHeader) + package.size);
+    }
+
+}file;

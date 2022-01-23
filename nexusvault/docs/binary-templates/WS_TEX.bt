@@ -1,0 +1,35 @@
+typedef byte int8;
+typedef ubyte uint8;
+
+struct JpgChannel {
+    uint8 quality;
+    uint8 hasDefaultColor;
+    uint8 defaultColor;
+};
+
+struct Header{
+        uint32 signature; // GFX
+        uint32 version; // 3
+        uint32 width;
+        uint32 height;
+        uint32 depth;
+        uint32 sides;
+        uint32 mipMaps;
+        uint32 format;
+        uint32 isJpg;
+        uint32 jpgFormat;
+        JpgChannel  channel[4];
+        uint32 mipMapCount;
+        uint32 mipMapSizes[13];
+        uint32 unk;
+} header <bgcolor=cDkGreen>;
+
+if(header.isJpg){
+    local int i=0;
+    for(i=0;i<header.mipMapCount;++i){
+        struct Image(uint32 length){
+            int8 value[length];
+        };
+        Image images(header.mipMapSizes[i]) <bgcolor=cLtYellow>;
+    }
+}
