@@ -8,7 +8,6 @@ import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.EnumSet;
 
-import kreed.io.util.BinaryIOException;
 import kreed.io.util.BinaryReader;
 import kreed.io.util.BinaryReaderDelegate;
 import kreed.io.util.BinaryWriter;
@@ -42,19 +41,13 @@ public final class BufferedFileAccess {
 
 	public void open(Path path, EnumSet<StandardOpenOption> openOptions) throws IOException {
 		if (this.fileCache != null) {
-			if (this.fileCache.getSource().equals(path)) {
+			if (this.fileCache.getFile().equals(path)) {
 				return;
 			}
 			close();
 		}
-
-		final var options = EnumSet.of(StandardOpenOption.READ, StandardOpenOption.WRITE);
-		if (openOptions != null) {
-			options.addAll(openOptions);
-		}
-
 		this.path = path;
-		this.fileCache = new FileAccessCache(60000, path, options);
+		this.fileCache = new FileAccessCache(60000, path, openOptions);
 	}
 
 	public void close() throws IOException {
@@ -93,7 +86,7 @@ public final class BufferedFileAccess {
 		}
 
 		try {
-			this.fileCache.shutDown();
+			this.fileCache.dispose();
 		} catch (final Throwable e) {
 			exceptions.add(e);
 		} finally {
@@ -114,7 +107,7 @@ public final class BufferedFileAccess {
 		return this.path;
 	}
 
-	public BinaryReader getFileReader() throws IOException, BinaryIOException {
+	public BinaryReader getFileReader() throws IOException {
 		if (this.fileCache == null) {
 			throw new IllegalStateException("No file open");
 		}
@@ -140,7 +133,7 @@ public final class BufferedFileAccess {
 		return delegate;
 	}
 
-	public BinaryWriter getFileWriter() throws IOException, BinaryIOException {
+	public BinaryWriter getFileWriter() throws IOException {
 		if (this.fileCache == null) {
 			throw new IllegalStateException("No file open");
 		}

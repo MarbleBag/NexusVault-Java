@@ -84,7 +84,7 @@ public final class PackedArchiveFile implements Closeable {
 	public void open(Path path) throws ArchiveHashCollisionException, IOException {
 		this.file.open(path);
 
-		if (this.file.getRootIndex() >= 0) {
+		if (this.file.getRootIndex() > 0) {
 			try (var reader = this.file.readEntry(this.file.getRootIndex())) {
 				this.rootElement = new StructArchiveRootElement(reader);
 
@@ -130,9 +130,7 @@ public final class PackedArchiveFile implements Closeable {
 	@Override
 	public void close() throws IOException {
 		try {
-			if (this.dirty) {
-				flush();
-			}
+			flush();
 			this.file.close();
 		} finally {
 			this.dirty = false;
@@ -153,6 +151,9 @@ public final class PackedArchiveFile implements Closeable {
 
 	public void flush() throws IOException {
 		assertFileIsOpen();
+		if (!this.dirty) {
+			return;
+		}
 
 		if (this.rootElement.headerIdx <= 0) {
 			final var capacity = (int) Math.max(1000, this.entries.size() * 1.50f) * StructArchiveEntry.SIZE_IN_BYTES;
@@ -178,8 +179,8 @@ public final class PackedArchiveFile implements Closeable {
 		try (var writer = this.file.writeEntry(this.file.getRootIndex())) {
 			this.rootElement.write(writer);
 		}
-		this.dirty = false;
 
+		this.dirty = false;
 		this.file.flush();
 	}
 

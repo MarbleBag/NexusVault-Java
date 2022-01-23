@@ -1,34 +1,37 @@
 package nexusvault.vault.index;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
 import nexusvault.vault.IdxPath;
+import nexusvault.vault.index.IndexException.IndexNameCollisionException;
 
 public interface Node {
 
 	public static interface DirectoryNode extends Node {
-		DirectoryNode newDirectory(String name);
+		DirectoryNode newDirectory(String name) throws IndexNameCollisionException, IOException;
 
-		FileNode newFile(String name, int flags, long writeTime, long uncompressedSize, long compressedSize, byte[] hash, int unk_034);
+		FileNode newFile(String name, int flags, long writeTime, long uncompressedSize, long compressedSize, byte[] hash, int unk_034)
+				throws IndexNameCollisionException, IOException;
 
-		void delete(String name);
+		void delete(String name) throws IOException;
 
-		boolean hasChild(String name);
+		boolean hasChild(String name) throws IOException;
 
-		Optional<Node> getChild(String name);
+		Optional<Node> getChild(String name) throws IOException;
 
-		List<Node> getChilds();
+		List<Node> getChilds() throws IOException;
 
-		List<DirectoryNode> getDirectories();
+		List<DirectoryNode> getDirectories() throws IOException;
 
-		List<FileNode> getFiles();
+		List<FileNode> getFiles() throws IOException;
 
-		Optional<Node> find(IdxPath path);
+		Optional<Node> find(IdxPath path) throws IOException;
 
-		Node findLast(IdxPath path);
+		Node findLast(IdxPath path) throws IOException;
 
-		int countNodesInSubTree();
+		int countNodesInSubTree() throws IOException;
 	}
 
 	public static interface FileNode extends Node {
@@ -91,7 +94,7 @@ public interface Node {
 
 	DirectoryNode asDirectory();
 
-	void moveTo(DirectoryNode parent);
+	void moveTo(DirectoryNode parent) throws IOException;
 
 	IdxPath toPath();
 }

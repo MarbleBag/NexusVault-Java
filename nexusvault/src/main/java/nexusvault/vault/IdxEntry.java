@@ -83,23 +83,23 @@ public interface IdxEntry {
 
 	public static interface IdxDirectory extends IdxEntry {
 
-		List<IdxEntry> getEntries();
+		List<IdxEntry> getEntries() throws IOException;
 
-		List<IdxDirectory> getDirectories();
+		List<IdxDirectory> getDirectories() throws IOException;
 
-		List<IdxFileLink> getFiles();
+		List<IdxFileLink> getFiles() throws IOException;
 
-		boolean hasEntry(String entryName);
+		boolean hasEntry(String entryName) throws IOException;
 
-		Optional<IdxEntry> getEntry(String entryName);
+		Optional<IdxEntry> getEntry(String entryName) throws IOException;
 
-		IdxDirectory getDirectory(String directoryName) throws IndexEntryNotFoundException, IndexEntryNotADirectoryException;
+		IdxDirectory getDirectory(String directoryName) throws IOException, IndexEntryNotFoundException, IndexEntryNotADirectoryException;
 
-		IdxFileLink getFileLink(String fileLinkName) throws IndexEntryNotFoundException, IndexEntryNotAFileException;
+		IdxFileLink getFileLink(String fileLinkName) throws IOException, IndexEntryNotFoundException, IndexEntryNotAFileException;
 
-		Optional<IdxEntry> find(IdxPath path);
+		Optional<IdxEntry> find(IdxPath path) throws IOException;
 
-		int countNodesInSubTree();
+		int countNodesInSubTree() throws IOException;
 
 	}
 

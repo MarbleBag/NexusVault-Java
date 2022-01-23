@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Optional;
 
-import kreed.io.util.BinaryIOException;
 import nexusvault.vault.IdxEntry.IdxDirectory;
 import nexusvault.vault.util.IdxFileCollector;
 
@@ -69,9 +68,9 @@ public interface NexusArchive {
 	/**
 	 * Instructs the archive to release all resources. Subsequent calls to this method should be safe. <br>
 	 * <p>
-	 * After an archive was disposed, subsequent calls to other methods may throw an error.
+	 * After an archive was closed, subsequent calls to other methods may throw an error.
 	 */
-	void dispose();
+	void close() throws IOException;
 
 	/**
 	 * @return <code>true</code> - if this archive was disposed. Calls to a disposed archive will have undefined behavior
@@ -80,7 +79,7 @@ public interface NexusArchive {
 
 	/**
 	 * Returns the current files of this {@link NexusArchive} <br>
-	 * This information will still be retrievable after this archive was {@link #dispose() disposed} and will be equal to the value of this method before the
+	 * This information will still be retrievable after this archive was {@link #close() disposed} and will be equal to the value of this method before the
 	 * archive was disposed.
 	 *
 	 * @return the files of this archive
@@ -91,14 +90,15 @@ public interface NexusArchive {
 	 * The root directory of an archive has no name and serves as an anchor for the highest elements an archive contains.
 	 *
 	 * @return root directory of this archive
+	 * @throws IOException
 	 * @see IdxPath
 	 * @see IdxFileCollector
-	 * @throws VaultDisposedException
-	 *             if the archive was disposed
+	 * @throws FileClosedIOException
+	 *             if the archive was closed
 	 */
-	IdxDirectory getRootDirectory();
+	IdxDirectory getRootDirectory() throws IOException;
 
-	int getNumberOfFiles();
+	int getNumberOfFiles() throws IOException;
 
 	void write(IdxPath path, byte[] data, CompressionType compression) throws IOException;
 
@@ -106,8 +106,8 @@ public interface NexusArchive {
 
 	void move(IdxPath from, IdxPath to) throws IOException;
 
-	Optional<IdxEntry> find(IdxPath path);
+	Optional<IdxEntry> find(IdxPath path) throws IOException;
 
-	void validateArchive() throws BinaryIOException, IOException;
+	void validateArchive() throws VaultException, IOException;
 
 }

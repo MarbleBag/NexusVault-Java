@@ -45,10 +45,19 @@ public final class PackedFile implements Closeable {
 	private static final int MINIMUM_GROW_VOLUME = 50;
 	private static final float GROW_FACTOR = 1.25f;
 
-	private static final class IndexEntry {
-		long offset;
+	private final class IndexEntry {
+		private long offset;
 		long size;
 		long capacity;
+
+		public void setOffset(long offset) {
+			PackedFile.this.dirty |= this.offset != offset;
+			this.offset = offset;
+		}
+
+		public long getOffset() {
+			return this.offset;
+		}
 
 		@Override
 		public String toString() {
@@ -90,7 +99,8 @@ public final class PackedFile implements Closeable {
 		}
 
 		final var doesFileExist = Files.exists(path);
-		this.file.open(path, EnumSet.of(StandardOpenOption.CREATE));
+		final var openOptions = EnumSet.of(StandardOpenOption.CREATE, StandardOpenOption.READ, StandardOpenOption.WRITE);
+		this.file.open(path, openOptions);
 
 		try {
 			if (doesFileExist) {
@@ -182,6 +192,8 @@ public final class PackedFile implements Closeable {
 	}
 
 	public void validateFile() throws BinaryIOException, IOException {
+		assertFileIsOpen();
+
 		final var fileLayout = new TreeMap<Long, Long>(); // offset, size
 
 		try (var reader = this.file.getFileReader()) {
@@ -258,6 +270,12 @@ public final class PackedFile implements Closeable {
 	}
 
 	public void flush() throws BinaryIOException, IOException {
+		assertFileIsOpen();
+
+		if (!this.dirty) {
+			return;
+		}
+
 		if (this.indexTable.size() > 0) {
 			final var newCapacity = (this.indexTable.size() + (int) Math.max(MINIMUM_GROW_VOLUME, this.indexTable.size() * GROW_FACTOR))
 					* StructPackEntry.SIZE_IN_BYTES;
@@ -266,8 +284,10 @@ public final class PackedFile implements Closeable {
 				this.tableIndex = createNewEntry(newCapacity);
 			} else {
 				assertIndexIsValid(this.tableIndex);
+
 				final var entry = this.indexTable.get(this.tableIndex);
 				updateCapacity(entry);
+
 				final var expectedSize = this.indexTable.size() * StructPackEntry.SIZE_IN_BYTES;
 				if (entry.capacity < expectedSize) {
 					releaseEntry(this.tableIndex);
@@ -290,26 +310,44 @@ public final class PackedFile implements Closeable {
 					writer.writeInt64(entry.size);
 				}
 			}
+		}
 
-			long lastWrittenPosition = 0;
-			for (int index = 1; index < this.indexTable.size(); index++) {
-				final var indexEntry = this.indexTable.get(index);
-				if (this.unusedIndices.contains(index)) {
-					continue;
-				}
+		for (int index = 1; index < this.indexTable.size(); index++) {
+			final var indexEntry = this.indexTable.get(index);
+			updateCapacity(indexEntry);
+		}
 
-				final var guard = this.freeEntry.contains(index) ? -indexEntry.capacity : indexEntry.capacity;
-				writer.seek(Seek.BEGIN, indexEntry.offset - Long.BYTES);
-				writer.writeInt64(guard);
-				writer.seek(Seek.BEGIN, indexEntry.offset + indexEntry.capacity);
-				writer.writeInt64(guard);
-
-				if (lastWrittenPosition < writer.position()) {
-					lastWrittenPosition = writer.position();
-				}
+		long lastWrittenByte = 0;
+		for (int index = 1; index < this.indexTable.size(); index++) {
+			final var entry = this.indexTable.get(index);
+			final var position = entry.offset + entry.capacity + Long.BYTES;
+			if (lastWrittenByte < position) {
+				lastWrittenByte = position;
 			}
+		}
+		this.fileHeader.endOfFile = lastWrittenByte;
 
-			this.fileHeader.endOfFile = lastWrittenPosition;
+		// try (final var writer = this.file.getFileWriter()) {
+		// long lastWrittenPosition = 0;
+		// for (int index = 1; index < this.indexTable.size(); index++) {
+		// final var indexEntry = this.indexTable.get(index);
+		// if (this.unusedIndices.contains(index)) {
+		// continue;
+		// }
+		//
+		// final var guard = this.freeEntry.contains(index) ? -indexEntry.capacity : indexEntry.capacity;
+		// writer.seek(Seek.BEGIN, indexEntry.offset - Long.BYTES);
+		// writer.writeInt64(guard);
+		// writer.seek(Seek.BEGIN, indexEntry.offset + indexEntry.capacity);
+		// writer.writeInt64(guard);
+		//
+		// if (lastWrittenPosition < writer.position()) {
+		// lastWrittenPosition = writer.position();
+		// }
+		// }
+		// }
+
+		try (final var writer = this.file.getFileWriter()) {
 			writer.seek(Seek.BEGIN, 0);
 			this.fileHeader.write(writer);
 		}
@@ -324,8 +362,9 @@ public final class PackedFile implements Closeable {
 			final var index = this.indexTable.size();
 			this.indexTable.add(new IndexEntry());
 			if (index > Integer.MAX_VALUE) {
-				throw new IntegerOverflowException();
+				throw new IntegerOverflowException("upper limit of indices reached");
 			}
+			this.dirty = true;
 			return index;
 		} else { // reuse old index
 			final var it = this.unusedIndices.iterator();
@@ -356,7 +395,7 @@ public final class PackedFile implements Closeable {
 		}
 	}
 
-	private void updateCapacity(IndexEntry entry) throws BinaryIOException, IOException {
+	private void updateCapacity(IndexEntry entry) throws IOException {
 		if (entry.capacity != 0 || entry.offset == 0) {
 			return;
 		}
@@ -370,13 +409,7 @@ public final class PackedFile implements Closeable {
 
 	@Override
 	public void close() throws IOException {
-		close(this.dirty);
-	}
-
-	private void close(boolean writeToFile) throws IOException {
-		if (writeToFile) {
-			flush();
-		}
+		flush();
 
 		this.fileHeader = null;
 		this.indexTable.clear();
@@ -401,8 +434,10 @@ public final class PackedFile implements Closeable {
 		assertIndexIsValid(index);
 		assertIndexIsClaimed(index);
 		assertIndexIsNotTable(index);
-		this.fileHeader.rootEntryIdx = index;
-		this.dirty = true;
+		if (this.fileHeader.rootEntryIdx != index) {
+			this.fileHeader.rootEntryIdx = index;
+			this.dirty |= true;
+		}
 	}
 
 	public BinaryReader readEntry(long index) throws IOException {
@@ -442,14 +477,16 @@ public final class PackedFile implements Closeable {
 		assertIndexIsValid(index);
 		assertIndexIsClaimed(index);
 		assertIndexIsNotTable(index);
+
 		final var entry = this.indexTable.get((int) index);
 		updateCapacity(entry);
+
 		return new BinaryWriterCounter(new BinaryWriterView(this.file.getFileWriter(), entry.offset, entry.capacity, true)) {
 			@Override
 			public void close() throws IOException {
 				super.close();
 				if (this.writtenBytes > 0) {
-					PackedFile.this.dirty = true;
+					PackedFile.this.dirty |= entry.size != this.writeSize;
 					entry.size = this.writeSize;
 				}
 			}
@@ -466,14 +503,13 @@ public final class PackedFile implements Closeable {
 		updateCapacity(entry);
 
 		length = (int) Math.min(entry.capacity, Math.min(data.length - offset, length));
-		entry.size = length;
-
 		try (var writer = this.file.getFileWriter()) {
 			writer.seek(Seek.BEGIN, entry.offset);
 			writer.writeInt8(data, offset, length);
 		}
 
-		this.dirty = true;
+		this.dirty |= entry.size != length;
+		entry.size = length;
 	}
 
 	public long newEntry(long maxSize) throws IOException {
@@ -495,8 +531,10 @@ public final class PackedFile implements Closeable {
 			}
 		}
 
-		this.freeEntry.remove(index);
-		this.deletableEntry.remove(index);
+		if (index > 0) {
+			claimEntry(index);
+		}
+
 		return index;
 	}
 
@@ -538,7 +576,7 @@ public final class PackedFile implements Closeable {
 		this.writeAppendingInProgress = true;
 		final var offset = ByteAlignmentUtil.alignTo16Byte(this.fileHeader.endOfFile);
 
-		final AtomicInteger index = new AtomicInteger(0);
+		final var index = new AtomicInteger(0);
 
 		final var writer = new BinaryWriterCounter(new BinaryWriterView(this.file.getFileWriter(), offset, Long.MAX_VALUE, true)) {
 			@Override
@@ -578,16 +616,43 @@ public final class PackedFile implements Closeable {
 		assertFileIsOpen();
 		assertIndexIsValid(index);
 		assertIndexIsNotTable(index);
+		if (this.freeEntry.contains((int) index)) {
+			return;
+		}
+
+		final var entry = this.indexTable.get((int) index);
+		updateCapacity(entry);
+
+		try (var writer = this.file.getFileWriter()) {
+			writer.seek(Seek.BEGIN, entry.offset - Long.BYTES);
+			writer.writeInt64(-entry.capacity);
+			writer.seek(Seek.BEGIN, entry.offset + entry.capacity);
+			writer.writeInt64(-entry.capacity);
+		}
+
 		this.freeEntry.add((int) index);
-		this.dirty = true;
 	}
 
 	public void claimEntry(long index) throws IOException {
 		assertFileIsOpen();
 		assertIndexIsValid(index);
 		assertIndexIsNotTable(index);
+		if (!this.freeEntry.contains((int) index)) {
+			return;
+		}
+
+		final var entry = this.indexTable.get((int) index);
+		updateCapacity(entry);
+
+		try (var writer = this.file.getFileWriter()) {
+			writer.seek(Seek.BEGIN, entry.offset - Long.BYTES);
+			writer.writeInt64(entry.capacity);
+			writer.seek(Seek.BEGIN, entry.offset + entry.capacity);
+			writer.writeInt64(entry.capacity);
+		}
+
 		this.freeEntry.remove((int) index);
-		this.dirty = true;
+		this.deletableEntry.remove((int) index);
 	}
 
 	public Set<Long> getEntries() throws IOException {
@@ -641,10 +706,8 @@ public final class PackedFile implements Closeable {
 	}
 
 	public void deleteEntry(long index) throws IOException {
-		assertFileIsOpen();
-		assertIndexIsValid(index);
-		assertIndexIsNotTable(index);
-		this.freeEntry.add((int) index);
+		// TODO
+		releaseEntry(index);
 		this.deletableEntry.add((int) index);
 		this.dirty = true;
 	}

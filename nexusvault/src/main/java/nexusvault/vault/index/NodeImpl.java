@@ -1,5 +1,6 @@
 package nexusvault.vault.index;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -31,7 +32,7 @@ abstract class NodeImpl implements Node {
 			}
 		}
 
-		private List<NodeImpl> internalChilds() {
+		private List<NodeImpl> internalChilds() throws IOException {
 			if (!this.childsLoaded) {
 				this.childsLoaded = true;
 				final var childs = getIndexFile().loadChilds(this);
@@ -41,7 +42,7 @@ abstract class NodeImpl implements Node {
 		}
 
 		@Override
-		public DirectoryNodeImpl newDirectory(String name) {
+		public DirectoryNodeImpl newDirectory(String name) throws IOException {
 			if (name == null || name.isBlank()) {
 				throw new IllegalArgumentException("'name' must not be null or blank");
 			}
@@ -57,7 +58,8 @@ abstract class NodeImpl implements Node {
 		}
 
 		@Override
-		public FileNodeImpl newFile(String name, int flags, long writeTime, long uncompressedSize, long compressedSize, byte[] hash, int unk_034) {
+		public FileNodeImpl newFile(String name, int flags, long writeTime, long uncompressedSize, long compressedSize, byte[] hash, int unk_034)
+				throws IOException {
 			if (name == null || name.isBlank()) {
 				throw new IllegalArgumentException("'name' must not be null or blank");
 			}
@@ -73,12 +75,12 @@ abstract class NodeImpl implements Node {
 		}
 
 		@Override
-		public boolean hasChild(String name) {
+		public boolean hasChild(String name) throws IOException {
 			return getChild(name).isPresent();
 		}
 
 		@Override
-		public void delete(String name) {
+		public void delete(String name) throws IOException {
 			for (final var it = internalChilds().iterator(); it.hasNext();) {
 				final var child = it.next();
 				if (child.name.equalsIgnoreCase(name)) {
@@ -102,7 +104,7 @@ abstract class NodeImpl implements Node {
 			}
 		}
 
-		private NodeImpl child(String name) {
+		private NodeImpl child(String name) throws IOException {
 			for (final var child : internalChilds()) {
 				if (child.name.equalsIgnoreCase(name)) {
 					return child;
@@ -112,23 +114,23 @@ abstract class NodeImpl implements Node {
 		}
 
 		@Override
-		public Optional<Node> getChild(String name) {
+		public Optional<Node> getChild(String name) throws IOException {
 			return Optional.ofNullable(child(name));
 		}
 
 		@SuppressWarnings("unchecked")
 		@Override
-		public List<Node> getChilds() {
+		public List<Node> getChilds() throws IOException {
 			return Collections.unmodifiableList((List<Node>) (List<?>) internalChilds());
 		}
 
 		@Override
-		public final List<DirectoryNode> getDirectories() {
+		public final List<DirectoryNode> getDirectories() throws IOException {
 			return internalChilds().stream().filter(NodeImpl::isDirectory).map(NodeImpl::asDirectory).collect(Collectors.toList());
 		}
 
 		@Override
-		public final List<FileNode> getFiles() {
+		public final List<FileNode> getFiles() throws IOException {
 			return internalChilds().stream().filter(NodeImpl::isFile).map(NodeImpl::asFile).collect(Collectors.toList());
 		}
 
@@ -156,7 +158,7 @@ abstract class NodeImpl implements Node {
 		}
 
 		@Override
-		public Optional<Node> find(IdxPath path) {
+		public Optional<Node> find(IdxPath path) throws IOException {
 			Objects.requireNonNull(path, "path");
 
 			if (path.isRoot()) {
@@ -177,7 +179,7 @@ abstract class NodeImpl implements Node {
 		}
 
 		@Override
-		public NodeImpl findLast(IdxPath path) {
+		public NodeImpl findLast(IdxPath path) throws IOException {
 			Objects.requireNonNull(path, "path");
 
 			if (path.isRoot()) {
@@ -201,7 +203,7 @@ abstract class NodeImpl implements Node {
 		}
 
 		@Override
-		public int countNodesInSubTree() {
+		public int countNodesInSubTree() throws IOException {
 			final var fringe = new LinkedList<DirectoryNodeImpl>();
 			fringe.add(this);
 			int result = 1;
@@ -438,7 +440,7 @@ abstract class NodeImpl implements Node {
 	}
 
 	@Override
-	final public void moveTo(DirectoryNode parent) {
+	final public void moveTo(DirectoryNode parent) throws IOException {
 		Objects.requireNonNull(parent, "parent");
 
 		final var newParent = (DirectoryNodeImpl) parent;

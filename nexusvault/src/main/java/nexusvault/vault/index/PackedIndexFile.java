@@ -13,9 +13,9 @@ import java.util.Set;
 
 import kreed.io.util.BinaryIOException;
 import kreed.io.util.BinaryWriter;
-import nexusvault.shared.exception.NexusVaultException;
 import nexusvault.shared.exception.SignatureMismatchException;
 import nexusvault.shared.exception.VersionMismatchException;
+import nexusvault.vault.FileClosedIOException;
 import nexusvault.vault.IdxPath;
 import nexusvault.vault.index.IndexException.IndexEntryNotADirectoryException;
 import nexusvault.vault.index.IndexException.IndexEntryNotFoundException;
@@ -50,7 +50,8 @@ public final class PackedIndexFile implements Closeable {
 	public PackedIndexFile() {
 	}
 
-	public DirectoryNode getRoot() {
+	public DirectoryNode getRoot() throws IOException {
+		assertFileIsOpen();
 		return this.root;
 	}
 
@@ -98,6 +99,12 @@ public final class PackedIndexFile implements Closeable {
 		return this.file.isOpen();
 	}
 
+	private void assertFileIsOpen() throws IOException {
+		if (!isOpen()) {
+			throw new FileClosedIOException();
+		}
+	}
+
 	public void validateFile() throws BinaryIOException, IOException {
 		this.file.validateFile();
 	}
@@ -113,17 +120,15 @@ public final class PackedIndexFile implements Closeable {
 
 	@Override
 	public void close() throws IOException {
-		if (this.dirty) {
-			writeToFile();
-		}
+		writeToFile();
 		this.file.close();
 	}
 
-	public Optional<Node> find(IdxPath path) {
+	public Optional<Node> find(IdxPath path) throws IOException {
 		return getRoot().find(path);
 	}
 
-	public Node findLast(IdxPath path) {
+	public Node findLast(IdxPath path) throws IOException {
 		return getRoot().findLast(path);
 	}
 
@@ -202,7 +207,9 @@ public final class PackedIndexFile implements Closeable {
 		optionalFrom.get().moveTo(newParent);
 	}
 
-	protected List<NodeImpl> loadChilds(DirectoryNodeImpl directoryNode) {
+	protected List<NodeImpl> loadChilds(DirectoryNodeImpl directoryNode) throws IOException {
+		assertFileIsOpen();
+
 		StructIndexDirectory[] directoryData;
 		StructIndexFile[] fileData;
 		String nameTwine;
@@ -220,8 +227,6 @@ public final class PackedIndexFile implements Closeable {
 			final var nameBytes = new byte[(int) (reader.size() - reader.position())];
 			reader.readInt8(nameBytes, 0, nameBytes.length);
 			nameTwine = new String(nameBytes, StandardCharsets.UTF_8);
-		} catch (final IOException e) {
-			throw new NexusVaultException(e); // TODO
 		}
 
 		final var entries = new ArrayList<NodeImpl>(directoryData.length + fileData.length);
@@ -264,6 +269,11 @@ public final class PackedIndexFile implements Closeable {
 	}
 
 	public void writeToFile() throws IOException {
+		assertFileIsOpen();
+		if (!this.dirty) {
+			return;
+		}
+
 		{
 			final var indices = new LinkedList<>(this.deletedDirectories);
 			this.deletedDirectories.clear();
@@ -316,6 +326,9 @@ public final class PackedIndexFile implements Closeable {
 			if (updateNode.directory.directoryIndex <= 0) {
 				updateNode.directory.directoryIndex = (int) this.file.newEntry(updateNode.size);
 			}
+		}
+
+		for (final var updateNode : updateNodes) {
 			writeDirectory(updateNode.directory);
 		}
 
@@ -325,9 +338,10 @@ public final class PackedIndexFile implements Closeable {
 		}
 
 		this.dirty = false;
+		this.file.flush();
 	}
 
-	private int computeDirectorySize(DirectoryNodeImpl directory) {
+	private int computeDirectorySize(DirectoryNodeImpl directory) throws IOException {
 		final var directories = directory.getDirectories();
 		final var files = directory.getFiles();
 

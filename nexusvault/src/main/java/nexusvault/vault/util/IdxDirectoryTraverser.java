@@ -1,5 +1,6 @@
 package nexusvault.vault.util;
 
+import java.io.IOException;
 import java.util.Deque;
 import java.util.LinkedList;
 
@@ -63,7 +64,7 @@ public final class IdxDirectoryTraverser {
 		EntryFilterResult visitFile(IdxFileLink file);
 	}
 
-	public static <T extends IdxEntryVisitor> T visitEntries(IdxDirectory start, T visitor) {
+	public static <T extends IdxEntryVisitor> T visitEntries(IdxDirectory start, T visitor) throws IOException {
 		if (start == null) {
 			throw new IllegalArgumentException("'start' must not be null");
 		}

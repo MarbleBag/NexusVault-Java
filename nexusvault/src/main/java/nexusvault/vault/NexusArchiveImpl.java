@@ -12,8 +12,10 @@ import java.util.stream.Collectors;
 import kreed.io.util.BinaryIOException;
 import nexusvault.vault.IdxEntry.IdxDirectory;
 import nexusvault.vault.IdxEntry.IdxFileLink;
+import nexusvault.vault.archive.ArchiveException.ArchiveHashNotFoundException;
 import nexusvault.vault.archive.Hash;
 import nexusvault.vault.archive.PackedArchiveFile;
+import nexusvault.vault.codec.DecodeException;
 import nexusvault.vault.codec.LzmaCodec;
 import nexusvault.vault.codec.ZipCodec;
 import nexusvault.vault.index.IndexException.IndexEntryNotADirectoryException;
@@ -128,13 +130,13 @@ final class NexusArchiveImpl implements NexusArchive {
 		}
 
 		@Override
-		public List<IdxEntry> getEntries() {
+		public List<IdxEntry> getEntries() throws IOException {
 			return this.node.getChilds().stream() //
 					.map(this::decorate) //
 					.collect(Collectors.toList());
 		}
 
-		public List<IdxEntry> getChildsDeep() {
+		public List<IdxEntry> getChildsDeep() throws IOException {
 			final List<IdxEntry> results = new LinkedList<>();
 			final Deque<IdxDirectory> fringe = new LinkedList<>();
 			fringe.add(this);
@@ -153,27 +155,27 @@ final class NexusArchiveImpl implements NexusArchive {
 		}
 
 		@Override
-		public int countNodesInSubTree() {
+		public int countNodesInSubTree() throws IOException {
 			return this.node.countNodesInSubTree();
 		}
 
 		@Override
-		public List<IdxDirectory> getDirectories() {
+		public List<IdxDirectory> getDirectories() throws IOException {
 			return this.node.getDirectories().stream().map(node -> new IdxDirectoryImpl(getArchive(), node)).collect(Collectors.toList());
 		}
 
 		@Override
-		public List<IdxFileLink> getFiles() {
+		public List<IdxFileLink> getFiles() throws IOException {
 			return this.node.getFiles().stream().map(node -> new IdxFileLinkImpl(getArchive(), node)).collect(Collectors.toList());
 		}
 
 		@Override
-		public boolean hasEntry(String entryName) {
+		public boolean hasEntry(String entryName) throws IOException {
 			return this.node.getChild(entryName).isPresent();
 		}
 
 		@Override
-		public Optional<IdxEntry> getEntry(String entryName) {
+		public Optional<IdxEntry> getEntry(String entryName) throws IOException {
 			final var optional = this.node.getChild(entryName);
 			if (optional.isPresent()) {
 				return Optional.of(decorate(optional.get()));
@@ -182,17 +184,17 @@ final class NexusArchiveImpl implements NexusArchive {
 		}
 
 		@Override
-		public IdxDirectory getDirectory(String directoryName) throws IndexEntryNotFoundException, IndexEntryNotADirectoryException {
+		public IdxDirectory getDirectory(String directoryName) throws IOException, IndexEntryNotFoundException, IndexEntryNotADirectoryException {
 			return getEntry(directoryName).orElseThrow(() -> new IndexEntryNotFoundException(directoryName)).asDirectory();
 		}
 
 		@Override
-		public IdxFileLink getFileLink(String fileLinkName) throws IndexEntryNotFoundException, IndexEntryNotAFileException {
+		public IdxFileLink getFileLink(String fileLinkName) throws IOException, IndexEntryNotFoundException, IndexEntryNotAFileException {
 			return getEntry(fileLinkName).orElseThrow(() -> new IndexEntryNotFoundException(fileLinkName)).asFile();
 		}
 
 		@Override
-		public Optional<IdxEntry> find(IdxPath path) {
+		public Optional<IdxEntry> find(IdxPath path) throws IOException {
 			final var node = this.node.find(path);
 			if (node.isPresent()) {
 				return Optional.of(decorate(node.get()));
@@ -302,7 +304,7 @@ final class NexusArchiveImpl implements NexusArchive {
 
 	private void load(Path idxPath, Path arcPath) throws IOException {
 		synchronized (this.synchronizationLock) {
-			dispose();
+			close();
 			this.files = new NexusArchiveFiles(idxPath, arcPath);
 			this.indexFile.open(idxPath);
 			this.archiveFile.open(arcPath);
@@ -312,22 +314,34 @@ final class NexusArchiveImpl implements NexusArchive {
 	}
 
 	@Override
-	public void dispose() {
+	public void close() throws IOException {
 		synchronized (this.synchronizationLock) {
 			if (this.isDisposed) {
 				return;
 			}
 			this.isDisposed = true;
 
+			final var excepetions = new LinkedList<IOException>();
+
 			try {
 				this.indexFile.close();
-				this.archiveFile.close();
-			} catch (final IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+			} catch (final IOException e1) {
+				excepetions.add(e1);
 			}
 
-			// TODO
+			try {
+				this.archiveFile.close();
+			} catch (final IOException e2) {
+				excepetions.add(e2);
+			}
+
+			if (!excepetions.isEmpty()) {
+				final var first = excepetions.poll();
+				while (!excepetions.isEmpty()) {
+					first.addSuppressed(excepetions.poll());
+				}
+				throw first;
+			}
 		}
 	}
 
@@ -342,7 +356,8 @@ final class NexusArchiveImpl implements NexusArchive {
 	}
 
 	@Override
-	public IdxDirectory getRootDirectory() {
+	public IdxDirectory getRootDirectory() throws IOException {
+		assertArchiveIsOpen();
 		return this.rootDirectory;
 	}
 
@@ -426,7 +441,7 @@ final class NexusArchiveImpl implements NexusArchive {
 	}
 
 	@Override
-	public Optional<IdxEntry> find(IdxPath path) {
+	public Optional<IdxEntry> find(IdxPath path) throws IOException {
 		synchronized (this.synchronizationLock) {
 			assertArchiveIsOpen();
 
@@ -442,15 +457,11 @@ final class NexusArchiveImpl implements NexusArchive {
 		}
 	}
 
-	protected byte[] getData(IdxFileLink fileLink) {
+	protected byte[] getData(IdxFileLink fileLink) throws IOException, ArchiveHashNotFoundException, DecodeException {
 		byte[] data;
 		synchronized (this.synchronizationLock) {
 			assertArchiveIsOpen();
-			try {
-				data = this.archiveFile.getData(fileLink.getHash());
-			} catch (final Exception e) {
-				throw new VaultException(e); // TODO
-			}
+			data = this.archiveFile.getData(fileLink.getHash());
 		}
 
 		switch (fileLink.getFlags()) {
@@ -466,9 +477,9 @@ final class NexusArchiveImpl implements NexusArchive {
 		}
 	}
 
-	private void assertArchiveIsOpen() {
+	private void assertArchiveIsOpen() throws IOException {
 		if (isDisposed()) {
-			throw new VaultDisposedException();
+			throw new FileClosedIOException();
 		}
 	}
 
