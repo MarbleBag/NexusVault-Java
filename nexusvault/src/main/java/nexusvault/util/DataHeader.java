@@ -1,6 +1,11 @@
 package nexusvault.util;
 
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+
 import kreed.io.util.BinaryReader;
+import kreed.io.util.ByteArrayUtil;
+import kreed.io.util.ByteBufferUtil;
 import kreed.io.util.Seek;
 import nexusvault.shared.exception.SignatureMismatchException;
 import nexusvault.shared.exception.VersionMismatchException;
@@ -13,6 +18,21 @@ public class DataHeader {
 		this.signature = reader.readInt32();
 		this.version = reader.readInt32();
 		reader.seek(Seek.CURRENT, -8);
+	}
+
+	public DataHeader(int signature, int version) {
+		this.signature = signature;
+		this.version = version;
+	}
+
+	public DataHeader(ByteBuffer buffer) {
+		this.signature = ByteBufferUtil.getInt32(buffer);
+		this.version = ByteBufferUtil.getInt32(buffer);
+	}
+
+	public DataHeader(byte[] data, int offset) {
+		this.signature = ByteArrayUtil.getInt32(data, offset, ByteOrder.LITTLE_ENDIAN);
+		this.version = ByteArrayUtil.getInt32(data, offset + 4, ByteOrder.LITTLE_ENDIAN);
 	}
 
 	public String getSignatureAsString() {
@@ -42,13 +62,13 @@ public class DataHeader {
 
 	public void validateSignature(int expected) throws SignatureMismatchException {
 		if (!checkSignature(expected)) {
-			throw new SignatureMismatchException("Unknown File", getSignature(), expected);
+			throw new SignatureMismatchException("Unknown File", expected, getSignature());
 		}
 	}
 
 	public void validateVersion(int expected) throws VersionMismatchException {
 		if (!checkVersion(expected)) {
-			throw new VersionMismatchException("Unknown File", getVersion(), expected);
+			throw new VersionMismatchException("Unknown File", expected, getVersion());
 		}
 	}
 

@@ -27,11 +27,11 @@ import nexusvault.vault.pack.PackedFile;
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class PackedFileTest {
 
-	static Path file = Constants.RESOURCE_OUT_DIRECTORY.resolve("Packed");
+	private static final Path filePath = Constants.RESOURCE_OUT_DIRECTORY.resolve("Packed");
 
 	@BeforeEach
 	void cleanup() throws IOException {
-		Files.deleteIfExists(file);
+		Files.deleteIfExists(filePath);
 	}
 
 	@Test
@@ -39,14 +39,14 @@ class PackedFileTest {
 	@DisplayName("Create & Save & Read empty file")
 	void testCreateNewAndReadNewPackedFile() throws IOException {
 		final var packedFile = new PackedFile();
-		packedFile.open(file);
+		packedFile.open(filePath);
 		packedFile.validateFile();
 		assertTrue(packedFile.getEntries().isEmpty(), "newly created packed file should be empty");
 		packedFile.close();
 
-		assertTrue(Files.exists(file));
+		assertTrue(Files.exists(filePath));
 
-		packedFile.open(file);
+		packedFile.open(filePath);
 		packedFile.validateFile();
 		assertTrue(packedFile.getEntries().isEmpty(), "newly created packed file should be empty");
 		packedFile.close();
@@ -58,9 +58,9 @@ class PackedFileTest {
 
 		@BeforeEach
 		void setup() throws IOException {
-			Files.deleteIfExists(file);
+			Files.deleteIfExists(filePath);
 			final var packedFile = new PackedFile();
-			packedFile.open(file);
+			packedFile.open(filePath);
 			packedFile.close();
 		}
 
@@ -69,7 +69,7 @@ class PackedFileTest {
 		@DisplayName("Index table is inaccessible")
 		void test1() throws PackException, IOException {
 			final var packedFile = new PackedFile();
-			packedFile.open(file);
+			packedFile.open(filePath);
 
 			assertTrue(packedFile.getEntries().isEmpty(), "newly created packed file should be empty");
 			assertThrows(PackIndexInvalidException.class, () -> packedFile.writeEntry(1), "write entry did not throw");
@@ -86,16 +86,16 @@ class PackedFileTest {
 		@Order(2)
 		@DisplayName("Read does not modify")
 		void test2() throws IOException {
-			final var originalAttributes = Files.readAttributes(file, BasicFileAttributes.class);
-			final var originalHash = Resources.computeHash(file);
+			final var originalAttributes = Files.readAttributes(filePath, BasicFileAttributes.class);
+			final var originalHash = Resources.computeHash(filePath);
 
 			final var packedFile = new PackedFile();
-			packedFile.open(file);
+			packedFile.open(filePath);
 			packedFile.validateFile();
 			packedFile.close();
 
-			final var afterAttributes = Files.readAttributes(file, BasicFileAttributes.class);
-			final var afterHash = Resources.computeHash(file);
+			final var afterAttributes = Files.readAttributes(filePath, BasicFileAttributes.class);
+			final var afterHash = Resources.computeHash(filePath);
 
 			assertEquals(originalAttributes.size(), afterAttributes.size(), "Opening an existing file should not modify it");
 			assertTrue(originalAttributes.lastModifiedTime().equals(afterAttributes.lastModifiedTime()), "Opening an existing file should not modify it");

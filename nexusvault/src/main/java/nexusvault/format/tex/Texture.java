@@ -8,7 +8,7 @@ import nexusvault.format.tex.uncompressed.PlainImageReader;
 
 public final class Texture {
 
-	public static Texture load(byte[] data) {
+	public static Texture read(byte[] data) {
 		return new Texture(data);
 	}
 

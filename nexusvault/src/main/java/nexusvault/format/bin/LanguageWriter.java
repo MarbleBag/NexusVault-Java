@@ -4,17 +4,42 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.channels.SeekableByteChannel;
 import java.util.HashMap;
+import java.util.HashSet;
 
 import kreed.io.util.BinaryWriter;
 import kreed.io.util.ByteAlignmentUtil;
+import kreed.io.util.ByteArrayBinaryWriter;
 import kreed.io.util.Seek;
 import kreed.io.util.SeekableByteChannelBinaryWriter;
 import nexusvault.format.bin.struct.StructEntry;
 import nexusvault.format.bin.struct.StructFileHeader;
 import nexusvault.shared.Text;
+import nexusvault.shared.exception.IntegerOverflowException;
 
 public final class LanguageWriter {
 	private LanguageWriter() {
+	}
+
+	public static byte[] toBinary(LanguageDictionary dictionary) {
+		final var size = computeSize(dictionary);
+		final var buffer = new byte[(int) size];
+		write(dictionary, new ByteArrayBinaryWriter(buffer, ByteOrder.LITTLE_ENDIAN));
+		return buffer;
+	}
+
+	public static long computeSize(LanguageDictionary dictionary) {
+		long size = StructFileHeader.SIZE_IN_BYTES;
+		size = ByteAlignmentUtil.alignTo16Byte(size + dictionary.locale.tagName.length() + 1);
+		size = ByteAlignmentUtil.alignTo16Byte(size + dictionary.locale.shortName.length() + 1);
+		size = ByteAlignmentUtil.alignTo16Byte(size + dictionary.locale.longName.length() + 1);
+		size = ByteAlignmentUtil.alignTo16Byte(size + dictionary.entries.size() * StructEntry.SIZE_IN_BYTES);
+		final var stringCache = new HashSet<String>();
+		for (final var entry : dictionary.entries.entrySet()) {
+			if (stringCache.add(entry.getValue())) {
+				size += entry.getValue().length() * 2 + 2;
+			}
+		}
+		return ByteAlignmentUtil.alignTo16Byte(size);
 	}
 
 	public static void write(LanguageDictionary dictionary, SeekableByteChannel out) {
@@ -55,6 +80,11 @@ public final class LanguageWriter {
 			for (final var entry : dictionary.entries.entrySet()) {
 				final var key = entry.getKey();
 				final var text = dictionary.entries.get(key);
+
+				if (key > Math.pow(2, 32) - 1) {
+					throw new IntegerOverflowException(".bin format only supports up to 2^32-1 entries");
+				}
+
 				writer.writeInt32(key);
 				if (cache.containsKey(text)) {
 					writer.writeInt32(cache.get(text).intValue());

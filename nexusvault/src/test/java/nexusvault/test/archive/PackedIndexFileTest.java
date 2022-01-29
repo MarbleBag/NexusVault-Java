@@ -1,15 +1,16 @@
 package nexusvault.test.archive;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assumptions.assumeFalse;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
@@ -21,66 +22,79 @@ import nexusvault.vault.index.PackedIndexFile;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class PackedIndexFileTest {
-	static Path file = Constants.RESOURCE_OUT_DIRECTORY.resolve("Packed.index");
+
+	static final Path filePath = Constants.RESOURCE_OUT_DIRECTORY.resolve("Packed.index");
+
+	@BeforeEach
+	void cleanup() throws IOException {
+		Files.deleteIfExists(filePath);
+		assertFalse(Files.exists(filePath), "packed file does still exist");
+	}
 
 	@Test
 	@Order(1)
 	void testCreateIndexFile() throws IOException {
-		Files.deleteIfExists(file);
-		assumeFalse(Files.exists(file), "packed file does exist");
-
-		final var packedFile = new PackedIndexFile(file);
+		final var packedFile = new PackedIndexFile(filePath);
 		packedFile.validateFile();
 		assertNotNull(packedFile.getRoot());
 		assertTrue(packedFile.getRoot().getChilds().isEmpty(), "newly created index file should be empty");
+		packedFile.close();
+
+		packedFile.open(filePath);
+		packedFile.validateFile();
 		packedFile.close();
 	}
 
 	@Test
 	@Order(2)
 	void testMakeDirectoriesInRoot() throws IOException {
-		assumeTrue(Files.exists(file), "packed file does not exist");
+		final var packedFile = new PackedIndexFile(filePath);
 
-		final var packedFile = new PackedIndexFile(file);
-		final var rootDirectory = packedFile.getRoot();
-
-		final var directoryA = rootDirectory.newDirectory("art");
+		final var directoryA = packedFile.getRoot().newDirectory("art");
 		assertTrue("art".equals(directoryA.getName()));
 		assertTrue(directoryA.getChilds().isEmpty());
-		assertTrue(rootDirectory.getChilds().size() == 1);
+		assertTrue(packedFile.getRoot().getChilds().size() == 1);
 
-		final var directoryB = rootDirectory.newDirectory("dev");
+		final var directoryB = packedFile.getRoot().newDirectory("dev");
 		assertTrue("dev".equals(directoryB.getName()));
 		assertTrue(directoryB.getChilds().isEmpty());
-		assertTrue(rootDirectory.getChilds().size() == 2);
+		assertTrue(packedFile.getRoot().getChilds().size() == 2);
 
 		packedFile.close();
 
-		packedFile.open(file);
+		packedFile.open(filePath);
 		packedFile.validateFile();
+		assertTrue(packedFile.getRoot().getChilds().size() == 2);
+		assertTrue(packedFile.getRoot().hasChild("art"));
+		assertTrue(packedFile.getRoot().hasChild("dev"));
+		packedFile.close();
 	}
 
 	@Test
 	@Order(3)
 	void testCreateDirectoryWithSameNameInRoot() throws IOException {
-		assumeTrue(Files.exists(file), "packed file does not exist");
-		final var packedFile = new PackedIndexFile(file);
-		final var rootDirectory = packedFile.getRoot();
-		assumeTrue(rootDirectory.getChilds().size() == 2);
-		assertThrows(IndexNameCollisionException.class, () -> rootDirectory.newDirectory("dev"));
-		assertTrue(rootDirectory.getChilds().size() == 2);
+		final var packedFile = new PackedIndexFile(filePath);
+		packedFile.getRoot().newDirectory("dev");
+		assumeTrue(packedFile.getRoot().getChilds().size() == 1);
+		assertTrue(packedFile.getRoot().hasChild("dev"));
+		assertThrows(IndexNameCollisionException.class, () -> packedFile.getRoot().newDirectory("dev"));
+		assertTrue(packedFile.getRoot().getChilds().size() == 1);
+		assertTrue(packedFile.getRoot().hasChild("dev"));
 		packedFile.close();
 	}
 
 	@Test
 	@Order(4)
 	void testCreateFile() throws IOException {
-		assumeTrue(Files.exists(file), "packed file does not exist");
-		final var packedFile = new PackedIndexFile(file);
-		final var rootDirectory = packedFile.getRoot();
-		assumeTrue(rootDirectory.getChilds().size() == 2);
-		rootDirectory.newFile("file", 0, 0, 0, 0, new byte[20], 0);
-		assertTrue(rootDirectory.getChilds().size() == 3);
+		final var packedFile = new PackedIndexFile(filePath);
+		packedFile.getRoot().newFile("fileName", 0, 0, 0, 0, new byte[20], 0);
+		assertTrue(packedFile.getRoot().getChilds().size() == 1);
+		packedFile.close();
+
+		packedFile.open(filePath);
+		packedFile.validateFile();
+		assertTrue(packedFile.getRoot().getChilds().size() == 1);
+		assertTrue(packedFile.getRoot().hasChild("fileName"));
 		packedFile.close();
 	}
 

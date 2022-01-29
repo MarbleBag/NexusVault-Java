@@ -23,25 +23,25 @@ import nexusvault.vault.NexusArchive.CompressionType;
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class NexusArchiveTest {
 
-	static Path indexFile = Constants.RESOURCE_OUT_DIRECTORY.resolve("NexusArchive.index");
-	static Path archiveFile = indexFile.resolveSibling("NexusArchive.archive");
+	static final Path indexFilePath = Constants.RESOURCE_OUT_DIRECTORY.resolve("NexusArchive.index");
+	static final Path archiveFilePath = indexFilePath.resolveSibling("NexusArchive.archive");
 
 	@BeforeEach
 	void cleanupArchives() throws IOException {
-		Files.deleteIfExists(indexFile);
-		Files.deleteIfExists(archiveFile);
+		Files.deleteIfExists(indexFilePath);
+		Files.deleteIfExists(archiveFilePath);
 	}
 
 	@Test
 	@Order(1)
 	void testCreateNewArchive() throws IOException {
-		final var archive = NexusArchive.open(indexFile);
+		final var archive = NexusArchive.open(indexFilePath);
 		archive.close();
 
 		final var files = archive.getFiles();
 		assertNotNull(files);
-		assertEquals(indexFile, files.getIndexFile());
-		assertEquals(archiveFile, files.getArchiveFile());
+		assertEquals(indexFilePath, files.getIndexFile());
+		assertEquals(archiveFilePath, files.getArchiveFile());
 		assertTrue(Files.exists(files.getIndexFile()));
 		assertTrue(Files.exists(files.getArchiveFile()));
 	}
@@ -49,14 +49,10 @@ class NexusArchiveTest {
 	@Test
 	@Order(2)
 	void testWriteAndRead() throws IOException {
-		var archive = NexusArchive.open(indexFile);
+		var archive = NexusArchive.open(indexFilePath);
 		final var entry = IdxPath.createPath("test", "poem", "Rabbit - A Haiku.txt");
 		final var poem = "Chilly break of day\nAn old, gorgeous rabbit roars\nenjoying the cow";
-
-		{
-			final var payloadBytes = poem.getBytes(StandardCharsets.UTF_8);
-			archive.write(entry, payloadBytes, CompressionType.UNCOMPRESSED);
-		}
+		archive.write(entry, poem.getBytes(StandardCharsets.UTF_8), CompressionType.UNCOMPRESSED);
 
 		{
 			final var file = archive.find(entry);
@@ -69,10 +65,10 @@ class NexusArchiveTest {
 
 		archive.close();
 
-		assertTrue(Files.exists(indexFile));
-		assertTrue(Files.exists(archiveFile));
+		assertTrue(Files.exists(indexFilePath));
+		assertTrue(Files.exists(archiveFilePath));
 
-		archive = NexusArchive.open(indexFile);
+		archive = NexusArchive.open(indexFilePath);
 		archive.validateArchive();
 
 		{

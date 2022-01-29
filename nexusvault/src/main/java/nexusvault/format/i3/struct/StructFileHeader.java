@@ -1,4 +1,4 @@
-package nexusvault.format.area.struct;
+package nexusvault.format.i3.struct;
 
 import kreed.reflection.struct.DataType;
 import kreed.reflection.struct.Order;
@@ -7,7 +7,7 @@ import kreed.reflection.struct.StructUtil;
 
 public final class StructFileHeader {
 
-	public static final int SIGNATURE = 'A' << 24 | 'R' << 16 | 'E' << 8 | 'A';
+	// public static final int SIGNATURE = 'A' << 24 | 'R' << 16 | 'E' << 8 | 'A';
 	public static final int SIZE_IN_BYTES = StructUtil.sizeOf(StructFileHeader.class);
 
 	@Order(1)

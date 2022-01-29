@@ -53,8 +53,9 @@ public final class LanguageReader {
 			locale = new LanguageDictionary.Locale((int) header.languageType, localeTagName, localeShortName, localeLongName);
 		}
 
-		final var entries = new HashMap<Integer, String>();
+		final var entries = new HashMap<Long, String>();
 		{
+			reader.seek(Seek.BEGIN, readPostHeaderPosition + header.entryOffset);
 			final var entryOffsets = new StructEntry[(int) header.entryCount];
 			for (int i = 0; i < (int) header.entryCount; ++i) {
 				entryOffsets[i] = new StructEntry(reader);

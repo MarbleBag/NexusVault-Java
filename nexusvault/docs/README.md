@@ -2,41 +2,50 @@
 
 Provides code to read and write .index and .archive files and various WS specific file types in Java.
 
-## Currently supported
+## Supported file formats
+### File format: tex
+Texture format.
 
-Read & Write:
-* .index
-    * nexusvault.vault.NexusArchive
-    * nexusvault.vault.index.PackedIndexFile
-* .archive
-    * nexusvault.vault.NexusArchive
-    * nexusvault.vault.archive.PackedArchiveFile
-* .tex
-    * nexusvault.format.tex.TextureReader
-    * nexusvault.format.tex.TextureWriter
-* .tbl
-    * nexusvault.format.tbl.TableReader
-    * nexusvault.format.tbl.TableWriter
-* .bin 
-    * nexusvault.format.bin.LanguageReader
-    * nexusvault.format.bin.LanguageWriter
+General class: **nexusvault.format.tex.Texture**
 
-Read:
-* .m3
-    * nexusvault.format.m3.ModelReader
+- Read via: **nexusvault.format.tex.TextureReader**
+- Written via: **nexusvault.format.tex.TextureWriter**
 
-## Packages
+### File format: tbl
+A table like format with columns and rows.
 
-### nexusvault.vaul
+General class: **nexusvault.format.tbl.Table**
 
-### nexusvault.format.tbl
+- Read via: **nexusvault.format.tbl.TableReader**
+- Written via: **nexusvault.format.tbl.TableWriter**
 
-### nexusvault.format.bin
+### File format: bin
+Contains localized text
 
-### nexusvault.format.tex
+General class: **nexusvault.format.bin.LanguageDictionary**
 
-### nexusvault.format.m3
+- Read via: **nexusvault.format.bin.LanguageReader**
+- Written via: **nexusvault.format.bin.LanguageWriter**
 
+### File format: m3
+Wildstar Models (Meshes)
+
+General class: **nexusvault.format.m3.Model**
+
+- Read via: **nexusvault.format.m3.ModelReader**
+- No write support at this point
+
+Supported features:
+* Meshes
+* Joints
+* Textures
+
+### File format: index & archive
+Packed files which contains the assets of WS. 
+The index file provides a file system like structure to reference assets via path, while an archive file is basically a lookup table for said assets.
+
+Both can be processed directly via **nexusvault.vault.index.PackedIndexFile**, **nexusvault.vault.archive.PackedArchiveFile**<br>
+Or in union via **nexusvault.vault.NexusArchive**, which will manage both: index and archive.
 
 ## Built With
 

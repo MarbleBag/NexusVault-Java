@@ -1,6 +1,11 @@
 package nexusvault.test.tbl;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
+
+import java.io.IOException;
+import java.nio.file.Files;
 
 import org.junit.jupiter.api.Test;
 
@@ -10,6 +15,7 @@ import nexusvault.format.tbl.Table;
 import nexusvault.format.tbl.TableLookup;
 import nexusvault.format.tbl.TableReader;
 import nexusvault.format.tbl.TableWriter;
+import nexusvault.test.Constants;
 
 class CreateWriteAndRead {
 
@@ -27,14 +33,30 @@ class CreateWriteAndRead {
 		};
 
 		final var lookup = TableLookup.sortEntriesAndComputeLookup(entries);
+		final var originalTable = new Table("Test of animals", columns, entries, lookup);
+		final var binary = TableWriter.toBinary(originalTable);
+		final var recreatedTable = TableReader.read(binary);
 
-		final var table = new Table("Test of animals", columns, entries, lookup);
+		assertEquals(originalTable, recreatedTable);
+	}
 
-		final var binary = TableWriter.toBinary(table);
+	@Test
+	public void testRead() throws IOException {
+		final var filePath = Constants.RESOURCE_IN_DIRECTORY.resolve("Table.tbl");
+		assumeTrue(Files.exists(filePath));
+		final var table = TableReader.read(Files.readAllBytes(filePath));
+		assertEquals(23, table.columns.length);
+		assertEquals(4943, table.entries.length);
+	}
 
-		final var createdTable = TableReader.read(binary);
-
-		assertEquals(table, createdTable);
+	@Test
+	public void testWrite() throws IOException {
+		final var filePath = Constants.RESOURCE_IN_DIRECTORY.resolve("Table.tbl");
+		assumeTrue(Files.exists(filePath));
+		final var originalBytes = Files.readAllBytes(filePath);
+		final var table = TableReader.read(originalBytes);
+		final var recreatedBytes = TableWriter.toBinary(table);
+		assertArrayEquals(originalBytes, recreatedBytes);
 	}
 
 }

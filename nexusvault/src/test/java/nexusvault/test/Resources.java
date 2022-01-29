@@ -30,7 +30,7 @@ public final class Resources {
 	public static byte[] computeHash(Path file) throws IOException {
 		try {
 			final var md = MessageDigest.getInstance("MD5");
-			try (var is = Files.newInputStream(file); DigestInputStream dis = new DigestInputStream(is, md)) {
+			try (var is = Files.newInputStream(file); var dis = new DigestInputStream(is, md)) {
 				while (dis.read() != -1) {
 				}
 			}

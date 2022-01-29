@@ -4,6 +4,10 @@ import java.util.List;
 
 public interface Model {
 
+	public static Model read(byte[] data) {
+		return ModelReader.read(data);
+	}
+
 	Geometry getGeometry();
 
 	List<Material> getMaterials();

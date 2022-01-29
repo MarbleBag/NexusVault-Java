@@ -49,12 +49,12 @@ public final class Csv {
 
 		final var locale = new LanguageDictionary.Locale(Integer.parseInt(localeSplit[0]), localeSplit[1], localeSplit[2], localeSplit[3]);
 
-		final var entries = new HashMap<Integer, String>();
+		final var entries = new HashMap<Long, String>();
 
 		String line = null;
 		while ((line = reader.readLine()) != null) {
 			final var entry = line.split(this.elementDelimiter);
-			entries.put(Integer.parseInt(entry[0]), entry[1]);
+			entries.put(Long.parseLong(line), entry[1]);
 		}
 
 		return new LanguageDictionary(locale, entries);

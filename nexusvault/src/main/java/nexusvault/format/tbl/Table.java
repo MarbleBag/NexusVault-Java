@@ -4,6 +4,15 @@ import java.util.Arrays;
 import java.util.Objects;
 
 public final class Table {
+
+	public static Table read(byte[] data) {
+		return TableReader.read(data);
+	}
+
+	public static byte[] write(Table table) {
+		return TableWriter.toBinary(table);
+	}
+
 	public String name;
 	public Column[] columns;
 	public Object[][] entries;

@@ -1,6 +1,9 @@
 package nexusvault.format.tex;
 
+import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.nio.channels.SeekableByteChannel;
 import java.util.Arrays;
 
 import kreed.io.util.ByteArrayBinaryWriter;
@@ -15,12 +18,18 @@ public final class TextureWriter {
 
 	}
 
-	public static byte[] writeBinary(TextureType target, Image image, int mipmapCount, int quality, int[] defaultColors) {
+	public static byte[] toBinary(TextureType target, Image image, int mipmapCount, int quality, int[] defaultColors) {
 		final var mipmaps = generateMipMaps(image, mipmapCount);
-		return writeBinary(target, mipmaps, quality, defaultColors);
+		return toBinary(target, mipmaps, quality, defaultColors);
 	}
 
-	private static byte[] writeBinary(TextureType target, Image[] mipmaps, int quality, int[] defaultColors) {
+	public static void write(TextureType target, Image image, int mipmapCount, int quality, int[] defaultColors, SeekableByteChannel out) throws IOException {
+		final var binary = toBinary(target, image, mipmapCount, quality, defaultColors);
+		final var buffer = ByteBuffer.wrap(binary);
+		out.write(buffer);
+	}
+
+	private static byte[] toBinary(TextureType target, Image[] mipmaps, int quality, int[] defaultColors) {
 		final var header = new StructFileHeader();
 		header.width = mipmaps[mipmaps.length - 1].getWidth();
 		header.height = mipmaps[mipmaps.length - 1].getHeight();
