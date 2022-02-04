@@ -5,8 +5,6 @@
 # Compiled class file
 *.class
 *.jar
-!libs/**/*.jar
-!maven-repo/**/*
 *.war
 *.nar
 *.ear
@@ -64,3 +62,10 @@ dist/
 nbdist/
 nbactions.xml
 nb-configuration.xml
+
+##########################
+## General
+##########################
+/*/src/test/resources/out/
+!/*/libs/**/*.jar
+!/*/maven-repo/**/*
