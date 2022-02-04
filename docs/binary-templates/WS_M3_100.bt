@@ -1,3 +1,17 @@
+//-------------------------------------------------------------------------
+// Copyright (C) 2018-2022 MarbleBag
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as
+// published by the Free Software Foundation, either version 3 of the
+// License, or (at your option) any later version.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+//-------------------------------------------------------------------------
+
 typedef byte int8;
 typedef ubyte uint8;
 
@@ -42,7 +56,7 @@ struct M3{
         wchar_t textureFilename[ptrTextureName.size];
         FSeek(endOfStruct);
     };
-    
+
 
     struct Material_Description(ArrayPointer& pointer){ // size 0x140
         uint16 textureId[2];
@@ -60,9 +74,9 @@ struct M3{
 
         updateNextPointer(ptrMatDescriptions, pointer);
 
-        if(ptrMatDescriptions.count > 0){           
+        if(ptrMatDescriptions.count > 0){
             FSeek(ptrMatDescriptions.address);
-            Material_Description matDescriptions(ptrMatDescriptions)[ptrMatDescriptions.count];           
+            Material_Description matDescriptions(ptrMatDescriptions)[ptrMatDescriptions.count];
         }
 
         FSeek(endOfStruct);
@@ -162,19 +176,19 @@ struct M3{
         float matrix_B[16];
         float xyz[3];
         uint32 padding_15C <hidden=true>;
-    };    
+    };
 
     struct M3_Header{
         char signature[4];
         uint version;
         uint8 gap_008[8];
-        ArrayPointer unk_offset_010(1);     
+        ArrayPointer unk_offset_010(1);
         DPointer unk_offset_020;
         DPointer unk_offset_038;
         DPointer unk_offset_050;
         DPointer unk_offset_068;
         ArrayPointer unk_offset_080(1);
-        DPointer unk_offset_090;  
+        DPointer unk_offset_090;
         DPointer unk_offset_0A8;
         DPointer unk_offset_0C0;
         DPointer unk_offset_0D8;
@@ -226,7 +240,7 @@ struct M3{
         ArrayPointer unk_offset_530(0x4); // 4
         ArrayPointer unk_offset_540(0x68); // 104
         ArrayPointer unk_offset_550(0x2); // 2
-        ArrayPointer unk_offset_560(0xA0); // 160 
+        ArrayPointer unk_offset_560(0xA0); // 160
         ArrayPointer unk_offset_570(0x20); // 32
         uint8 gap_580[8];
         ArrayPointer unk_offset_588(0x20); // 32
@@ -244,29 +258,29 @@ struct M3{
         updatePointer(ptrMaterials, endOfHeader);
         updatePointer(ptrGeometry, endOfHeader);
 
-        if(ptrBoneMap.count > 0){            
+        if(ptrBoneMap.count > 0){
             FSeek(ptrBoneMap.address);
             uint16 boneMap[ptrBoneMap.count];
         }
-        if(ptrBones.count > 0){            
+        if(ptrBones.count > 0){
             FSeek(ptrBones.address);
-            struct Bones {                
+            struct Bones {
                 Bone bones(ptrBones)[ptrBones.count] <bgcolor=cLtYellow, optimize=false>;
             } bones;
         }
-        if(ptrTextures.count > 0){            
+        if(ptrTextures.count > 0){
             FSeek(ptrTextures.address);
             struct Textures {
-                Texture textures(ptrTextures)[ptrTextures.count] <bgcolor=cLtYellow, optimize=false>;                
+                Texture textures(ptrTextures)[ptrTextures.count] <bgcolor=cLtYellow, optimize=false>;
             } textures;
         }
-        if(ptrMaterials.count > 0){            
+        if(ptrMaterials.count > 0){
             FSeek(ptrMaterials.address);
             struct Materials {
                 Material materials(ptrMaterials)[ptrMaterials.count] <bgcolor=cLtBlue, optimize=false>;
             } materials;
         }
-        if(ptrGeometry.count > 0){            
+        if(ptrGeometry.count > 0){
             FSeek(ptrGeometry.address);
             struct Geometries {
                 Geometry geometries(ptrGeometry)[ptrGeometry.count] <bgcolor=cLtGreen, optimize=false>;
@@ -277,4 +291,3 @@ struct M3{
     } header <bgcolor=cLtGray, optimize=false>;
 
 }file;
-

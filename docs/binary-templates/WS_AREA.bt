@@ -1,3 +1,17 @@
+//-------------------------------------------------------------------------
+// Copyright (C) 2018-2022 MarbleBag
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as
+// published by the Free Software Foundation, either version 3 of the
+// License, or (at your option) any later version.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+//-------------------------------------------------------------------------
+
 typedef byte int8;
 typedef ubyte uint8;
 
@@ -6,7 +20,7 @@ struct Area{
             char signature[4];
             uint version;
     } header;
-    
+
     struct PackageHeader{
         uint32 signature;
         uint32 size; // size of the following data
@@ -55,15 +69,15 @@ struct Area{
         uint32 propId[size/4] <optimize=false>;
     };
 
-    struct Entry_CHNK{        
+    struct Entry_CHNK{
         uint32 size : 24;
         uint32 index : 8;
-        
+
         local uint32 readIdxEnd = FTell() + size;
         local uint32 flagSizes[32] = {722, 16, 8450, 8450, 8450, 0, 64, 16,
                                        4225, 0, 0, 0, 0, 4624, 0, 0,
                                        0, 0, 0, 0, 0, 0, 0, 0,
-                                       0, 0, 0, 0, 0, 0, 0, 0}; 
+                                       0, 0, 0, 0, 0, 0, 0, 0};
 
         uint32 flags <format=binary>;
 
@@ -95,10 +109,10 @@ struct Area{
                 case 10000000h:
                     uint32 areaId[4];
                     break;
-            
+
                 default: //unknown
                     if(flagSizes[i] == 0){
-                        Printf("Unknown flag: %d at %Xh\n", flag, startof(this));                        
+                        Printf("Unknown flag: %d at %Xh\n", flag, startof(this));
                         FSkip(startof(this) + this.size + 4);
                     }else{
                         struct UnkData(uint32 size){
@@ -123,7 +137,7 @@ struct Area{
         }
     };
 
-    struct Package_CHNK (uint32 size){        
+    struct Package_CHNK (uint32 size){
         local uint64 readIdxEnd = FTell() + size;
         while(FTell() < readIdxEnd){
             Entry_CHNK chunk;
@@ -138,7 +152,7 @@ struct Area{
     local uint64 fileSize = FileSize();
 
     while(fileSize >= FTell() + sizeof(PackageHeader)){
-        PackageHeader package <bgcolor=0x00AAFF>;     
+        PackageHeader package <bgcolor=0x00AAFF>;
         if( FileSize() < FTell() + package.size)
             break;
 

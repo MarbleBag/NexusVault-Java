@@ -1,3 +1,17 @@
+//-------------------------------------------------------------------------
+// Copyright (C) 2018-2022 MarbleBag
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as
+// published by the Free Software Foundation, either version 3 of the
+// License, or (at your option) any later version.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+//-------------------------------------------------------------------------
+
 typedef byte int8;
 typedef ubyte uint8;
 
@@ -19,7 +33,7 @@ struct Tbl{
         uint64 recordOffset;
         uint64 lookupCount;
         uint64 lookupOffset;
-        uint64 padding_4;        
+        uint64 padding_4;
     } header <bgcolor=cDkGreen>;
 
     wchar_t tableName[header.nameCount] <bgcolor=cLtGreen>;
@@ -41,8 +55,8 @@ struct Tbl{
     // padded to 16 byte
 
     struct FieldNames {
-        struct FieldName(uint32 length){        
-            wchar_t fieldName[length];        
+        struct FieldName(uint32 length){
+            wchar_t fieldName[length];
         };
 
         local uint64 endOfFields = FTell();
@@ -58,19 +72,19 @@ struct Tbl{
         local uint i=0;
         local uint64 oldPosition;
         for(i=0;i<header.fieldCount;++i){
-            if(fields[i].dataType == 3){                
+            if(fields[i].dataType == 3){
                 int32 v1 <comment="Int", bgcolor=0xA43000>;
             }else if(fields[i].dataType == 4){
-                float v2 <comment="Float", bgcolor=0xA43000>;      
+                float v2 <comment="Float", bgcolor=0xA43000>;
             }else if(fields[i].dataType == 11){
-                int32 v3 <comment="Bool", bgcolor=0xA43000>; 
+                int32 v3 <comment="Bool", bgcolor=0xA43000>;
             }else if(fields[i].dataType == 20){
-                int64 v4 <comment="Long", bgcolor=0xA43000>;    
+                int64 v4 <comment="Long", bgcolor=0xA43000>;
             }else if(fields[i].dataType == 130){
                 if( FTell() % 8 != 0 ) // string pointer are 8-byte aligned
                     uint32 padding <bgcolor=0x000>;
                 uint64 strPointer <comment="Str", bgcolor=0xA4A000>;
- 
+
                 oldPosition = FTell();
                 FSeek(sizeof(Header) + header.recordOffset + strPointer);
                 struct RecordName{
@@ -93,10 +107,9 @@ struct Tbl{
     FSeek(sizeof(Header) + header.recordOffset + header.totalRecordSize);
     uint8 EndOfRecord <bgcolor=cLtBlue>;
     //padded to 16 byte
-    
+
     //maps Id -> record idx, -1 means no index
     FSeek(sizeof(Header) + header.lookupOffset);
     int32 lookup[header.lookupCount] <bgcolor=cLtRed>;
     //padded to 16 byte
 }file;
-
