@@ -29,11 +29,11 @@ General class: **nexusvault.format.tbl.Table**
 
 #### Available exporter
 - csv
- - **nexusvault.export.tbl.csv.Csv**
+   - **nexusvault.export.tbl.csv.Csv**
 
 #### Available importer
- - csv
-  - **nexusvault.export.tbl.csv.Csv**
+- csv
+   - **nexusvault.export.tbl.csv.Csv**
 
 ---
 ### File format: bin
@@ -46,11 +46,11 @@ General class: **nexusvault.format.bin.LanguageDictionary**
 
 #### Available exporter
 - csv
- - **nexusvault.export.bin.csv.Csv**
+   - **nexusvault.export.bin.csv.Csv**
 
 #### Available importer
- - csv
-  - **nexusvault.export.bin.csv.Csv**
+- csv
+   - **nexusvault.export.bin.csv.Csv**
 
 ---
 ### File format: m3
@@ -68,9 +68,9 @@ Supported features:
 
 #### Available exporter
 - gltf
- - **nexusvault.export.m3.gltf** (separat maven project)
+   - **nexusvault.export.m3.gltf** (separat maven project)
 - obj
- - **nexusvault.export.m3.obj.ObjExporter**
+   - **nexusvault.export.m3.obj.ObjExporter**
 
 ---
 ### File format: index & archive
