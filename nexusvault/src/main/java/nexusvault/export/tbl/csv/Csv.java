@@ -1,3 +1,14 @@
+/*******************************************************************************
+ * Copyright (C) 2018-2022 MarbleBag
+ *
+ * This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any later version.
+ *
+ * You should have received a copy of the GNU Affero General Public License along with this program. If not, see <https://www.gnu.org/licenses/>
+ *
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ *******************************************************************************/
+
 package nexusvault.export.tbl.csv;
 
 import java.io.BufferedReader;
@@ -13,21 +24,29 @@ import nexusvault.format.tbl.TableException;
 import nexusvault.format.tbl.TableLookup;
 
 /**
- * Simple exporter which is able to convert a {@link Table} to csv. The default element delimiter is <code>;</code> but can be changed. Each line will end with
- * a <code>line feed</code>.
+ * Exporter which is able to convert a {@link Table} to csv.
  */
-public final class CsvComplete {
+public final class Csv {
 
 	private final String elementDelimiter;
 
-	public CsvComplete() {
+	public Csv() {
 		this(";");
 	}
 
-	public CsvComplete(String elementDelimiter) {
+	public Csv(String elementDelimiter) {
 		this.elementDelimiter = elementDelimiter;
 	}
 
+	/**
+	 * Writes a complex csv representation of a {@link Table}.
+	 * <ul>
+	 * <li>The first row will contain the table name as stored in the file.</li>
+	 * <li>The second row will contain the table columns, a combination of its name, datatype and a still unknown value</li>
+	 * <li>Then, each entry will be written to one row.</li>
+	 * </ul>
+	 * The default element delimiter is <code>;</code> but can be changed. Each line will end with a <code>line feed</code>.
+	 */
 	public void write(Table table, Writer out) throws IOException {
 		out.append(table.name).append("\n");
 		for (int i = 0; i < table.columns.length; ++i) {
@@ -109,6 +128,36 @@ public final class CsvComplete {
 
 		final var lookup = TableLookup.sortEntriesAndComputeLookup(entries);
 		return new Table(tableName, columns, entries, lookup);
+	}
+
+	/**
+	 * Writes a simple csv representation of a {@link Table}.
+	 * <ul>
+	 * <li>The first row will contain the names of the columns, one name per column.</li>
+	 * <li>Then, each entry will be written to one row.</li>
+	 * </ul>
+	 * This simplified version will not be accepted by {@link #read(Reader)}.
+	 *
+	 * The default element delimiter is <code>;</code> but can be changed. Each line will end with a <code>line feed</code>.
+	 */
+	public void writeSimple(Table table, Writer out) throws IOException {
+		for (int i = 0; i < table.columns.length; ++i) {
+			if (i != 0) {
+				out.append(this.elementDelimiter);
+			}
+			out.append(table.columns[i].name);
+		}
+		out.append("\n");
+		for (final var entry : table.entries) {
+			for (int j = 0; j < table.columns.length; ++j) {
+				if (j != 0) {
+					out.append(this.elementDelimiter);
+				}
+				final Object data = entry[j];
+				out.append(data != null ? data.toString() : "null");
+			}
+			out.append("\n");
+		}
 	}
 
 }

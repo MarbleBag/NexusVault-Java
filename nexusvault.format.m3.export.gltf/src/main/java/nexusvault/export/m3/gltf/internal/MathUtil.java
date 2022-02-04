@@ -1,3 +1,14 @@
+/*******************************************************************************
+ * Copyright (C) 2018-2022 MarbleBag
+ *
+ * This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any later version.
+ *
+ * You should have received a copy of the GNU Affero General Public License along with this program. If not, see <https://www.gnu.org/licenses/>
+ *
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ *******************************************************************************/
+
 package nexusvault.export.m3.gltf.internal;
 
 /*
@@ -38,7 +49,7 @@ public final class MathUtil {
 	 * private static double[] toArray(Matrix matrix) { return new double[] { // matrix.get(0, 0), matrix.get(1, 0), matrix.get(2, 0), matrix.get(3, 0), //
 	 * matrix.get(0, 1), matrix.get(1, 1), matrix.get(2, 1), matrix.get(3, 1), // matrix.get(0, 2), matrix.get(1, 2), matrix.get(2, 2), matrix.get(3, 2), //
 	 * matrix.get(0, 3), matrix.get(1, 3), matrix.get(2, 3), matrix.get(3, 3) // }; }
-	 * 
+	 *
 	 * public static float[] inverse(float[] array) { final var matrix = org.la4j.Matrix.from1DArray(4, 4, toDouble(transpose(array))); final var invMatrix =
 	 * matrix.withInverter(InverterFactory.GAUSS_JORDAN).inverse(); return toFloat(toArray(invMatrix)); }
 	 */

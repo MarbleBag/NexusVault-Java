@@ -9,20 +9,8 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  *******************************************************************************/
 
-package nexusvault.export.m3.gltf;
+package nexusvault.format.tex.util;
 
-import java.io.IOException;
-import java.nio.file.Path;
+public final class NormalMap {
 
-/**
- *
- * @see PathTextureResource
- */
-public abstract class TextureResource {
-
-	TextureResource() {
-
-	}
-
-	public abstract Path writeImageTo(Path outputDirectory) throws IOException;
 }

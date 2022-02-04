@@ -1,3 +1,14 @@
+/*******************************************************************************
+ * Copyright (C) 2018-2022 MarbleBag
+ *
+ * This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any later version.
+ *
+ * You should have received a copy of the GNU Affero General Public License along with this program. If not, see <https://www.gnu.org/licenses/>
+ *
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ *******************************************************************************/
+
 package nexusvault.format.m3.debug;
 
 import java.lang.reflect.Field;
@@ -55,7 +66,7 @@ public final class ModelDebugger {
 		}
 
 		public T getOutput() {
-			return obj;
+			return this.obj;
 		}
 	}
 
@@ -86,8 +97,8 @@ public final class ModelDebugger {
 	private BytePositionTracker modelData;
 
 	public ModelDebugger() {
-		sturctFormaters = new Class2ObjectLookup<>(null);
-		sturctFormaters.setLookUp(Object.class, new BasicStructFormater());
+		this.sturctFormaters = new Class2ObjectLookup<>(null);
+		this.sturctFormaters.setLookUp(Object.class, new BasicStructFormater());
 	}
 
 	protected BytePositionTracker getDataModel() {
@@ -103,17 +114,17 @@ public final class ModelDebugger {
 	protected List<Object> loadStructs(Class<?> structClass, int structCount, BytePositionTracker data) {
 		final List<Object> structs = new ArrayList<>(structCount);
 		for (int i = 0; i < structCount; ++i) {
-			structs.add(structBuilder.read(structClass, data.getData()));
+			structs.add(this.structBuilder.read(structClass, data.getData()));
 		}
 		return structs;
 	}
 
 	public void setStructFormater(Class<?> structClass, StructFormater formater) {
-		sturctFormaters.setLookUp(structClass, formater);
+		this.sturctFormaters.setLookUp(structClass, formater);
 	}
 
 	protected StructFormater getInternalStructFormater(Class<?> structClass) {
-		final StructFormater formater = sturctFormaters.getLookUp(structClass);
+		final StructFormater formater = this.sturctFormaters.getLookUp(structClass);
 		// if (formater == null) {
 		// formater = new BasicStructFormater();
 		// sturctFormaters.setLookUp(structClass, formater);
@@ -148,7 +159,7 @@ public final class ModelDebugger {
 		if (task == null) {
 			throw new IllegalArgumentException("'task' must not be null");
 		}
-		taskQueue.add(task);
+		this.taskQueue.add(task);
 	}
 
 	private void runTasks() {
@@ -161,8 +172,8 @@ public final class ModelDebugger {
 
 			@Override
 			public List<Object> loadStructs(long dataOffset, Class<?> structClass, int structCount) {
-				modelData.setPosition(dataOffset);
-				return ModelDebugger.this.loadStructs(structClass, structCount, modelData);
+				ModelDebugger.this.modelData.setPosition(dataOffset);
+				return ModelDebugger.this.loadStructs(structClass, structCount, ModelDebugger.this.modelData);
 			}
 
 			@Override
@@ -178,7 +189,7 @@ public final class ModelDebugger {
 		};
 
 		while (!this.taskQueue.isEmpty()) {
-			final Task task = taskQueue.poll();
+			final Task task = this.taskQueue.poll();
 			task.runTask(debugger);
 		}
 	}

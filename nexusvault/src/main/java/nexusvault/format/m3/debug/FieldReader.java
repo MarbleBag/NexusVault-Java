@@ -1,3 +1,14 @@
+/*******************************************************************************
+ * Copyright (C) 2018-2022 MarbleBag
+ *
+ * This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any later version.
+ *
+ * You should have received a copy of the GNU Affero General Public License along with this program. If not, see <https://www.gnu.org/licenses/>
+ *
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ *******************************************************************************/
+
 package nexusvault.format.m3.debug;
 
 import java.lang.reflect.Array;
@@ -26,15 +37,15 @@ final class ArrayFieldReader implements FieldReader {
 		this.field = field;
 		this.obj = obj;
 		this.array = field.get(obj);
-		this.size = Array.getLength(array);
+		this.size = Array.getLength(this.array);
 	}
 
 	@Override
 	public Object get() {
-		final Object r = Array.get(array, index);
-		index += 1;
-		if (index == size) {
-			index = 0;
+		final Object r = Array.get(this.array, this.index);
+		this.index += 1;
+		if (this.index == this.size) {
+			this.index = 0;
 		}
 		return r;
 	}
@@ -46,17 +57,17 @@ final class ArrayFieldReader implements FieldReader {
 
 	@Override
 	public int size() {
-		return size;
+		return this.size;
 	}
 
 	@Override
 	public Field getField() {
-		return field;
+		return this.field;
 	}
 
 	@Override
 	public Object getObject() {
-		return obj;
+		return this.obj;
 	}
 }
 
@@ -73,7 +84,7 @@ final class BufferedFieldReader implements FieldReader {
 
 	@Override
 	public Object get() {
-		return value;
+		return this.value;
 	}
 
 	@Override
@@ -88,12 +99,12 @@ final class BufferedFieldReader implements FieldReader {
 
 	@Override
 	public Field getField() {
-		return field;
+		return this.field;
 	}
 
 	@Override
 	public Object getObject() {
-		return obj;
+		return this.obj;
 	}
 }
 
@@ -109,7 +120,7 @@ final class DefaultFieldReader implements FieldReader {
 	@Override
 	public Object get() {
 		try {
-			return field.get(obj);
+			return this.field.get(this.obj);
 		} catch (IllegalArgumentException | IllegalAccessException e) {
 			throw new IllegalStateException(e);
 		}
@@ -127,11 +138,11 @@ final class DefaultFieldReader implements FieldReader {
 
 	@Override
 	public Field getField() {
-		return field;
+		return this.field;
 	}
 
 	@Override
 	public Object getObject() {
-		return obj;
+		return this.obj;
 	}
 }

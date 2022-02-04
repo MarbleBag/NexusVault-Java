@@ -3,7 +3,7 @@ package nexusvault.format.tex.jpg.tools;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.AbstractQueuedSynchronizer;
 
-public final class CountLatch {
+final class CountLatch {
 
 	private static final class Sync extends AbstractQueuedSynchronizer {
 

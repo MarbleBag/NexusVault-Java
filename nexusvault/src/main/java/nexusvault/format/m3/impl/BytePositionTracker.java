@@ -1,3 +1,14 @@
+/*******************************************************************************
+ * Copyright (C) 2018-2022 MarbleBag
+ *
+ * This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any later version.
+ *
+ * You should have received a copy of the GNU Affero General Public License along with this program. If not, see <https://www.gnu.org/licenses/>
+ *
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ *******************************************************************************/
+
 package nexusvault.format.m3.impl;
 
 import java.nio.ByteBuffer;
@@ -15,34 +26,34 @@ public final class BytePositionTracker {
 	}
 
 	public long getDataStart() {
-		return start;
+		return this.start;
 	}
 
 	public long getDataEnd() {
-		return end;
+		return this.end;
 	}
 
 	public ByteBuffer getData() {
-		return buffer;
+		return this.buffer;
 	}
 
 	public long getPosition() {
-		return buffer.position();
+		return this.buffer.position();
 	}
 
 	public void resetPosition() {
-		buffer.position(start);
+		this.buffer.position(this.start);
 	}
 
 	public void setPosition(long position) {
-		final int newPosition = (int) (start + position);
-		if ((newPosition < start) || (end < newPosition)) {
-			throw new IndexOutOfBoundsException("[" + start + "; " + end + "] was " + newPosition);
+		final int newPosition = (int) (this.start + position);
+		if (newPosition < this.start || this.end < newPosition) {
+			throw new IndexOutOfBoundsException("[" + this.start + "; " + this.end + "] was " + newPosition);
 		}
-		buffer.position(newPosition);
+		this.buffer.position(newPosition);
 	}
 
 	public void move(int bytes) {
-		setPosition(buffer.position() + bytes);
+		setPosition(this.buffer.position() + bytes);
 	}
 }

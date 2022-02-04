@@ -1,3 +1,14 @@
+/*******************************************************************************
+ * Copyright (C) 2018-2022 MarbleBag
+ *
+ * This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any later version.
+ *
+ * You should have received a copy of the GNU Affero General Public License along with this program. If not, see <https://www.gnu.org/licenses/>
+ *
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ *******************************************************************************/
+
 package nexusvault.format.m3.debug;
 
 import java.util.ArrayList;
@@ -21,8 +32,8 @@ final class Class2ObjectLookup<S> {
 	}
 
 	public void setLookUp(Class<?> keyClass, S data) {
-		innitialMap.put(keyClass, data);
-		cache.put(keyClass, data);
+		this.innitialMap.put(keyClass, data);
+		this.cache.put(keyClass, data);
 	}
 
 	public void clearCache() {
@@ -30,11 +41,11 @@ final class Class2ObjectLookup<S> {
 	}
 
 	public S getWithoutLookUp(Class<?> keyClass) {
-		return innitialMap.get(keyClass);
+		return this.innitialMap.get(keyClass);
 	}
 
 	public S getLookUp(Class<?> keyClass) {
-		S data = cache.get(keyClass);
+		S data = this.cache.get(keyClass);
 		if (data != null) {
 			return data;
 		}
@@ -45,7 +56,7 @@ final class Class2ObjectLookup<S> {
 			// data = defaultValueSupplier.get();
 		}
 
-		cache.put(keyClass, data);
+		this.cache.put(keyClass, data);
 		return data;
 	}
 
@@ -73,7 +84,7 @@ final class Class2ObjectLookup<S> {
 
 	private List<Class<?>> getAssignableKeys(Class<?> keyClass) {
 		final List<Class<?>> assignableKeys = new LinkedList<>();
-		for (final Class<?> key : innitialMap.keySet()) {
+		for (final Class<?> key : this.innitialMap.keySet()) {
 			if (key.isAssignableFrom(keyClass)) {
 				assignableKeys.add(key);
 			}

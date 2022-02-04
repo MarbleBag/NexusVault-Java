@@ -1,3 +1,14 @@
+/*******************************************************************************
+ * Copyright (C) 2018-2022 MarbleBag
+ *
+ * This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any later version.
+ *
+ * You should have received a copy of the GNU Affero General Public License along with this program. If not, see <https://www.gnu.org/licenses/>
+ *
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ *******************************************************************************/
+
 package nexusvault.format.m3.pointer;
 
 import kreed.reflection.struct.DataType;
@@ -46,15 +57,15 @@ public class DoubleArrayTypePointer<A extends VisitableStruct, B extends Visitab
 	}
 
 	public boolean hasElements() {
-		return elements != 0;
+		return this.elements != 0;
 	}
 
 	public int getArraySize() {
-		return elements;
+		return this.elements;
 	}
 
 	public long getOffsetA() {
-		return offsetA;
+		return this.offsetA;
 	}
 
 	public void setOffsetA(long offset) {
@@ -62,19 +73,19 @@ public class DoubleArrayTypePointer<A extends VisitableStruct, B extends Visitab
 	}
 
 	public int getElementSizeA() {
-		return byteSizeA;
+		return this.byteSizeA;
 	}
 
 	public Class<A> getTypeOfElementA() {
-		return typeOfA;
+		return this.typeOfA;
 	}
 
 	public boolean hasTypeA() {
-		return typeOfA != null;
+		return this.typeOfA != null;
 	}
 
 	public long getOffsetB() {
-		return offsetB;
+		return this.offsetB;
 	}
 
 	public void setOffsetB(long offset) {
@@ -82,34 +93,34 @@ public class DoubleArrayTypePointer<A extends VisitableStruct, B extends Visitab
 	}
 
 	public int getElementSizeB() {
-		return byteSizeB;
+		return this.byteSizeB;
 	}
 
 	public Class<B> getTypeOfElementB() {
-		return typeOfB;
+		return this.typeOfB;
 	}
 
 	public boolean hasTypeB() {
-		return typeOfB != null;
+		return this.typeOfB != null;
 	}
 
 	@Override
 	public String toString() {
 		final StringBuilder builder = new StringBuilder();
 		builder.append("DoubleArrayTypePointer [elements=");
-		builder.append(elements);
+		builder.append(this.elements);
 		builder.append(", offsetA=");
-		builder.append(offsetA);
+		builder.append(this.offsetA);
 		builder.append(", offsetB=");
-		builder.append(offsetB);
+		builder.append(this.offsetB);
 		builder.append(", typeOfA=");
-		builder.append(typeOfA);
+		builder.append(this.typeOfA);
 		builder.append(", byteSizeA=");
-		builder.append(byteSizeA);
+		builder.append(this.byteSizeA);
 		builder.append(", typeOfB=");
-		builder.append(typeOfB);
+		builder.append(this.typeOfB);
 		builder.append(", byteSizeB=");
-		builder.append(byteSizeB);
+		builder.append(this.byteSizeB);
 		builder.append("]");
 		return builder.toString();
 	}
@@ -118,14 +129,14 @@ public class DoubleArrayTypePointer<A extends VisitableStruct, B extends Visitab
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = (prime * result) + byteSizeA;
-		result = (prime * result) + byteSizeB;
-		result = (prime * result) + elements;
-		result = (prime * result) + (int) (offsetA ^ (offsetA >>> 32));
-		result = (prime * result) + (int) (offsetB ^ (offsetB >>> 32));
-		result = (prime * result) + ((typeOfA == null) ? 0 : typeOfA.hashCode());
-		result = (prime * result) + ((typeOfB == null) ? 0 : typeOfB.hashCode());
-		result = (prime * result) + unused;
+		result = prime * result + this.byteSizeA;
+		result = prime * result + this.byteSizeB;
+		result = prime * result + this.elements;
+		result = prime * result + (int) (this.offsetA ^ this.offsetA >>> 32);
+		result = prime * result + (int) (this.offsetB ^ this.offsetB >>> 32);
+		result = prime * result + (this.typeOfA == null ? 0 : this.typeOfA.hashCode());
+		result = prime * result + (this.typeOfB == null ? 0 : this.typeOfB.hashCode());
+		result = prime * result + this.unused;
 		return result;
 	}
 
@@ -141,36 +152,36 @@ public class DoubleArrayTypePointer<A extends VisitableStruct, B extends Visitab
 			return false;
 		}
 		final DoubleArrayTypePointer other = (DoubleArrayTypePointer) obj;
-		if (byteSizeA != other.byteSizeA) {
+		if (this.byteSizeA != other.byteSizeA) {
 			return false;
 		}
-		if (byteSizeB != other.byteSizeB) {
+		if (this.byteSizeB != other.byteSizeB) {
 			return false;
 		}
-		if (elements != other.elements) {
+		if (this.elements != other.elements) {
 			return false;
 		}
-		if (offsetA != other.offsetA) {
+		if (this.offsetA != other.offsetA) {
 			return false;
 		}
-		if (offsetB != other.offsetB) {
+		if (this.offsetB != other.offsetB) {
 			return false;
 		}
-		if (typeOfA == null) {
+		if (this.typeOfA == null) {
 			if (other.typeOfA != null) {
 				return false;
 			}
-		} else if (!typeOfA.equals(other.typeOfA)) {
+		} else if (!this.typeOfA.equals(other.typeOfA)) {
 			return false;
 		}
-		if (typeOfB == null) {
+		if (this.typeOfB == null) {
 			if (other.typeOfB != null) {
 				return false;
 			}
-		} else if (!typeOfB.equals(other.typeOfB)) {
+		} else if (!this.typeOfB.equals(other.typeOfB)) {
 			return false;
 		}
-		if (unused != other.unused) {
+		if (this.unused != other.unused) {
 			return false;
 		}
 		return true;

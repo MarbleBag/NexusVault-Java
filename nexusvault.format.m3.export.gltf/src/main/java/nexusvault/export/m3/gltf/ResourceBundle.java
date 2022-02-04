@@ -1,3 +1,14 @@
+/*******************************************************************************
+ * Copyright (C) 2018-2022 MarbleBag
+ *
+ * This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any later version.
+ *
+ * You should have received a copy of the GNU Affero General Public License along with this program. If not, see <https://www.gnu.org/licenses/>
+ *
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ *******************************************************************************/
+
 package nexusvault.export.m3.gltf;
 
 import java.util.LinkedList;
@@ -13,7 +24,7 @@ public final class ResourceBundle {
 
 	/**
 	 * See {@link TextureResource} for a list of possible resource types
-	 * 
+	 *
 	 * @param resource
 	 *            a list of possible resources
 	 */
@@ -21,12 +32,12 @@ public final class ResourceBundle {
 		if (resource == null) {
 			return;
 		}
-		resources.addAll(resource);
+		this.resources.addAll(resource);
 	}
 
 	/**
 	 * See {@link TextureResource} for a list of possible resource types
-	 * 
+	 *
 	 * @param resource
 	 *            a possible resource
 	 */
@@ -34,11 +45,11 @@ public final class ResourceBundle {
 		if (resource == null) {
 			return;
 		}
-		resources.add(resource);
+		this.resources.add(resource);
 	}
 
 	public List<TextureResource> getTextureResources() {
-		return resources;
+		return this.resources;
 	}
 
 }
