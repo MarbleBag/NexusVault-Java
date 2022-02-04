@@ -13,4 +13,4 @@ and stores a list of major changes in its [changelog](CHANGELOG.md)
 
 ## License
 
-This project is licensed under the GNU AGPLv3 License - see repository root folder for license file.
+This project is licensed under the GNU AGPLv3 License - see the [LICENSE.md](../../docs/LICENSE.md) in the repository docs folder.
