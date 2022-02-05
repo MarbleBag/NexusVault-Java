@@ -109,6 +109,7 @@ public final class LanguageWriter {
 					writer.seek(Seek.BEGIN, position);
 				}
 			}
+			header.totalTextSize = offsetInCharacters;
 		}
 
 		{
