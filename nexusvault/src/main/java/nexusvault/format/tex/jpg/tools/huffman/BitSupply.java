@@ -21,7 +21,7 @@ public final class BitSupply implements HuffmanDecoder.BitSupply {
 	}
 
 	public int remainingBits() {
-		return this.queue.position() + (this.data.length - this.index) * 8 /* bits per byte */ ;
+		return this.queue.position() + (this.data.length - this.index) * Byte.SIZE /* bits per byte */ ;
 	}
 
 	@Override
@@ -31,8 +31,8 @@ public final class BitSupply implements HuffmanDecoder.BitSupply {
 
 	@Override
 	public int supply(int requestedBits) {
-		if (requestedBits > 32) {
-			throw new IndexOutOfBoundsException();
+		if (requestedBits > Integer.SIZE) {
+			throw new IllegalArgumentException();
 		}
 
 		if (this.queue.position() < requestedBits) {
@@ -42,8 +42,8 @@ public final class BitSupply implements HuffmanDecoder.BitSupply {
 			}
 
 			while (dif > 0) {
-				this.queue.push(this.data[this.index++] & 0xFF, 8);
-				dif -= 8;
+				this.queue.push(this.data[this.index++] & 0xFF, Byte.SIZE);
+				dif -= Byte.SIZE;
 			}
 		}
 		return this.queue.pop(requestedBits);
