@@ -13,20 +13,20 @@ package nexusvault.format.tex.util;
 
 public final class ColorModelConverter {
 
-	public static byte[] packRGBToB5G6B5(byte[] src) {
+	public static byte[] packRGBToBGR565(byte[] src) {
 		final byte[] dst = new byte[src.length / 3 * 2];
 		for (int s = 0, d = 0; d < dst.length; s += 3, d += 2) {
 			final var r = src[s + 0]; // R
 			final var g = src[s + 1]; // G
 			final var b = src[s + 2]; // B
 			final int data = (r & 0xF8) << 8 | (g & 0xFC) << 3 | (b & 0xF8) << 0;
-			dst[d + 1] = (byte) (data >> 8 & 0xFF);
 			dst[d + 0] = (byte) (data >> 0 & 0xFF);
+			dst[d + 1] = (byte) (data >> 8 & 0xFF);
 		}
 		return dst;
 	}
 
-	public static byte[] packARGBToB5G6B5(byte[] src) {
+	public static byte[] packARGBToBGR565(byte[] src) {
 		final byte[] dst = new byte[src.length / 2];
 		for (int s = 0, d = 0; d < dst.length; s += 4, d += 2) {
 			final var r = src[s + 1]; // R
@@ -39,7 +39,7 @@ public final class ColorModelConverter {
 		return dst;
 	}
 
-	public static byte[] packGrayscaleToB5G6B5(byte[] src) {
+	public static byte[] packGrayscaleToBGR565(byte[] src) {
 		final byte[] dst = new byte[src.length * 2];
 		for (int s = 0, d = 0; d < dst.length; s += 1, d += 2) {
 			final var shade = src[s + 0]; // R
@@ -50,7 +50,7 @@ public final class ColorModelConverter {
 		return dst;
 	}
 
-	public static byte[] unpackB5G6B5ToRGB(byte[] src) {
+	public static byte[] unpackBGR565ToRGB(byte[] src) {
 		final byte[] dst = new byte[src.length / 2 * 3];
 		for (int d = 0, s = 0; d < dst.length; d += 3, s += 2) {
 			dst[d++] = (byte) (src[s + 1] & 0x1F); // r

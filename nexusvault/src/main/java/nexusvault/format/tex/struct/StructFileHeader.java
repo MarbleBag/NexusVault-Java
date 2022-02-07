@@ -42,12 +42,12 @@ public final class StructFileHeader implements ReadAndWritable {
 	@StructField(BIT_32)
 	public int version; // 0x04
 
-	/** pixel, power of 2. Size of the largest mipmap. */
+	/** pixel, power of 2. Size of the largest texture. */
 	@Order(3)
 	@StructField(BIT_32)
 	public int width; // 0x08
 
-	/** pixel, power of 2. Size of the largest mipmap. */
+	/** pixel, power of 2. Size of the largest texture. */
 	@Order(4)
 	@StructField(BIT_32)
 	public int height; // 0x0C
@@ -60,10 +60,10 @@ public final class StructFileHeader implements ReadAndWritable {
 	@StructField(BIT_32)
 	public int sides; // 0x14
 
-	/** number of stored mipmaps */
+	/** number of stored textures */
 	@Order(7)
 	@StructField(BIT_32)
-	public int mipMaps; // 0x18
+	public int textureCount; // 0x18
 
 	/**
 	 * <ul>
@@ -88,27 +88,27 @@ public final class StructFileHeader implements ReadAndWritable {
 
 	@Order(11)
 	@StructField(value = STRUCT, length = 4)
-	public StructJpgChannel[] jpgChannelInfos; // 0x28
+	public StructJpgChannel[] jpgChannel; // 0x28
 
 	@Order(12)
 	@StructField(BIT_32)
-	public int mipmapSizesCount; // 0x34
+	public int imageSizesCount; // 0x34
 
 	@Order(13)
 	@StructField(value = BIT_32, length = 13)
-	public int[] mipmapSizes; // 0x38
+	public int[] imageSizes; // 0x38
 
 	@Order(14)
 	@StructField(BIT_32)
-	public int unk_06C; // 0x6C
+	public int padding; // 0x6C
 
 	public StructFileHeader() {
 		this.signature = SIGNATURE;
-		this.jpgChannelInfos = new StructJpgChannel[4];
-		for (int i = 0; i < this.jpgChannelInfos.length; ++i) {
-			this.jpgChannelInfos[i] = new StructJpgChannel();
+		this.jpgChannel = new StructJpgChannel[4];
+		for (int i = 0; i < this.jpgChannel.length; ++i) {
+			this.jpgChannel[i] = new StructJpgChannel();
 		}
-		this.mipmapSizes = new int[13];
+		this.imageSizes = new int[13];
 	}
 
 	public StructFileHeader(BinaryReader reader) {
@@ -123,23 +123,23 @@ public final class StructFileHeader implements ReadAndWritable {
 		this.height = reader.readInt32();
 		this.depth = reader.readInt32();
 		this.sides = reader.readInt32();
-		this.mipMaps = reader.readInt32();
+		this.textureCount = reader.readInt32();
 		this.format = reader.readInt32();
 		this.isJpg = reader.readInt32() != 0;
 		this.jpgFormat = reader.readInt32();
-		this.jpgChannelInfos = new StructJpgChannel[4];
-		for (int i = 0; i < this.jpgChannelInfos.length; ++i) {
-			this.jpgChannelInfos[i] = new StructJpgChannel(reader);
+		this.jpgChannel = new StructJpgChannel[4];
+		for (int i = 0; i < this.jpgChannel.length; ++i) {
+			this.jpgChannel[i] = new StructJpgChannel(reader);
 		}
-		this.mipmapSizesCount = reader.readInt32();
-		this.mipmapSizes = new int[13];
-		for (int i = 0; i < this.mipmapSizes.length; ++i) {
-			this.mipmapSizes[i] = reader.readInt32();
+		this.imageSizesCount = reader.readInt32();
+		this.imageSizes = new int[13];
+		for (int i = 0; i < this.imageSizes.length; ++i) {
+			this.imageSizes[i] = reader.readInt32();
 		}
-		if (this.mipmapSizesCount > this.mipmapSizes.length) {
+		if (this.imageSizesCount > this.imageSizes.length) {
 			throw new StructException("Number of compressed mips out of bound.");
 		}
-		this.unk_06C = reader.readInt32();
+		this.padding = reader.readInt32();
 	}
 
 	@Override
@@ -150,18 +150,18 @@ public final class StructFileHeader implements ReadAndWritable {
 		writer.writeInt32(this.height);
 		writer.writeInt32(this.depth);
 		writer.writeInt32(this.sides);
-		writer.writeInt32(this.mipMaps);
+		writer.writeInt32(this.textureCount);
 		writer.writeInt32(this.format);
 		writer.writeInt32(this.isJpg ? 1 : 0);
 		writer.writeInt32(this.jpgFormat);
-		for (final StructJpgChannel jpgChannelInfo : this.jpgChannelInfos) {
+		for (final StructJpgChannel jpgChannelInfo : this.jpgChannel) {
 			jpgChannelInfo.write(writer);
 		}
-		writer.writeInt32(this.mipmapSizesCount);
-		for (final int mipmapSize : this.mipmapSizes) {
+		writer.writeInt32(this.imageSizesCount);
+		for (final int mipmapSize : this.imageSizes) {
 			writer.writeInt32(mipmapSize);
 		}
-		writer.writeInt32(this.unk_06C);
+		writer.writeInt32(this.padding);
 	}
 
 }

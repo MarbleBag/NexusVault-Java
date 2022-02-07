@@ -40,14 +40,14 @@ public final class JPGImageReader {
 			throw new VersionMismatchException("tex", 3, header.version);
 		}
 
-		final int length = header.mipmapSizes[mipMap];
+		final int length = header.imageSizes[mipMap];
 		int arrayOffset = offset;
 		for (int i = 0; i < mipMap; ++i) {
-			arrayOffset += header.mipmapSizes[i];
+			arrayOffset += header.imageSizes[i];
 		}
 
-		int width = header.width >> header.mipMaps - mipMap - 1;
-		int height = header.height >> header.mipMaps - mipMap - 1;
+		int width = header.width >> header.textureCount - mipMap - 1;
+		int height = header.height >> header.textureCount - mipMap - 1;
 		width = width <= 0 ? 1 : width;
 		height = height <= 0 ? 1 : height;
 

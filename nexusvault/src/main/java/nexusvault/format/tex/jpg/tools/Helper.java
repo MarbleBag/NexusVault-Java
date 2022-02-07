@@ -71,8 +71,8 @@ public final class Helper {
 
 	public static float[][] getQuantTables(StructFileHeader header) {
 		final var type = getJPGType(header);
-		return adjustQuantTables(type, header.jpgChannelInfos[0].quality, header.jpgChannelInfos[1].quality, header.jpgChannelInfos[2].quality,
-				header.jpgChannelInfos[3].quality);
+		return adjustQuantTables(type, header.jpgChannel[0].quality, header.jpgChannel[1].quality, header.jpgChannel[2].quality,
+				header.jpgChannel[3].quality);
 	}
 
 	public static int[] getDefaultColors(StructFileHeader header) {
@@ -80,7 +80,7 @@ public final class Helper {
 	}
 
 	private static int getDefaultColor(StructFileHeader header, int idx) {
-		return header.jpgChannelInfos[idx].hasColor ? header.jpgChannelInfos[idx].color & 0xFF : -1;
+		return header.jpgChannel[idx].hasColor ? header.jpgChannel[idx].color & 0xFF : -1;
 	}
 
 	public static JPGType getJPGType(StructFileHeader header) {

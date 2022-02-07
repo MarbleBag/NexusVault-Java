@@ -47,11 +47,11 @@ public final class TextureWriter {
 		header.version = 3;
 		header.depth = 1;
 		header.sides = 1;
-		header.mipMaps = mipmaps.length;
+		header.textureCount = mipmaps.length;
 		header.format = target.getFormat();
 		header.isJpg = target.isJpg();
 		header.jpgFormat = target.getJpgFormat();
-		header.mipmapSizesCount = mipmaps.length;
+		header.imageSizesCount = mipmaps.length;
 
 		sortImagesSmallToLarge(mipmaps);
 
@@ -59,7 +59,7 @@ public final class TextureWriter {
 		final var encodesImages = new byte[mipmaps.length][];
 		for (int i = 0; i < mipmaps.length; i++) {
 			encodesImages[i] = compressImage(target, mipmaps[i], quality, defaultColors);
-			header.mipmapSizes[i] = encodesImages[i].length;
+			header.imageSizes[i] = encodesImages[i].length;
 			fileSize += encodesImages[i].length;
 		}
 
@@ -92,7 +92,7 @@ public final class TextureWriter {
 	}
 
 	public static Image[] generateMipMaps(Image image, int mipmaps) {
-		return TextureMipMapGenerator.buildMipMaps(image, mipmaps);
+		return TextureMipMapGenerator.generate(image, mipmaps);
 	}
 
 	public static Image[] sortImagesSmallToLarge(Image[] mipmaps) {
