@@ -85,7 +85,7 @@ public final class Texture {
 	}
 
 	public int getHeight() {
-		return this.header.width;
+		return this.header.height;
 	}
 
 	public int getVersion() {
