@@ -23,6 +23,12 @@ public final class HuffmanDecoder {
 
 	}
 
+	private static void assertNotOutOfBounds(String argumentName, int value, int lowerBound, int upperBound) {
+		if (value < lowerBound || upperBound < value) {
+			throw new IllegalArgumentException(String.format("%s : %d is not within [%d; %d]", argumentName, value, lowerBound, upperBound));
+		}
+	}
+
 	public static void decode(HuffmanTable dc, HuffmanTable ac, BitSupply supplier, int[] dst, int dstOffset, int dstLength) {
 		if (dc == null) {
 			throw new IllegalArgumentException("'dc' must not be null");
@@ -93,12 +99,6 @@ public final class HuffmanDecoder {
 		return;
 	}
 
-	private static void assertNotOutOfBounds(String argumentName, int value, int lowerBound, int upperBound) {
-		if (value < lowerBound || upperBound < value) {
-			throw new IllegalArgumentException(String.format("%s : %d is not within [%d; %d]", argumentName, value, lowerBound, upperBound));
-		}
-	}
-
 	private static int decode(HuffmanTable decoder, BitSupply supplier) {
 		final int maxLength = decoder.getDecodeMaxLength();
 		final int minLength = decoder.getDecodeMinLength();
@@ -141,11 +141,9 @@ public final class HuffmanDecoder {
 		return 0;
 	}
 
-	private static int convertToSigned(int data, int nBits) {
-		int exData = 1 << nBits - 1;
-		if (data < exData) {
-			exData = (-1 << nBits) + 1;
-			data = data + exData;
+	private static int convertToSigned(int data, int bits) {
+		if (data < 1 << bits - 1) {
+			return data + (-1 << bits) + 1;
 		}
 		return data;
 	}

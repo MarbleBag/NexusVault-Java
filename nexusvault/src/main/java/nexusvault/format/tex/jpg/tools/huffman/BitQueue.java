@@ -23,23 +23,29 @@ public final class BitQueue {
 		return Long.SIZE - this.pos;
 	}
 
-	public int pop(int nBits) {
-		if (nBits < 0 || this.pos < nBits || Integer.SIZE < nBits) {
-			throw new IndexOutOfBoundsException(String.format("Queue contains %d bits. Unable to pop %d bits.", this.pos, nBits));
+	public int pop(int requestedBits) {
+		if (requestedBits < 0 || Integer.SIZE < requestedBits) {
+			throw new IllegalArgumentException("Can't pop less than 0 or more than 32 bits.");
 		}
-		if (nBits == 0) {
+		if (this.pos < requestedBits) {
+			throw new IllegalArgumentException(String.format("Queue contains %d bits. Unable to pop %d bits.", this.pos, requestedBits));
+		}
+		if (requestedBits == 0) {
 			return 0;
 		}
 
-		final int result = (int) (this.bitQueue >>> Long.SIZE - nBits);
-		this.bitQueue <<= nBits;
-		this.pos -= nBits;
+		final int result = (int) (this.bitQueue >>> Long.SIZE - requestedBits);
+		this.bitQueue <<= requestedBits;
+		this.pos -= requestedBits;
 		return result;
 	}
 
 	public void push(int data, int lengthInBits) {
-		if (remainingCapacity() < lengthInBits || lengthInBits < 0 || Integer.SIZE < lengthInBits) {
-			throw new IndexOutOfBoundsException(String.format("Queue can only store %d more bits. Unable to push %d bits.", remainingCapacity(), lengthInBits));
+		if (lengthInBits < 0 || Integer.SIZE < lengthInBits) {
+			throw new IllegalArgumentException("Can't push less than 0 or more than 32 bits.");
+		}
+		if (remainingCapacity() < lengthInBits) {
+			throw new IllegalArgumentException(String.format("Queue can only store %d more bits. Unable to push %d bits.", remainingCapacity(), lengthInBits));
 		}
 
 		if (lengthInBits == 0) {

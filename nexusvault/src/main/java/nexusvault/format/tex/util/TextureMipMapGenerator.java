@@ -20,7 +20,16 @@ public final class TextureMipMapGenerator {
 	private TextureMipMapGenerator() {
 	}
 
-	public static Image[] buildMipMaps(Image src, int numberOfMipMaps) {
+	/**
+	 * Generates a mipmap for a given image. Images are stored in sequence in an array. The first image is the original image.
+	 * 
+	 * @param src
+	 *            The original image
+	 * @param numberOfMipMaps
+	 *            Number of mipmaps, needs to be at least 1
+	 * @return A Mipmap
+	 */
+	public static Image[] generate(Image src, int numberOfMipMaps) {
 		if (numberOfMipMaps == 0) {
 			throw new IllegalArgumentException("Argument: 'numberofMipMaps' must not be 0");
 		}

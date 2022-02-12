@@ -47,7 +47,6 @@ public final class HuffmanEncoder {
 		consumer.consume(dcDiff, dcBits);
 
 		for (int i = 1; i < srcLength;) {
-
 			int acBits = 0x00;
 
 			if (src[i + srcOffset] == 0) { // count zeros
@@ -108,11 +107,11 @@ public final class HuffmanEncoder {
 		return Integer.SIZE - Integer.numberOfLeadingZeros(Math.abs(value));
 	}
 
-	private static int convertToUnsigned(int data, int numberOfBits) {
-		if (data < 0) {
-			data = data - ((-1 << numberOfBits) + 1);
+	private static int convertToUnsigned(int value, int numberOfBits) {
+		if (value < 0) {
+			value = value - ((-1 << numberOfBits) + 1);
 		}
-		return data;
+		return value;
 	}
 
 	private static void encode(HuffmanTable table, BitConsumer consumer, int value) {

@@ -47,11 +47,11 @@ public final class PlainImageWriter {
 			case RGB: {
 				switch (image.getFormat()) {
 					case ARGB:
-						return ColorModelConverter.packARGBToB5G6B5(image.getData());
+						return ColorModelConverter.packARGBToBGR565(image.getData());
 					case RGB:
-						return ColorModelConverter.packRGBToB5G6B5(image.getData());
+						return ColorModelConverter.packRGBToBGR565(image.getData());
 					case GRAYSCALE:
-						return ColorModelConverter.packGrayscaleToB5G6B5(image.getData());
+						return ColorModelConverter.packGrayscaleToBGR565(image.getData());
 				}
 				break;
 			}

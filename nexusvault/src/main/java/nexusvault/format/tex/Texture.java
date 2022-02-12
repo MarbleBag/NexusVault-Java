@@ -56,7 +56,7 @@ public final class Texture {
 	}
 
 	public Image getMipMap(int index) {
-		index = this.header.mipMaps - index - 1;
+		index = this.header.textureCount - index - 1;
 		switch (getTextureType()) {
 			case DXT1:
 			case DXT3:
@@ -77,7 +77,7 @@ public final class Texture {
 	}
 
 	public int getMipMapCount() {
-		return this.header.mipMaps;
+		return this.header.textureCount;
 	}
 
 	public int getWidth() {
@@ -85,7 +85,7 @@ public final class Texture {
 	}
 
 	public int getHeight() {
-		return this.header.width;
+		return this.header.height;
 	}
 
 	public int getVersion() {

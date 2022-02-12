@@ -53,8 +53,8 @@ public final class PlainImageReader {
 
 		int width = 0, height = 0, length = 0, arrayOffset = offset;
 		for (int i = 0; i <= mipMap; ++i) {
-			width = (int) (header.width / Math.pow(2, header.mipMaps - 1 - i));
-			height = (int) (header.height / Math.pow(2, header.mipMaps - 1 - i));
+			width = (int) (header.width / Math.pow(2, header.textureCount - 1 - i));
+			height = (int) (header.height / Math.pow(2, header.textureCount - 1 - i));
 			width = width <= 0 ? 1 : width;
 			height = height <= 0 ? 1 : height;
 			arrayOffset += length;
@@ -70,7 +70,7 @@ public final class PlainImageReader {
 				ColorModelConverter.inplaceConvertBGRAToARGB(buffer);
 				return new Image(width, height, ImageFormat.ARGB, buffer);
 			case RGB:
-				return new Image(width, height, ImageFormat.RGB, ColorModelConverter.unpackB5G6B5ToRGB(buffer));
+				return new Image(width, height, ImageFormat.RGB, ColorModelConverter.unpackBGR565ToRGB(buffer));
 			case GRAYSCALE:
 				return new Image(width, height, ImageFormat.GRAYSCALE, buffer);
 			default:
