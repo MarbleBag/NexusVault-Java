@@ -26,7 +26,7 @@ public final class StructModel2Display implements VisitableStruct {
 
 	static {
 		if (SIZE_IN_BYTES != 0x04) {
-			throw new StructException();
+			throw new StructException("Invalid struct size");
 		}
 	}
 

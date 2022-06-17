@@ -35,7 +35,7 @@ public final class StructBones implements VisitableStruct {
 
 	static {
 		if (SIZE_IN_BYTES != 0x160) {
-			throw new StructException();
+			throw new StructException("Invalid struct size");
 		}
 	}
 

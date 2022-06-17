@@ -27,7 +27,7 @@ public final class StructMesh implements VisitableStruct {
 
 	static {
 		if (SIZE_IN_BYTES != 0x70) {
-			throw new StructException();
+			throw new StructException("Invalid struct size");
 		}
 	}
 
