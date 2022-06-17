@@ -220,7 +220,7 @@ public final class JPGImageWriter {
 		dct(context, component, offset);
 		quantizate(context, component, offset);
 		copyPixelBufferToBlock(context, component, offset);
-		encodeToBlock(context, component);
+		encodeBlock(context, component);
 	}
 
 	private static void compressSingleBlockB(Context context, Component component, int offset) {
@@ -229,7 +229,7 @@ public final class JPGImageWriter {
 		dct(context, component, offset);
 		quantizate(context, component, offset);
 		copyPixelBufferToBlock(context, component, offset);
-		encodeToBlock(context, component);
+		encodeBlock(context, component);
 	}
 
 	private static void shiftAndClamp(Context context, Component component, int offset) {
@@ -276,7 +276,7 @@ public final class JPGImageWriter {
 		}
 	}
 
-	private static void encodeToBlock(Context context, Component component) {
+	private static void encodeBlock(Context context, Component component) {
 		// zigzag
 		for (int n = 0; n < Constants.BLOCK_SIZE; ++n) {
 			context.uncompressed[Constants.ZIGZAG_SEQUENCE[n]] = context.block[n];
