@@ -11,6 +11,8 @@
 
 package nexusvault.format.m3.pointer;
 
+import java.util.Objects;
+
 import kreed.reflection.struct.DataType;
 import kreed.reflection.struct.Order;
 import kreed.reflection.struct.StructField;
@@ -21,14 +23,10 @@ public class ArrayTypePointer<T extends VisitableStruct> {
 	public static final int SIZE_IN_BYTES = StructUtil.sizeOf(ArrayTypePointer.class);
 
 	@Order(1)
-	@StructField(DataType.BIT_32)
-	private int elements;
+	@StructField(DataType.BIT_64)
+	private long elements;
 
 	@Order(2)
-	@StructField(DataType.BIT_32)
-	private int unused;
-
-	@Order(3)
 	@StructField(DataType.BIT_64)
 	private long offset;
 
@@ -53,7 +51,7 @@ public class ArrayTypePointer<T extends VisitableStruct> {
 	}
 
 	public int getArrayLength() {
-		return this.elements;
+		return (int) this.elements;
 	}
 
 	public boolean hasElements() {
@@ -89,8 +87,6 @@ public class ArrayTypePointer<T extends VisitableStruct> {
 		final StringBuilder builder = new StringBuilder();
 		builder.append("ArrayTypePointer [elements=");
 		builder.append(this.elements);
-		builder.append(", unused=");
-		builder.append(this.unused);
 		builder.append(", offset=");
 		builder.append(this.offset);
 		builder.append(", typeOf=");
@@ -103,14 +99,7 @@ public class ArrayTypePointer<T extends VisitableStruct> {
 
 	@Override
 	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + this.byteSize;
-		result = prime * result + this.elements;
-		result = prime * result + (int) (this.offset ^ this.offset >>> 32);
-		result = prime * result + (this.typeOf == null ? 0 : this.typeOf.hashCode());
-		result = prime * result + this.unused;
-		return result;
+		return Objects.hash(this.byteSize, this.elements, this.offset, this.typeOf);
 	}
 
 	@Override
@@ -125,26 +114,7 @@ public class ArrayTypePointer<T extends VisitableStruct> {
 			return false;
 		}
 		final ArrayTypePointer other = (ArrayTypePointer) obj;
-		if (this.byteSize != other.byteSize) {
-			return false;
-		}
-		if (this.elements != other.elements) {
-			return false;
-		}
-		if (this.offset != other.offset) {
-			return false;
-		}
-		if (this.typeOf == null) {
-			if (other.typeOf != null) {
-				return false;
-			}
-		} else if (!this.typeOf.equals(other.typeOf)) {
-			return false;
-		}
-		if (this.unused != other.unused) {
-			return false;
-		}
-		return true;
+		return this.byteSize == other.byteSize && this.elements == other.elements && this.offset == other.offset && Objects.equals(this.typeOf, other.typeOf);
 	}
 
 }

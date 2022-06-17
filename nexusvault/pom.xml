@@ -5,15 +5,15 @@
 
 	<groupId>nexusvault</groupId>
 	<artifactId>nexusvault</artifactId>
-	<version>4.0.0</version>
+	<version>5.0.0</version>
 	<packaging>jar</packaging>
 
 	<name>NexusVault</name>
-	<url>https://github.com/MarbleBag/NexusVault</url>
+	<url>https://github.com/MarbleBag/NexusVault-Java</url>
 
 	<properties>
 		<nexusvault.maven.repo.local.id>nexusvault.localrepo</nexusvault.maven.repo.local.id>
-		<nexusvault.maven.repo.local.name>local-maven-repo</nexusvault.maven.repo.local.name>
+		<nexusvault.maven.repo.local.name>nexusvault local maven repo</nexusvault.maven.repo.local.name>
 		<nexusvault.maven.repo.local.url>file:\\\${project.basedir}\maven-repo</nexusvault.maven.repo.local.url>
 		<project.java.version>11</project.java.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

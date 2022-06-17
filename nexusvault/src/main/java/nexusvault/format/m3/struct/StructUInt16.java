@@ -26,7 +26,7 @@ public final class StructUInt16 implements VisitableStruct {
 
 	static {
 		if (SIZE_IN_BYTES != 0x2) {
-			throw new StructException();
+			throw new StructException("Invalid struct size");
 		}
 	}
 

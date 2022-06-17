@@ -35,7 +35,7 @@ public final class StructMaterial implements VisitableStruct {
 
 	static {
 		if (SIZE_IN_BYTES != 0x30) {
-			throw new StructException();
+			throw new StructException("Invalid struct size");
 		}
 	}
 

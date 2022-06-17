@@ -28,7 +28,7 @@ public class StructUnk184 implements VisitableStruct {
 
 	static {
 		if (SIZE_IN_BYTES != 0xB8) {
-			throw new StructException();
+			throw new StructException("Invalid struct size");
 		}
 	}
 

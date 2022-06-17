@@ -23,11 +23,11 @@ import nexusvault.shared.exception.StructException;
 
 public final class StructUnk48 implements VisitableStruct {
 
-	public final static int SIZE_IN_BYTES = StructUtil.sizeOf(StructUnk184.class);
+	public final static int SIZE_IN_BYTES = StructUtil.sizeOf(StructUnk48.class);
 
 	static {
 		if (SIZE_IN_BYTES != 0x30) {
-			throw new StructException();
+			throw new StructException("Invalid struct size");
 		}
 	}
 

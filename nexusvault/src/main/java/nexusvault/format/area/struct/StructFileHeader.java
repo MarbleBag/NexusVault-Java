@@ -21,6 +21,12 @@ public final class StructFileHeader {
 	public static final int SIGNATURE = 'A' << 24 | 'R' << 16 | 'E' << 8 | 'A';
 	public static final int SIZE_IN_BYTES = StructUtil.sizeOf(StructFileHeader.class);
 
+	static {
+		// if (SIZE_IN_BYTES != 0x00) {
+		// throw new StructException("Invalid struct size");
+		// }
+	}
+
 	@Order(1)
 	@StructField(DataType.BIT_32)
 	public int signature; // 0x000

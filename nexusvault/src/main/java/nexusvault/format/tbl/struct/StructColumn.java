@@ -28,7 +28,7 @@ public final class StructColumn implements ReadAndWritable {
 
 	static {
 		if (SIZE_IN_BYTES != 0x18) {
-			throw new StructException();
+			throw new StructException("Invalid struct size");
 		}
 	}
 

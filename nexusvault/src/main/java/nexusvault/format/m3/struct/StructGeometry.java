@@ -32,7 +32,7 @@ public final class StructGeometry implements VisitableStruct {
 
 	static {
 		if (SIZE_IN_BYTES != 0xC8) {
-			throw new StructException();
+			throw new StructException("Invalid struct size");
 		}
 	}
 

@@ -26,7 +26,7 @@ public final class StructIndexFile implements ReadAndWritable {
 
 	static {
 		if (SIZE_IN_BYTES != 0x38) {
-			throw new StructException();
+			throw new StructException("Invalid struct size");
 		}
 	}
 
