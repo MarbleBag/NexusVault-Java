@@ -14,7 +14,7 @@ package nexusvault.format.m3;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
-import kreed.io.util.ByteArrayBinaryReader;
+import kreed.io.util.ByteArrayUtil;
 import nexusvault.format.m3.impl.BytePositionTracker;
 import nexusvault.format.m3.impl.InMemoryModel;
 import nexusvault.format.m3.impl.ReferenceUpdater;
@@ -29,18 +29,21 @@ public final class ModelReader {
 	private static final int VERSION = 100;
 
 	public static Model read(byte[] data) {
-		final var reader = new ByteArrayBinaryReader(data, ByteOrder.LITTLE_ENDIAN);
-		final var signature = reader.readInt32();
+		return read(data, ByteOrder.LITTLE_ENDIAN);
+	}
+
+	private static Model read(byte[] data, ByteOrder order) {
+		final var signature = ByteArrayUtil.getInt32(data, 0, order);
 		if (signature != StructM3Header.SIGNATURE) {
 			throw new SignatureMismatchException("m3", StructM3Header.SIGNATURE, signature);
 		}
 
-		final var version = reader.readInt32();
+		final var version = ByteArrayUtil.getInt32(data, 4, order);
 		if (version != VERSION) {
 			throw new VersionMismatchException("m3", VERSION, version);
 		}
 
-		final var tracker = new BytePositionTracker(0, data.length, ByteBuffer.wrap(data));
+		final var tracker = new BytePositionTracker(0, data.length, ByteBuffer.wrap(data).order(order));
 		final var entry = ReferenceUpdater.update(tracker, StructM3Header.class);
 		return new InMemoryModel(entry, tracker);
 	}
