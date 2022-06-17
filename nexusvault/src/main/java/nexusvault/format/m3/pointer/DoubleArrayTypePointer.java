@@ -11,6 +11,8 @@
 
 package nexusvault.format.m3.pointer;
 
+import java.util.Objects;
+
 import kreed.reflection.struct.DataType;
 import kreed.reflection.struct.Order;
 import kreed.reflection.struct.StructField;
@@ -21,18 +23,14 @@ public class DoubleArrayTypePointer<A extends VisitableStruct, B extends Visitab
 	public static final int SIZE_IN_BYTES = StructUtil.sizeOf(DoubleArrayTypePointer.class);
 
 	@Order(1)
-	@StructField(DataType.BIT_32)
-	private int elements;
+	@StructField(DataType.BIT_64)
+	private long elements;
 
 	@Order(2)
-	@StructField(DataType.BIT_32)
-	private int unused;
-
-	@Order(3)
 	@StructField(DataType.BIT_64)
 	private long offsetA;
 
-	@Order(4)
+	@Order(3)
 	@StructField(DataType.BIT_64)
 	private long offsetB;
 
@@ -61,7 +59,7 @@ public class DoubleArrayTypePointer<A extends VisitableStruct, B extends Visitab
 	}
 
 	public int getArraySize() {
-		return this.elements;
+		return (int) this.elements;
 	}
 
 	public long getOffsetA() {
@@ -127,17 +125,7 @@ public class DoubleArrayTypePointer<A extends VisitableStruct, B extends Visitab
 
 	@Override
 	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + this.byteSizeA;
-		result = prime * result + this.byteSizeB;
-		result = prime * result + this.elements;
-		result = prime * result + (int) (this.offsetA ^ this.offsetA >>> 32);
-		result = prime * result + (int) (this.offsetB ^ this.offsetB >>> 32);
-		result = prime * result + (this.typeOfA == null ? 0 : this.typeOfA.hashCode());
-		result = prime * result + (this.typeOfB == null ? 0 : this.typeOfB.hashCode());
-		result = prime * result + this.unused;
-		return result;
+		return Objects.hash(this.byteSizeA, this.byteSizeB, this.elements, this.offsetA, this.offsetB, this.typeOfA, this.typeOfB);
 	}
 
 	@Override
@@ -152,39 +140,8 @@ public class DoubleArrayTypePointer<A extends VisitableStruct, B extends Visitab
 			return false;
 		}
 		final DoubleArrayTypePointer other = (DoubleArrayTypePointer) obj;
-		if (this.byteSizeA != other.byteSizeA) {
-			return false;
-		}
-		if (this.byteSizeB != other.byteSizeB) {
-			return false;
-		}
-		if (this.elements != other.elements) {
-			return false;
-		}
-		if (this.offsetA != other.offsetA) {
-			return false;
-		}
-		if (this.offsetB != other.offsetB) {
-			return false;
-		}
-		if (this.typeOfA == null) {
-			if (other.typeOfA != null) {
-				return false;
-			}
-		} else if (!this.typeOfA.equals(other.typeOfA)) {
-			return false;
-		}
-		if (this.typeOfB == null) {
-			if (other.typeOfB != null) {
-				return false;
-			}
-		} else if (!this.typeOfB.equals(other.typeOfB)) {
-			return false;
-		}
-		if (this.unused != other.unused) {
-			return false;
-		}
-		return true;
+		return this.byteSizeA == other.byteSizeA && this.byteSizeB == other.byteSizeB && this.elements == other.elements && this.offsetA == other.offsetA
+				&& this.offsetB == other.offsetB && Objects.equals(this.typeOfA, other.typeOfA) && Objects.equals(this.typeOfB, other.typeOfB);
 	}
 
 }
