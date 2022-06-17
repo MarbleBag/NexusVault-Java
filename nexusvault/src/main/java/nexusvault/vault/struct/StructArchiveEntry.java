@@ -26,7 +26,7 @@ public final class StructArchiveEntry {
 
 	static {
 		if (SIZE_IN_BYTES != 0x20) {
-			throw new StructException();
+			throw new StructException("Invalid struct size");
 		}
 	}
 

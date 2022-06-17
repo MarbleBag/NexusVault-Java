@@ -27,7 +27,7 @@ public final class StructIndexRootElement implements ReadAndWritable {
 
 	static {
 		if (SIZE_IN_BYTES != 0x10) {
-			throw new StructException();
+			throw new StructException("Invalid struct size");
 		}
 	}
 
