@@ -41,6 +41,8 @@ public final class TextureWriter {
 	}
 
 	private static byte[] toBinary(TextureType target, Image[] mipmaps, int quality, int[] defaultColors) {
+		mipmaps = sortImagesSmallToLarge(mipmaps);
+
 		final var header = new StructFileHeader();
 		header.width = mipmaps[mipmaps.length - 1].getWidth();
 		header.height = mipmaps[mipmaps.length - 1].getHeight();
@@ -53,20 +55,18 @@ public final class TextureWriter {
 		header.jpgFormat = target.getJpgFormat();
 		header.imageSizesCount = mipmaps.length;
 
-		sortImagesSmallToLarge(mipmaps);
-
 		var fileSize = StructFileHeader.SIZE_IN_BYTES;
-		final var encodesImages = new byte[mipmaps.length][];
+		final var encodedImages = new byte[mipmaps.length][];
 		for (int i = 0; i < mipmaps.length; i++) {
-			encodesImages[i] = compressImage(target, mipmaps[i], quality, defaultColors);
-			header.imageSizes[i] = encodesImages[i].length;
-			fileSize += encodesImages[i].length;
+			encodedImages[i] = compressImage(target, mipmaps[i], quality, defaultColors);
+			header.imageSizes[i] = encodedImages[i].length;
+			fileSize += encodedImages[i].length;
 		}
 
 		final var writer = new ByteArrayBinaryWriter(new byte[fileSize], ByteOrder.LITTLE_ENDIAN);
 		header.write(writer);
-		for (final byte[] encodesImage : encodesImages) {
-			writer.writeInt8(encodesImage, 0, encodesImage.length);
+		for (final byte[] encodedImage : encodedImages) {
+			writer.writeInt8(encodedImage, 0, encodedImage.length);
 		}
 		return writer.getDecoratedObject();
 	}
