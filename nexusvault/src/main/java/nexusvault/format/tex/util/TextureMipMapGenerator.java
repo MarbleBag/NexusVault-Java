@@ -15,6 +15,7 @@ import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 
 import nexusvault.format.tex.Image;
+import nexusvault.format.tex.Image.ImageFormat;
 
 public final class TextureMipMapGenerator {
 	private TextureMipMapGenerator() {
@@ -22,7 +23,7 @@ public final class TextureMipMapGenerator {
 
 	/**
 	 * Generates a mipmap for a given image. Images are stored in sequence in an array. The first image is the original image.
-	 * 
+	 *
 	 * @param src
 	 *            The original image
 	 * @param numberOfMipMaps
@@ -40,9 +41,68 @@ public final class TextureMipMapGenerator {
 
 		if (numberOfMipMaps < 0) {
 			final var value = Math.min(src.getWidth(), src.getHeight());
-			numberOfMipMaps = (int) Math.ceil(Math.log(value) / Math.log(2));
+			numberOfMipMaps = (int) Math.floor(Math.log(value) / Math.log(2)) + 1;
+		}
+		// TODO: implement bicubic or lanczos interpolation
+		switch (src.getFormat()) {
+			case ARGB:
+				return generateWithAlpha(src, numberOfMipMaps);
+			case GRAYSCALE:
+			case RGB:
+			default:
+				return generateWithoutAlpha(src, numberOfMipMaps);
+		}
+	}
+
+	private static Image[] generateWithAlpha(Image src, int numberOfMipMaps) {
+		final var tmpDiffuse = new BufferedImage[numberOfMipMaps];
+		final var tmpAlpha = new BufferedImage[numberOfMipMaps];
+
+		{
+			final var srcData = src.getData();
+			final var diffuseData = new byte[srcData.length / 4 * 3];
+			final var alphaData = new byte[srcData.length / 4];
+			for (int s = 0, d = 0, a = 0; s < srcData.length; s += 4, d += 3, a += 1) {
+				alphaData[a + 0] = srcData[s + 0];
+				diffuseData[d + 0] = srcData[s + 1];
+				diffuseData[d + 1] = srcData[s + 2];
+				diffuseData[d + 2] = srcData[s + 3];
+			}
+
+			tmpDiffuse[0] = AwtImageConverter.convertToBufferedImage(new Image(src.getWidth(), src.getHeight(), ImageFormat.RGB, diffuseData));
+			tmpAlpha[0] = AwtImageConverter.convertToBufferedImage(new Image(src.getWidth(), src.getHeight(), ImageFormat.GRAYSCALE, alphaData));
 		}
 
+		for (int i = 1; i < numberOfMipMaps; ++i) {
+			tmpDiffuse[i] = scaleDown(tmpDiffuse[i - 1]);
+			tmpAlpha[i] = scaleDown(tmpAlpha[i - 1]);
+		}
+
+		final var images = new Image[numberOfMipMaps];
+		images[0] = src;
+
+		for (int i = 1; i < images.length; ++i) {
+			final var diffuseImage = AwtImageConverter.convertToTextureImage(ImageFormat.RGB, tmpDiffuse[i]);
+			final var alphaImage = AwtImageConverter.convertToTextureImage(ImageFormat.GRAYSCALE, tmpAlpha[i]);
+
+			final var diffuseData = diffuseImage.getData();
+			final var alphaData = alphaImage.getData();
+			final var imageData = new byte[diffuseData.length + alphaData.length];
+
+			for (int s = 0, d = 0, a = 0; s < imageData.length; s += 4, d += 3, a += 1) {
+				imageData[s + 0] = alphaData[a + 0];
+				imageData[s + 1] = diffuseData[d + 0];
+				imageData[s + 2] = diffuseData[d + 1];
+				imageData[s + 3] = diffuseData[d + 2];
+			}
+
+			images[i] = new Image(diffuseImage.getWidth(), diffuseImage.getHeight(), ImageFormat.ARGB, imageData);
+		}
+
+		return images;
+	}
+
+	private static Image[] generateWithoutAlpha(Image src, int numberOfMipMaps) {
 		final var tmp = new BufferedImage[numberOfMipMaps];
 		tmp[0] = AwtImageConverter.convertToBufferedImage(src);
 		for (int i = 1; i < numberOfMipMaps; ++i) {
@@ -50,7 +110,8 @@ public final class TextureMipMapGenerator {
 		}
 
 		final var images = new Image[numberOfMipMaps];
-		for (int i = 0; i < images.length; ++i) {
+		images[0] = src;
+		for (int i = 1; i < images.length; ++i) {
 			images[i] = AwtImageConverter.convertToTextureImage(src.getFormat(), tmp[i]);
 		}
 
