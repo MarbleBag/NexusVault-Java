@@ -4,7 +4,6 @@
 
 	<modelVersion>4.0.0</modelVersion>
 
-	<groupId>nexusvault</groupId>
 	<artifactId>nexusvault.export.m3.gltf</artifactId>
 	<version>0.7.0</version>
 
@@ -12,8 +11,17 @@
 		<project.java.version>11</project.java.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+		<nexusvault.maven.repo.local.id>nexusvault.maven-repo</nexusvault.maven.repo.local.id>
+		<nexusvault.maven.repo.local.url>file:\\\${project.basedir}\..\nexusvault\maven-repo</nexusvault.maven.repo.local.url>
 	</properties>
-
+	
+	<repositories>
+		<repository>
+			<id>${nexusvault.maven.repo.local.id}</id>
+			<url>${nexusvault.maven.repo.local.url}</url>
+		</repository>
+	</repositories>
+		
 	<dependencies>
 		<dependency>
 			<groupId>nexusvault</groupId>
@@ -115,4 +123,5 @@
 			</resource>
 		</resources>
 	</build>
+	<groupId>nexusvault</groupId>
 </project>
