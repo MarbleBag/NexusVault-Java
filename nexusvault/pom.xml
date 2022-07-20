@@ -5,7 +5,7 @@
 
 	<groupId>nexusvault</groupId>
 	<artifactId>nexusvault</artifactId>
-	<version>5.0.2</version>
+	<version>5.0.3</version>
 	<packaging>jar</packaging>
 
 	<name>NexusVault</name>
