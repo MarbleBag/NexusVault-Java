@@ -12,7 +12,7 @@
 package nexusvault.format.m3.struct;
 
 import static kreed.reflection.struct.DataType.STRUCT;
-import static kreed.reflection.struct.DataType.UBIT_32;
+import static kreed.reflection.struct.DataType.UBIT_64;
 
 import kreed.reflection.struct.Order;
 import kreed.reflection.struct.StructField;
@@ -36,7 +36,7 @@ public final class StructUnk152 implements VisitableStruct {
 	}
 
 	@Order(1)
-	@StructField(UBIT_32)
+	@StructField(UBIT_64)
 	public long unk_value_000; // 0x000
 
 	@Order(2)
