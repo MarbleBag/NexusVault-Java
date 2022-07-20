@@ -321,12 +321,12 @@ public final class JPGImageReader {
 				context.componentsWidth);
 	}
 
-	private static void composite(Context context, int offset) {
-		for (int y = 0; y < Constants.BLOCK_HEIGHT; ++y, offset += context.componentsWidth) {
-			if (offset > context.image.length) {
+	private static void composite(Context context, int componentPixelOffset) {
+		for (int y = 0; y < Constants.BLOCK_HEIGHT; ++y, componentPixelOffset += context.componentsWidth) {
+			if (componentPixelOffset * 4 >= context.image.length) {
 				break;
 			}
-			for (int x = offset, p = offset * 4; x < offset + Constants.BLOCK_WIDTH; ++x, p += 4) {
+			for (int x = componentPixelOffset, p = componentPixelOffset * 4; x < componentPixelOffset + Constants.BLOCK_WIDTH; x += 1, p += 4) {
 				if (context.imageWidth <= x % context.componentsWidth) {
 					break;
 				}
